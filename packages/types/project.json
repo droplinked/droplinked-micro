@@ -15,7 +15,8 @@
   "targets": {
     "nx-release-publish": {
       "options": {
-        "packageRoot": "dist/{projectRoot}"
+        "packageRoot": "dist/{projectRoot}",
+        "access": "public"
       }
     }
   }
