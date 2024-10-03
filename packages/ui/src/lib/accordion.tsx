@@ -1,28 +1,27 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from "./../utils/cn/cn"
+import { cn } from '../utils/cn/cn';
 
-// Types
-type AccordionContextType = {
+type AppAccordionContextType = {
   expandedItems: string[];
   toggleItem: (id: string) => void;
   multiCollapse: boolean;
   alwaysOpen: boolean;
 };
 
-type AccordionItemContextType = {
+type AppAccordionItemContextType = {
   isOpen: boolean;
   onToggle: () => void;
 };
 
-interface AccordionProps {
+interface AppAccordionProps {
   children: ReactNode;
   multiCollapse?: boolean;
   alwaysOpen?: boolean;
   className?: string;
 }
 
-interface AccordionItemProps {
+interface AppAccordionItemProps {
   children:
     | ReactNode
     | ((props: { isOpen: boolean; onToggle: () => void }) => ReactNode);
@@ -32,45 +31,45 @@ interface AccordionItemProps {
   className?: string;
 }
 
-interface AccordionTriggerProps {
+interface AppAccordionTriggerProps {
   children: ReactNode;
   className?: string;
 }
 
-interface AccordionPanelProps {
+interface AppAccordionPanelProps {
   children: ReactNode;
   className?: string;
 }
 
-// Contexts
-const AccordionContext = createContext<AccordionContextType | undefined>(
+const AppAccordionContext = createContext<AppAccordionContextType | undefined>(
   undefined
 );
-const AccordionItemContext = createContext<
-  AccordionItemContextType | undefined
+const AppAccordionItemContext = createContext<
+  AppAccordionItemContextType | undefined
 >(undefined);
 
-// Hooks
-const useAccordionContext = () => {
-  const context = useContext(AccordionContext);
+const useAppAccordionContext = () => {
+  const context = useContext(AppAccordionContext);
   if (!context) {
-    throw new Error('Accordion components must be used within an Accordion');
+    throw new Error(
+      'AppAccordion components must be used within an AppAccordion'
+    );
   }
   return context;
 };
 
-const useAccordionItemContext = () => {
-  const context = useContext(AccordionItemContext);
+const useAppAccordionItemContext = () => {
+  const context = useContext(AppAccordionItemContext);
   if (!context) {
     throw new Error(
-      'AccordionItem components must be used within an AccordionItem'
+      'AppAccordionItem components must be used within an AppAccordionItem'
     );
   }
   return context;
 };
 
 // Components
-export const Accordion: React.FC<AccordionProps> = ({
+export const AppAccordion: React.FC<AppAccordionProps> = ({
   children,
   multiCollapse = false,
   alwaysOpen = false,
@@ -94,43 +93,43 @@ export const Accordion: React.FC<AccordionProps> = ({
   };
 
   return (
-    <AccordionContext.Provider
+    <AppAccordionContext.Provider
       value={{ expandedItems, toggleItem, multiCollapse, alwaysOpen }}
     >
       <div className={cn('w-full', className)}>{children}</div>
-    </AccordionContext.Provider>
+    </AppAccordionContext.Provider>
   );
 };
 
-export const AccordionItem: React.FC<AccordionItemProps> = ({
+export const AppAccordionItem: React.FC<AppAccordionItemProps> = ({
   children,
   defaultOpen = false,
   isCollapsable = true,
   itemId,
   className,
 }) => {
-  const { expandedItems, toggleItem } = useAccordionContext();
+  const { expandedItems, toggleItem } = useAppAccordionContext();
   const isOpen = expandedItems.includes(itemId) || defaultOpen;
   const onToggle = () => {
     if (isCollapsable) toggleItem(itemId);
   };
 
   return (
-    <AccordionItemContext.Provider value={{ isOpen, onToggle }}>
+    <AppAccordionItemContext.Provider value={{ isOpen, onToggle }}>
       <div className={cn('w-full', className)}>
         {typeof children === 'function'
           ? children({ isOpen, onToggle })
           : children}
       </div>
-    </AccordionItemContext.Provider>
+    </AppAccordionItemContext.Provider>
   );
 };
 
-export const AccordionTrigger: React.FC<AccordionTriggerProps> = ({
+export const AppAccordionTrigger: React.FC<AppAccordionTriggerProps> = ({
   children,
   className,
 }) => {
-  const { onToggle } = useAccordionItemContext();
+  const { onToggle } = useAppAccordionItemContext();
   return (
     <div
       className={cn(
@@ -144,11 +143,11 @@ export const AccordionTrigger: React.FC<AccordionTriggerProps> = ({
   );
 };
 
-export const AccordionPanel: React.FC<AccordionPanelProps> = ({
+export const AppAccordionPanel: React.FC<AppAccordionPanelProps> = ({
   children,
   className,
 }) => {
-  const { isOpen } = useAccordionItemContext();
+  const { isOpen } = useAppAccordionItemContext();
 
   return (
     <AnimatePresence initial={false}>
@@ -167,10 +166,10 @@ export const AccordionPanel: React.FC<AccordionPanelProps> = ({
   );
 };
 
-export const AccordionChevron: React.FC<{ className?: string }> = ({
+export const AppAccordionChevron: React.FC<{ className?: string }> = ({
   className,
 }) => {
-  const { isOpen } = useAccordionItemContext();
+  const { isOpen } = useAppAccordionItemContext();
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -192,40 +191,5 @@ export const AccordionChevron: React.FC<{ className?: string }> = ({
     >
       <polyline points="6 9 12 15 18 9"></polyline>
     </svg>
-  );
-};
-
-// Example usage
-export const ExampleAccordion: React.FC = () => {
-  return (
-    <Accordion multiCollapse alwaysOpen={false} className="space-y-2">
-      <AccordionItem itemId="1" className="border rounded-md">
-        <AccordionTrigger className="p-4">
-          <span>Item 1</span>
-          <AccordionChevron />
-        </AccordionTrigger>
-        <AccordionPanel className="px-4 pb-4">
-          <p>Content for Item 1</p>
-        </AccordionPanel>
-      </AccordionItem>
-      <AccordionItem itemId="2" className="border rounded-md">
-        <AccordionTrigger className="p-4">
-          <span>Item 2</span>
-          <AccordionChevron />
-        </AccordionTrigger>
-        <AccordionPanel className="px-4 pb-4">
-          <p>Content for Item 2</p>
-        </AccordionPanel>
-      </AccordionItem>
-      <AccordionItem itemId="3" className="border rounded-md">
-        <AccordionTrigger className="p-4">
-          <span>Item 3</span>
-          <AccordionChevron />
-        </AccordionTrigger>
-        <AccordionPanel className="px-4 pb-4">
-          <p>Content for Item 3</p>
-        </AccordionPanel>
-      </AccordionItem>
-    </Accordion>
   );
 };
