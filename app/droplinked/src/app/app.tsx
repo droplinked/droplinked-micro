@@ -9,18 +9,64 @@ import {
 import NxWelcome from './nx-welcome';
 
 import { Route, Routes, Link } from 'react-router-dom';
+import { createQueryString } from '@droplinked-micro/utils';
 
 export function App() {
+  console.log(
+    createQueryString(
+      {
+        utils: false,
+        arrayThings: ['asda', 'asdasd', 'asdfafsf'],
+      },
+      { arrayFormat: 'json' }
+    )
+  );
+  console.log(
+    createQueryString(
+      {
+        utils: false,
+        arrayThings: ['asda', 'asdasd', 'asdfafsf'],
+      },
+      { arrayFormat: 'comma' }
+    )
+  );
+  console.log(
+    createQueryString(
+      {
+        utils: false,
+        arrayThings: ['asda', 'asdasd', 'asdfafsf'],
+      },
+      { arrayFormat: 'repeat' }
+    )
+  );
   return (
     <div>
-      <AppAccordion multiCollapse alwaysOpen={false} className="space-y-2">
-        <AppAccordionItem itemId="1" className="border rounded-md">
+      <AppAccordion alwaysOpen={false}>
+        <AppAccordionItem itemId="1">
           <AppAccordionTrigger className="p-4 bg-red-900">
             <span>Item 1</span>
             <AppAccordionChevron />
           </AppAccordionTrigger>
           <AppAccordionPanel className="px-4 pb-4 bg-yellow-700">
-            <p>Content for Item 1</p>
+            <p>item</p>
+          </AppAccordionPanel>
+        </AppAccordionItem>
+        <AppAccordionItem itemId="2">
+          <AppAccordionTrigger className="p-4 bg-red-900">
+            <span>Item 2</span>
+            <AppAccordionChevron />
+          </AppAccordionTrigger>
+          <AppAccordionPanel className="px-4 pb-4 bg-yellow-700">
+            <p>item</p>
+          </AppAccordionPanel>
+        </AppAccordionItem>
+        <AppAccordionItem itemId="3" defaultOpen>
+          <AppAccordionTrigger className="p-4 bg-red-900">
+            <span>Item 3</span>
+            <AppAccordionChevron />
+          </AppAccordionTrigger>
+          <AppAccordionPanel className="px-4 pb-4 bg-yellow-700">
+            <p>item</p>
           </AppAccordionPanel>
         </AppAccordionItem>
       </AppAccordion>

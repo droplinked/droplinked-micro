@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@droplinked-micro/types": ["packages/types/src/index.ts"],
-      "@droplinked-micro/ui": ["packages/ui/src/index.ts"]
+      "@droplinked-micro/ui": ["packages/ui/src/index.ts"],
+      "@droplinked-micro/utils": ["packages/utils/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
