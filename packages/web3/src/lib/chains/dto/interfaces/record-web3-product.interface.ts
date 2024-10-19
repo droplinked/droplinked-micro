@@ -13,8 +13,6 @@ export interface IProductDetails {
   commission: number;
   type: ProductType;
   acceptsManageWallet: boolean;
-  nftContract: EthAddress;
-  shopAddress: EthAddress;
   currencyAddress: EthAddress;
   royalty: number;
 }
