@@ -62,9 +62,14 @@ async function getShopByteCode(contractType: ContractType): Promise<string> {
     [ContractType.TYPE2]: 'Type2',
     [ContractType.TYPE3]: 'Type3',
   };
-  const url = `https://apiv3dev.droplinked.com/storage/shopByteCode${shopByteCodesByType[contractType]}`;
-  const result = String((await axios.get(url)).data.value);
-  return result;
+  try {
+    const url = `https://apiv3dev.droplinked.com/storage/shopByteCode${shopByteCodesByType[contractType]}`;
+    const result = String((await axios.get(url)).data.value);
+    return result;
+  } catch (err) {
+    console.error(`Failed to get shop bytecode: ${err}`);
+    throw new Error(`Unable to get shop bytecode`);
+  }
 }
 
 async function getGasPrice(
