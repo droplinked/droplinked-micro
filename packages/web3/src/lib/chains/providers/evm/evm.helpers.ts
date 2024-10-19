@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios';
+import { ethers } from 'ethers';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function uploadMetadata(
@@ -15,4 +16,13 @@ export async function uploadMetadata(
     })
   ).data;
   return res.data;
+}
+
+export async function checkWallet(signer: ethers.Signer, address: string) {
+  if (
+    (await signer.getAddress()).toLocaleLowerCase() !==
+    address.toLocaleLowerCase()
+  ) {
+    throw new Error('Address does not match signer address');
+  }
 }
