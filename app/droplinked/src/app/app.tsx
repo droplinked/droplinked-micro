@@ -1,128 +1,158 @@
 import {
-  AppAccordion,
-  AppAccordionChevron,
-  AppAccordionItem,
-  AppAccordionPanel,
-  AppAccordionTrigger,
-  AppShow,
-} from '@droplinked-micro/ui';
-import NxWelcome from './nx-welcome';
+  Chain,
+  ChainWallet,
+  DropWeb3,
+  Network,
+  ProductType,
+} from '@droplinked/web3';
+import axios from 'axios';
+import {
+  IProductDetails,
+  ISKUDetails,
+} from 'packages/web3/src/lib/chains/dto/interfaces/record-web3-product.interface';
+import { FC } from 'react';
 
-import { Route, Routes, Link } from 'react-router-dom';
-import { createQueryString } from '@droplinked-micro/utils';
+interface IDeployParams {
+  chainName: Chain;
+}
+
+interface IRecordProduct {
+  chainName: Chain;
+  shopAddress: string;
+  nftContract: string;
+  walletAddress: string;
+}
+
+export const DeployShop: FC<IDeployParams> = (deployParams: IDeployParams) => {
+  return (
+    <button
+      onClick={async () => {
+        const web3 = new DropWeb3(
+          axios.create({
+            baseURL: 'https://apiv3dev.droplinked.com',
+          })
+        );
+        const binance = web3.web3Instance({
+          chain: deployParams.chainName,
+          network: Network.TESTNET,
+          preferredWallet: ChainWallet.Metamask,
+          userAddress: '0x734ce112E36B915a688D803FD9C57F339cBe410b',
+        });
+        const result = await binance.deployShop({
+          shopAddress: 'https://k3rn3lpanicc.com',
+          shopDescription: 'lol',
+          shopLogo: 'na',
+          shopName: 'k3rn3lpanic',
+          shopOwner: '0x734ce112E36B915a688D803FD9C57F339cBe410b',
+        });
+        console.log({ result });
+      }}
+    >
+      Deploy Shop on {Chain[deployParams.chainName]}
+    </button>
+  );
+};
+
+export const RecordProduct: FC<IRecordProduct> = (
+  recordParams: IRecordProduct
+) => {
+  return (
+    <button
+      onClick={async () => {
+        const web3 = new DropWeb3(
+          axios.create({
+            baseURL: 'https://apiv3dev.droplinked.com',
+          })
+        );
+        const binance = web3.web3Instance({
+          chain: recordParams.chainName,
+          network: Network.TESTNET,
+          preferredWallet: ChainWallet.Metamask,
+          userAddress: recordParams.walletAddress,
+          nftContractAddress: recordParams.nftContract,
+          shopContractAddress: recordParams.shopAddress,
+        });
+        const result = await binance.recordProduct(
+          {
+            acceptsManageWallet: true,
+            commission: 0,
+            currencyAddress: '0x0000000000000000000000000000000000000000',
+            description: 'desc',
+            productTitle: 'title',
+            royalty: 0,
+            skuProperties: {},
+            type: ProductType.DIGITAL,
+          },
+          {
+            amount: 1000,
+            beneficiaries: [],
+            imageUrl: 'https://k3rn3lpanic.img',
+            price: 1000,
+            skuID: '670fcb2ea6738730848f8933',
+          }
+        );
+        console.log({ result });
+      }}
+    >
+      Record Product on {Chain[recordParams.chainName]}
+    </button>
+  );
+};
 
 export function App() {
-  console.log(
-    createQueryString(
-      {
-        utils: false,
-        arrayThings: ['asda', 'asdasd', 'asdfafsf'],
-      },
-      { arrayFormat: 'json' }
-    )
-  );
-  console.log(
-    createQueryString(
-      {
-        utils: false,
-        arrayThings: ['asda', 'asdasd', 'asdfafsf'],
-      },
-      { arrayFormat: 'comma' }
-    )
-  );
-  console.log(
-    createQueryString(
-      {
-        utils: false,
-        arrayThings: ['asda', 'asdasd', 'asdfafsf'],
-      },
-      { arrayFormat: 'repeat' }
-    )
-  );
   return (
     <div>
-      <AppAccordion alwaysOpen={false}>
-        <AppAccordionItem itemId="1">
-          <AppAccordionTrigger className="p-4 bg-red-900">
-            <span>Item 1</span>
-            <AppAccordionChevron />
-          </AppAccordionTrigger>
-          <AppAccordionPanel className="px-4 pb-4 bg-yellow-700">
-            <p>item</p>
-          </AppAccordionPanel>
-        </AppAccordionItem>
-        <AppAccordionItem itemId="2">
-          <AppAccordionTrigger className="p-4 bg-red-900">
-            <span>Item 2</span>
-            <AppAccordionChevron />
-          </AppAccordionTrigger>
-          <AppAccordionPanel className="px-4 pb-4 bg-yellow-700">
-            <p>item</p>
-          </AppAccordionPanel>
-        </AppAccordionItem>
-        <AppAccordionItem itemId="3" defaultOpen>
-          <AppAccordionTrigger className="p-4 bg-red-900">
-            <span>Item 3</span>
-            <AppAccordionChevron />
-          </AppAccordionTrigger>
-          <AppAccordionPanel className="px-4 pb-4 bg-yellow-700">
-            <p>item</p>
-          </AppAccordionPanel>
-        </AppAccordionItem>
-      </AppAccordion>
-      <AppShow
-        show={{
-          when: false,
-          then: (
-            <button className="bg-blue-500 text-white px-4 py-2 rounded">
-              Access Granted
-            </button>
-          ),
-          else: {
-            when: false,
-            then: <span>ture</span>,
-            // else: <h1 className="text-lg">flase</h1>,
-          },
+      <button
+        onClick={async () => {
+          const web3 = new DropWeb3(
+            axios.create({
+              baseURL: 'https://apiv3dev.droplinked.com',
+            })
+          );
+          const chainProvider = web3.web3Instance({
+            chain: Chain.BASE,
+            network: Network.TESTNET,
+            preferredWallet: ChainWallet.Metamask,
+          });
+          const loginData = await chainProvider.walletLogin();
+          console.log({ loginData });
         }}
+      >
+        Login With Wallet
+      </button>
+      <br></br>
+      <br></br>
+      <button
+        onClick={async () => {
+          const web3 = new DropWeb3(
+            axios.create({
+              baseURL: 'https://apiv3dev.droplinked.com',
+            })
+          );
+          const info = await web3.getWalletInfo();
+          console.log({ info });
+        }}
+      >
+        Easy Login With Wallet
+      </button>
+      <br></br>
+      <br></br>
+      <DeployShop chainName={Chain.BINANCE} />
+      <br></br>
+      <DeployShop chainName={Chain.SKALE} />
+      <br></br>
+      <DeployShop chainName={Chain.POLYGON} />
+      <br></br>
+      <DeployShop chainName={Chain.BASE} />
+      <br></br>
+      <DeployShop chainName={Chain.REDBELLY} />
+      <br></br>
+      <RecordProduct
+        chainName={Chain.REDBELLY}
+        nftContract="0xEEBB0Ee8779e58c4ba881EB3BB2BEAd81ea3f119"
+        shopAddress="0x24780563F3b2a498D162ce420fE7788311517F0B"
+        walletAddress="0x734ce112E36B915a688D803FD9C57F339cBe410b"
       />
-      <NxWelcome title="droplinked" />
-
-      {/* START: routes */}
-      {/* These routes and navigation have been generated for you */}
-      {/* Feel free to move and update them to fit your needs */}
-      <br />
-      <hr />
-      <br />
-      <div role="navigation">
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/page-2">Page 2</Link>
-          </li>
-        </ul>
-      </div>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div>
-              This is the generated root route.{' '}
-              <Link to="/page-2">Click here for page 2.</Link>
-            </div>
-          }
-        />
-        <Route
-          path="/page-2"
-          element={
-            <div>
-              <Link to="/">Click here to go back to root page.</Link>
-            </div>
-          }
-        />
-      </Routes>
-      {/* END: routes */}
     </div>
   );
 }
