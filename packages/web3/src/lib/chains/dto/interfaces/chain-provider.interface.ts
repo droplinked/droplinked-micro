@@ -2,7 +2,7 @@ import { AxiosInstance } from 'axios';
 import { ChainWallet } from '../chains';
 import {
   AffiliateRequestData,
-  DeployedShop,
+  DeployShopResponse,
   EthAddress,
   RecordResponse,
   Uint256,
@@ -11,18 +11,13 @@ import { IChainPayment } from './chain-payment.interface';
 import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
 import { RecordProduct } from '../record.dto';
+import { IDeployShop } from './deploy-shop.interface';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IChainProvider {
   setAxiosInstance(axiosInstance: AxiosInstance): IChainProvider;
   walletLogin(): Promise<any>;
-  deployShop(
-    shopName: string,
-    shopAddress: string,
-    shopOwner: EthAddress,
-    shopLogo: string,
-    shopDescription: string
-  ): Promise<DeployedShop>;
+  deployShop(shopDetails: IDeployShop): Promise<DeployShopResponse>;
   recordProduct(
     productData: IProductDetails,
     skuData: ISKUDetails
