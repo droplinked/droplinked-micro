@@ -9,4 +9,5 @@ export type DroplinkedChainConfig = {
   network: Network;
   contractType: ContractType;
   address: string;
+  gasPredictable: boolean;
 };
