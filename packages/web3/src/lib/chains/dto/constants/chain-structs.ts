@@ -76,16 +76,16 @@ type AffiliateRequestData =
   | { transactionHash: string; requestId: Uint256; publisher: EthAddress }
   | undefined;
 
-type DeployedShop = {
-  shop: EthAddress;
-  nft: EthAddress;
+type DeployShopResponse = {
+  deployedShopAddress: EthAddress;
+  deployedNFTAddress: EthAddress;
   transactionHash: string;
 };
 
 export { NFTType, PaymentMethodType, ProductType };
 export type {
   AffiliateRequest,
-  DeployedShop,
+  DeployShopResponse,
   AffiliateRequestData,
   RecordResponse,
   Beneficiary,
