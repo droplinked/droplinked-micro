@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Buffer } from 'buffer';
 import { Chain, Network } from '../../dto/chains';
 import { ModalInterface } from '../../dto/interfaces/modal-interface.interface';
 import { AxiosInstance } from 'axios';
-import { WalletNotFoundException } from '../../dto/errors/chain-errors';
+import {
+  ChainSwitchException,
+  UserDeniedException,
+  WalletError,
+  WalletNotFoundException,
+} from '../../dto/errors/chain-errors';
 
 const chainNames = {
   [Chain.BINANCE]: {
     [Network.TESTNET]: {
       chainName: 'Smart Chain - Testnet',
       chainId: '0x61',
-      nativeCurrency: { name: 'BNB', decimals: 18, symbol: 'BNB' },
+      nativeCurrency: { name: 'TBNB', decimals: 18, symbol: 'tBNB' },
       rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
     },
     [Network.MAINNET]: {
@@ -161,18 +165,27 @@ export const isMetamaskInstalled = (): boolean => {
   const { ethereum } = window as any;
   return Boolean(ethereum && ethereum.isMetaMask);
 };
+
+// Utility: Check if Coinbase Wallet is installed
 export const isCoinBaseInstalled = (): boolean => {
   const { ethereum } = window as any;
   return Boolean(
     ethereum &&
-      ethereum.providers.find((x: any) => {
-        return x.isCoinbaseWallet;
-      }) !== -1
+      ethereum.providers?.some((provider: any) => provider.isCoinbaseWallet)
   );
 };
 
-export async function getAccounts(ethereum: any) {
-  return await ethereum.request({ method: 'eth_accounts' });
+// Utility: Get connected accounts
+export async function getAccounts(ethereum: any): Promise<string[]> {
+  try {
+    const accounts = await ethereum.request({ method: 'eth_accounts' });
+    if (!accounts || accounts.length === 0) {
+      return [];
+    }
+    return accounts;
+  } catch (error: any) {
+    throw new WalletError(`Failed to retrieve accounts: ${error}`);
+  }
 }
 
 export function isWalletInstalled(chain: string) {
@@ -204,39 +217,55 @@ export function isWalletInstalled(chain: string) {
   throw new WalletNotFoundException('Wallet not found');
 }
 
-export async function isWalletConnected(ethereum: any) {
+// Utility: Check if wallet is connected
+export async function isWalletConnected(ethereum: any): Promise<boolean> {
   const accounts = await getAccounts(ethereum);
-  return accounts && accounts[0] > 0;
+  return accounts && accounts.length > 0;
 }
 
+// Check if the chain is correct
 export async function isChainCorrect(
   ethereum: any,
   chain: Chain,
   network: Network
-) {
-  const chainId = await ethereum.request({ method: 'eth_chainId' });
-  return (
-    String(chainId).toLowerCase() ===
-    (chainNames as any)[chain][network].chainId.toLowerCase()
-  );
+): Promise<boolean> {
+  try {
+    const chainId = await ethereum.request({ method: 'eth_chainId' });
+    return (
+      String(chainId).toLowerCase() ===
+      (chainNames as any)[chain][network].chainId.toLowerCase()
+    );
+  } catch (error: any) {
+    throw new ChainSwitchException(
+      `Failed to verify the correct chain: ${error.message}`
+    );
+  }
 }
 
+// Switch to the correct chain
 export async function changeChain(
   ethereum: any,
   chain: Chain,
   network: Network
 ) {
-  await ethereum.request({
-    method: 'wallet_switchEthereumChain',
-    params: [{ chainId: (chainNames as any)[chain][network].chainId }],
-  });
+  try {
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: (chainNames as any)[chain][network].chainId }],
+    });
+  } catch (error: any) {
+    throw new ChainSwitchException(`Failed to switch chains: ${error.message}`);
+  }
 }
 
+// Request account access
 async function requestAccounts(ethereum: any) {
   try {
     return await ethereum.request({ method: 'eth_requestAccounts' });
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    throw new UserDeniedException(
+      `User denied account access: ${error.message}`
+    );
   }
 }
 
@@ -261,44 +290,51 @@ export async function evmLogin(
 ): Promise<{
   address: string;
   signature: string;
+  nonce: number;
+  date: string;
 }> {
   const ethereum = provider.provider;
 
-  modalInterface.waiting('Connecting to wallet...');
-  if (!(await isWalletConnected(ethereum))) {
-    modalInterface.waiting('Connecting to wallet');
-    await requestAccounts(ethereum);
-  }
+  try {
+    modalInterface.waiting('Connecting to wallet...');
 
-  const address = (await getAccounts(ethereum))[0];
-  try {
+    if (!(await isWalletConnected(ethereum))) {
+      modalInterface.waiting('Requesting account access...');
+      await requestAccounts(ethereum);
+    }
+
+    const address = (await getAccounts(ethereum))[0];
+
+    // Switch to the correct chain
+    modalInterface.waiting('Switching to the correct chain...');
+    await changeChain(ethereum, chain, network);
+
+    // Optionally add the chain
     const chainDetails = (chainNames as any)[chain][network];
-    modalInterface.waiting('Adding chain...');
-    await (window as any).ethereum.request({
-      method: 'wallet_addEthereumChain',
-      params: [
-        {
-          chainName: chainDetails.chainName,
-          chainId: chainDetails.chainId,
-          nativeCurrency: chainDetails.nativeCurrency,
-          rpcUrls: chainDetails.rpcUrls,
-        },
-      ],
-    });
-  } catch (err) {
-    modalInterface.error(err as any);
-    console.log(err);
-  }
-  await changeChain(ethereum, chain, network);
-  modalInterface.waiting('Signing message...');
-  try {
-    const msg = `0x${Buffer.from(
-      `Please sign this message to let droplinked view your PublicKey & Address and validate your identity`,
-      'utf8'
-    ).toString('hex')}`;
+    try {
+      modalInterface.waiting('Adding chain...');
+      await ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [
+          {
+            chainName: chainDetails.chainName,
+            chainId: chainDetails.chainId,
+            nativeCurrency: chainDetails.nativeCurrency,
+            rpcUrls: chainDetails.rpcUrls,
+          },
+        ],
+      });
+    } catch (err) {
+      console.warn(
+        'Chain already added or error occurred while adding chain:',
+        err
+      );
+    }
+
+    // Handle SKALE-specific fuel distribution
     if (chain === Chain.SKALE) {
       const distributionRequest = (
-        await axiosInstance.post(`shop/sFuelDistribution`, {
+        await axiosInstance.post('shop/sFuelDistribution', {
           wallet: address,
           isTestnet: network === Network.TESTNET,
         })
@@ -306,24 +342,33 @@ export async function evmLogin(
       console.log(distributionRequest);
     }
 
-    const signature = await ethereum.request({
-      method: 'personal_sign',
-      params: [msg, address],
-    });
-    return {
-      address: address,
-      signature: signature,
-    };
+    // Sign the message
+    modalInterface.waiting('Signing message...');
+    // Generate a nonce for added security
+    const nonce = Math.floor(Math.random() * 10000000);
+
+    // Get the current date and time for transparency
+    const currentDate = new Date().toLocaleString();
+    const message = `Welcome to Droplinked!
+      
+      Please sign this message to verify your identity and securely log in.
+      
+      - Nonce: ${nonce}
+      - Date: ${currentDate}
+      
+      This action will not incur any gas fees or blockchain transactions.`;
+
+    const signer = provider.getSigner();
+
+    const signature = await signer.signMessage(message);
+
+    return { address, signature, nonce, date: currentDate };
   } catch (err) {
     modalInterface.error(
-      ((err as any).code as number) === 4001
-        ? 'User rejected the signing'
-        : (err as string)
+      err instanceof UserDeniedException
+        ? 'User denied the request'
+        : 'An error occurred while connecting to the wallet'
     );
-    throw new Error(
-      ((err as any).code as number) === 4001
-        ? 'User rejected the signing'
-        : (err as string)
-    );
+    throw err;
   }
 }
