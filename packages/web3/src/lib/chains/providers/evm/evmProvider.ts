@@ -2,6 +2,7 @@
 import { ethers } from 'ethers';
 import {
   AffiliateRequestData,
+  DeployShopResponse,
   EthAddress,
   RecordResponse,
   Uint256,
@@ -12,7 +13,7 @@ import {
   defaultModal,
 } from '../../dto/interfaces/modal-interface.interface';
 import { EVMApproveRequest, EVMDisapproveRequest } from './evmAffiliate';
-import { EVMDeployShop } from './evmDeployShop';
+import { deployEVMShop } from './evmDeployShop';
 import {
   evmLogin,
   isMetamaskInstalled,
@@ -36,6 +37,7 @@ import { WalletNotFoundException } from '../../dto/errors/chain-errors';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
+import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -47,15 +49,18 @@ export class EVMProvider implements IChainProvider {
   contractType: ContractType;
   nftContractAddress?: string;
   shopContractAddress?: string;
+  gasPredictable: boolean;
 
   constructor(
     _chain: Chain,
     _network: Network,
-    _contractType: ContractType = ContractType.TYPE0
+    _contractType: ContractType = ContractType.TYPE0,
+    gasPredictable: boolean
   ) {
     this.chain = _chain;
     this.network = _network;
     this.contractType = _contractType;
+    this.gasPredictable = gasPredictable;
   }
 
   setAxiosInstance(axiosInstance: AxiosInstance) {
@@ -129,26 +134,15 @@ export class EVMProvider implements IChainProvider {
     }
   }
 
-  async deployShop(
-    shopName: string,
-    shopAddress: string,
-    shopOwner: string,
-    shopLogo: string,
-    shopDescription: string
-  ): Promise<any> {
+  async deployShop(shopDetails: IDeployShop): Promise<DeployShopResponse> {
     await this.handleWallet(this.address);
-    return await EVMDeployShop(
-      this.getWalletProvider(),
-      this.chain,
-      this.network,
-      this.address,
-      shopName,
-      shopAddress,
-      shopOwner,
-      shopLogo,
-      shopDescription,
-      this.modalInterface,
-      this.contractType
+    return await deployEVMShop(
+      this.getChainConfig(),
+      {
+        axiosInstance: this.axiosInstance,
+        modalInterface: this.modalInterface,
+      },
+      shopDetails
     );
   }
 
@@ -221,6 +215,7 @@ export class EVMProvider implements IChainProvider {
       contractType: this.contractType,
       network: this.network,
       provider: this.getWalletProvider(),
+      gasPredictable: this.gasPredictable,
     };
   }
 
@@ -234,7 +229,7 @@ export class EVMProvider implements IChainProvider {
   }
 
   async walletLogin() {
-    const { address, signature } = await evmLogin(
+    const { address, signature, date, nonce } = await evmLogin(
       this.getWalletProvider(),
       this.chain,
       this.network,
@@ -242,12 +237,21 @@ export class EVMProvider implements IChainProvider {
       this.axiosInstance
     );
     this.address = address;
-    return { address, signature };
+    return { address, signature, date, nonce };
   }
+
+  checkDeployment() {
+    if (!this.nftContractAddress)
+      throw new Error('NFT contract address not set');
+    if (!this.shopContractAddress)
+      throw new Error('Shop contract address not set');
+  }
+
   async recordProduct(
     productData: IProductDetails,
     skuData: ISKUDetails
   ): Promise<RecordResponse> {
+    this.checkDeployment();
     await this.handleWallet(this.address);
     return await recordProduct(
       this.getChainConfig(),
@@ -258,6 +262,7 @@ export class EVMProvider implements IChainProvider {
   }
 
   async recordBatch(products: RecordProduct[]): Promise<RecordResponse> {
+    this.checkDeployment();
     await this.handleWallet(this.address);
     return await recordBatch(
       this.getChainConfig(),
@@ -285,6 +290,7 @@ export class EVMProvider implements IChainProvider {
     requestId: Uint256,
     shopAddress: EthAddress
   ): Promise<string> {
+    this.checkDeployment();
     await this.handleWallet(this.address);
     return await EVMApproveRequest(
       this.getWalletProvider(),
@@ -300,6 +306,7 @@ export class EVMProvider implements IChainProvider {
     requestId: Uint256,
     shopAddress: EthAddress
   ): Promise<string> {
+    this.checkDeployment();
     await this.handleWallet(this.address);
     return await EVMDisapproveRequest(
       this.getWalletProvider(),
