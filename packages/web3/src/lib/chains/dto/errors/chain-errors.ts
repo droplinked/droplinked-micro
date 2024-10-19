@@ -57,13 +57,6 @@ export class RequestNotConfirmed {
   }
 }
 
-export class WalletNotFoundException {
-  public readonly message: string = '';
-  constructor(field: string) {
-    this.message = field;
-  }
-}
-
 export class AccountChangedException {
   public readonly message: string = '';
   constructor(field: string) {
@@ -84,3 +77,70 @@ export class MetadataUploadFailedException {
     this.message = field;
   }
 }
+
+class WalletError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'WalletError';
+  }
+}
+
+class WalletNotFoundException extends WalletError {
+  constructor(message = 'EVM Wallet not found') {
+    super(message);
+    this.name = 'WalletNotFoundException';
+  }
+}
+
+class MetaMaskNotFoundException extends WalletError {
+  constructor(message = 'MetaMask is not installed') {
+    super(message);
+    this.name = 'MetaMaskNotFoundException';
+  }
+}
+
+class AccountAccessDeniedException extends WalletError {
+  constructor(message = 'Account access request denied by the user') {
+    super(message);
+    this.name = 'AccountAccessDeniedException';
+  }
+}
+
+class NoAccountsFoundException extends WalletError {
+  constructor(message = 'No accounts were found in the wallet') {
+    super(message);
+    this.name = 'NoAccountsFoundException';
+  }
+}
+
+class SignatureRequestDeniedException extends WalletError {
+  constructor(message = 'Signature request was denied by the user') {
+    super(message);
+    this.name = 'SignatureRequestDeniedException';
+  }
+}
+
+class ChainSwitchException extends WalletError {
+  constructor(message = 'Failed to switch chains') {
+    super(message);
+    this.name = 'ChainSwitchException';
+  }
+}
+
+class UserDeniedException extends WalletError {
+  constructor(message = 'User denied the request') {
+    super(message);
+    this.name = 'UserDeniedException';
+  }
+}
+
+export {
+  MetaMaskNotFoundException,
+  NoAccountsFoundException,
+  WalletError,
+  AccountAccessDeniedException,
+  SignatureRequestDeniedException,
+  WalletNotFoundException,
+  ChainSwitchException,
+  UserDeniedException,
+};
