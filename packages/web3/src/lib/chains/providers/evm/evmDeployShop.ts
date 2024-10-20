@@ -58,12 +58,13 @@ async function getConstructorArgs(
   contractType: ContractType,
   shopDetails: IDeployShop,
   deployerAddress: EthAddress,
-  chainConfig: DroplinkedChainConfig
+  chainConfig: DroplinkedChainConfig,
+  address: string
 ) {
   const commonArgs = [
     shopDetails.shopName || '',
     shopDetails.shopAddress || '',
-    shopDetails.shopOwner,
+    address,
     shopDetails.shopLogo || '',
     shopDetails.shopDescription || '',
     deployerAddress,
@@ -136,7 +137,8 @@ export async function deployEVMShop(
     contractType,
     shopDetails,
     deployerAddress,
-    chainConfig
+    chainConfig,
+    address
   );
 
   modalInterface.waiting('created constructor args');
