@@ -1,9 +1,12 @@
+import { ethers } from 'ethers';
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IChainPayment {
-  chainLinkRoundId: string;
+  chainLinkRoundId?: string;
   totalPrice: any;
-  tbdValues: number[];
+  tbdValues: number[] | ethers.BigNumber[];
   tbdReceivers: string[];
+  tokenAddress?: string;
   cartItems: {
     id: number;
     amount: number;
