@@ -7,7 +7,6 @@ import {
   RecordResponse,
   Uint256,
 } from '../constants/chain-structs';
-import { IChainPayment } from './chain-payment.interface';
 import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
 import { RecordProduct } from '../record.dto';
@@ -37,8 +36,8 @@ export interface IChainProvider {
     shopAddress: EthAddress
   ): Promise<string>;
   payment(
-    data: IChainPayment
-  ): Promise<{ deploy_hash: string; cryptoAmount: any }>;
+    cartID: string
+  ): Promise<{ transactionHash: string; cryptoAmount: any }>;
   paymentWithToken(
     receiver: string,
     amount: number,
