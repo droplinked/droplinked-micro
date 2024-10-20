@@ -7,7 +7,6 @@ import {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface IProductDetails {
-  skuProperties: any;
   productTitle: string;
   description: string;
   commission: number;
@@ -18,6 +17,7 @@ export interface IProductDetails {
 }
 
 export interface ISKUDetails {
+  skuProperties: any;
   imageUrl: string;
   price: number;
   amount: number;
