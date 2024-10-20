@@ -14,13 +14,20 @@ import {
 } from '../web3';
 import { Web3ChainConfig } from './dto/configs/web3-config';
 import { IChainProvider } from './dto/interfaces/chain-provider.interface';
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { getAccounts } from './providers/evm/evmLogin';
 import { ethers } from 'ethers';
 export class DropWeb3 {
   private axiosInstance: AxiosInstance;
-  constructor(axiosInstance: AxiosInstance) {
-    this.axiosInstance = axiosInstance;
+  private network: Network;
+  constructor(workingNetwork: Network) {
+    this.axiosInstance = axios.create({
+      baseURL:
+        workingNetwork === Network.TESTNET
+          ? 'https://apiv3dev.droplinked.com'
+          : 'https://apiv3.droplinked.com',
+    });
+    this.network = workingNetwork;
   }
   private chainMapping = {
     [Chain.BINANCE]: {
@@ -154,8 +161,19 @@ export class DropWeb3 {
   };
 
   web3Instance(config: Web3ChainConfig): IChainProvider {
-    const { chain, network, modalInterface, preferredWallet, userAddress } =
-      config;
+    const network = this.network;
+    const { chain, modalInterface, preferredWallet } = config;
+    let userAddress = '';
+    let nftContractAddress = '';
+    let shopContractAddress = '';
+
+    if (config.method === 'record-affiliate') {
+      userAddress = config.userAddress;
+      nftContractAddress = config.nftContractAddress;
+      shopContractAddress = config.shopContractAddress;
+    } else if (config.method === 'deploy') {
+      userAddress = config.userAddress;
+    }
 
     if (this.chainMapping[chain][network] == null)
       throw new ChainNotImplementedException(
@@ -167,8 +185,8 @@ export class DropWeb3 {
       .setModal(modalInterface || new defaultModal())
       .setWallet(preferredWallet)
       .setAxiosInstance(this.axiosInstance)
-      .setNFTContractAddress(config.nftContractAddress || '')
-      .setShopContractAddress(config.shopContractAddress || '');
+      .setNFTContractAddress(nftContractAddress || '')
+      .setShopContractAddress(shopContractAddress || '');
   }
 
   async getWalletInfo() {
