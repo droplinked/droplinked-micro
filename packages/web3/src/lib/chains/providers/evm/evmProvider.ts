@@ -34,7 +34,6 @@ import {
   ISKUDetails,
 } from '../../dto/interfaces/record-web3-product.interface';
 import { WalletNotFoundException } from '../../dto/errors/chain-errors';
-import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
@@ -320,8 +319,8 @@ export class EVMProvider implements IChainProvider {
   }
 
   async payment(
-    data: IChainPayment
-  ): Promise<{ deploy_hash: string; cryptoAmount: any }> {
+    cartID: string
+  ): Promise<{ transactionHash: string; cryptoAmount: any }> {
     // if (this.wallet !== ChainWallet.BaseSmartWallet)
     // await this.handleWallet(this.address);
     // return await EVMPayment(
@@ -331,8 +330,8 @@ export class EVMProvider implements IChainProvider {
     //   this.address,
     //   data
     // );
-    console.log({ data });
-    return { deploy_hash: '', cryptoAmount: 0 };
+    console.log({ cartID });
+    return { transactionHash: '', cryptoAmount: 0 };
   }
 
   async paymentWithToken(
