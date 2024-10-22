@@ -5495,6 +5495,639 @@ const type3ShopABI = [
   },
 ];
 
+const type3ProxyABI = [
+  {
+    inputs: [],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableInvalidOwner',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableUnauthorizedAccount',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'priceTimestamp',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'currentTimestamp',
+        type: 'uint256',
+      },
+    ],
+    name: 'oldPrice',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnershipTransferred',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
+      },
+    ],
+    name: 'ProductPurchased',
+    type: 'event',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256[]',
+        name: 'tbdValues',
+        type: 'uint256[]',
+      },
+      {
+        internalType: 'address[]',
+        name: 'tbdReceivers',
+        type: 'address[]',
+      },
+      {
+        components: [
+          {
+            internalType: 'uint256',
+            name: 'id',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'bool',
+            name: 'isAffiliate',
+            type: 'bool',
+          },
+          {
+            internalType: 'address',
+            name: 'shopAddress',
+            type: 'address',
+          },
+        ],
+        internalType: 'struct PurchaseData[]',
+        name: 'cartItems',
+        type: 'tuple[]',
+      },
+      {
+        internalType: 'address',
+        name: 'currency',
+        type: 'address',
+      },
+      {
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
+      },
+    ],
+    name: 'droplinkedPurchase',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'owner',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'renounceOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+];
+
+const type0ProxyABI = [
+  {
+    inputs: [],
+    name: 'InvalidInitialization',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'NotInitializing',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableInvalidOwner',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableUnauthorizedAccount',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'priceTimestamp',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'currentTimestamp',
+        type: 'uint256',
+      },
+    ],
+    name: 'oldPrice',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'newHeartBeat',
+        type: 'uint256',
+      },
+    ],
+    name: 'HeartBeatChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint64',
+        name: 'version',
+        type: 'uint64',
+      },
+    ],
+    name: 'Initialized',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnershipTransferred',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
+      },
+    ],
+    name: 'ProductPurchased',
+    type: 'event',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_heartBeat',
+        type: 'uint256',
+      },
+    ],
+    name: 'changeHeartBeat',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256[]',
+        name: 'tbdValues',
+        type: 'uint256[]',
+      },
+      {
+        internalType: 'address[]',
+        name: 'tbdReceivers',
+        type: 'address[]',
+      },
+      {
+        components: [
+          {
+            internalType: 'uint256',
+            name: 'id',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'bool',
+            name: 'isAffiliate',
+            type: 'bool',
+          },
+          {
+            internalType: 'address',
+            name: 'shopAddress',
+            type: 'address',
+          },
+        ],
+        internalType: 'struct PurchaseData[]',
+        name: 'cartItems',
+        type: 'tuple[]',
+      },
+      {
+        internalType: 'address',
+        name: 'currency',
+        type: 'address',
+      },
+      {
+        internalType: 'uint80',
+        name: 'roundId',
+        type: 'uint80',
+      },
+      {
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
+      },
+    ],
+    name: 'droplinkedPurchase',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'heartBeat',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_heartBeat',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: '_chainLinkProvider',
+        type: 'address',
+      },
+    ],
+    name: 'initialize',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'owner',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'renounceOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+];
+
+const type1ProxyABI = [
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_heartBeat',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: '_chainLinkProvider',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableInvalidOwner',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableUnauthorizedAccount',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'priceTimestamp',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'currentTimestamp',
+        type: 'uint256',
+      },
+    ],
+    name: 'oldPrice',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'newHeartBeat',
+        type: 'uint256',
+      },
+    ],
+    name: 'HeartBeatChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnershipTransferred',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
+      },
+    ],
+    name: 'ProductPurchased',
+    type: 'event',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_heartBeat',
+        type: 'uint256',
+      },
+    ],
+    name: 'changeHeartBeat',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256[]',
+        name: 'tbdValues',
+        type: 'uint256[]',
+      },
+      {
+        internalType: 'address[]',
+        name: 'tbdReceivers',
+        type: 'address[]',
+      },
+      {
+        components: [
+          {
+            internalType: 'uint256',
+            name: 'id',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'bool',
+            name: 'isAffiliate',
+            type: 'bool',
+          },
+          {
+            internalType: 'address',
+            name: 'shopAddress',
+            type: 'address',
+          },
+        ],
+        internalType: 'struct PurchaseData[]',
+        name: 'cartItems',
+        type: 'tuple[]',
+      },
+      {
+        internalType: 'address',
+        name: 'currency',
+        type: 'address',
+      },
+      {
+        internalType: 'uint80',
+        name: 'roundId',
+        type: 'uint80',
+      },
+      {
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
+      },
+    ],
+    name: 'droplinkedPurchase',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'heartBeat',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'owner',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'renounceOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+];
+
 function getShopABI(contractType: ContractType) {
   switch (contractType) {
     case ContractType.TYPE0:
@@ -5505,6 +6138,19 @@ function getShopABI(contractType: ContractType) {
       return type2ShopABI;
     case ContractType.TYPE3:
       return type3ShopABI;
+  }
+}
+
+async function getPaymentProxyABI(contractType: ContractType) {
+  switch (contractType) {
+    case ContractType.TYPE0:
+      return type0ProxyABI;
+    case ContractType.TYPE1:
+      return type1ProxyABI;
+    case ContractType.TYPE3:
+      return type3ProxyABI;
+    default:
+      throw new Error(`Unsupported contract type: ${contractType}`);
   }
 }
 
@@ -6025,4 +6671,4 @@ const erc20ABI = [
   },
 ];
 
-export { deployerABI, getShopABI, erc20ABI };
+export { deployerABI, getShopABI, erc20ABI, getPaymentProxyABI };
