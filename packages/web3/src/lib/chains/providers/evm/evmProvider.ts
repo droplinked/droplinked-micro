@@ -89,13 +89,12 @@ export class EVMProvider implements IChainProvider {
 
   getWalletProvider() {
     const ethereum = (window as any).ethereum;
-    if (!ethereum)
-      throw new WalletNotFoundException('No EVM Wallet is installed');
+    if (!ethereum) throw new WalletNotFoundException();
     // multiple wallet installed
     if (ethereum.providerMap) {
       if (this.wallet === ChainWallet.Metamask) {
         if (!ethereum.providerMap.get('MetaMask'))
-          throw new WalletNotFoundException('Metamask is not installed');
+          throw new WalletNotFoundException();
         return new ethers.providers.Web3Provider(
           ethereum.providers.find((x: any) => {
             return x.isMetaMask;
@@ -103,7 +102,7 @@ export class EVMProvider implements IChainProvider {
         );
       } else if (this.wallet === ChainWallet.CoinBase) {
         if (!ethereum.providerMap.get('CoinbaseWallet'))
-          throw new WalletNotFoundException('Coinbase wallet not found');
+          throw new WalletNotFoundException();
         return new ethers.providers.Web3Provider(
           ethereum.providers.find((x: any) => {
             return x.isCoinbaseWallet;
@@ -111,7 +110,7 @@ export class EVMProvider implements IChainProvider {
         );
       } else if (this.wallet === ChainWallet.Phantom) {
         if (!ethereum.providerMap.get('CoinbaseWallet'))
-          throw new WalletNotFoundException('Coinbase wallet not found');
+          throw new WalletNotFoundException();
         return new ethers.providers.Web3Provider(
           ethereum.providers.find((x: any) => {
             return x.isCoinbaseWallet;
@@ -124,10 +123,10 @@ export class EVMProvider implements IChainProvider {
       // single wallet installed
       if (this.wallet === ChainWallet.CoinBase) {
         if (!(window as any).ethereum.isCoinbaseWallet)
-          throw new WalletNotFoundException('Coinbase wallet not found');
+          throw new WalletNotFoundException();
       } else if (this.wallet === ChainWallet.Metamask) {
         if (!(window as any).ethereum.isMetaMask)
-          throw new WalletNotFoundException('Metamask wallet not found');
+          throw new WalletNotFoundException();
       }
       return new ethers.providers.Web3Provider((window as any).ethereum);
     }
@@ -153,7 +152,7 @@ export class EVMProvider implements IChainProvider {
   async handleWallet(_address: string) {
     if (!isMetamaskInstalled()) {
       this.modalInterface.error('Metamask is not installed');
-      throw new WalletNotFoundException('Metamask is not installed');
+      throw new WalletNotFoundException();
     }
     this.modalInterface.waiting('Getting accounts...');
     const provider = this.getWalletProvider();
