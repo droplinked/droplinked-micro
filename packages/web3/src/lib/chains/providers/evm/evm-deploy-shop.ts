@@ -198,7 +198,7 @@ export async function deployEVMShop(
     modalInterface.error('Error during deployment.');
     if (e.code.toString() === 'ACTION_REJECTED') {
       modalInterface.error('Transaction Rejected');
-      throw new UserDeniedException('ShopDeployment Rejected by user');
+      throw new UserDeniedException();
     }
     try {
       const err = contract.interface.parseError(e.data);

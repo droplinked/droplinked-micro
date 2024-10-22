@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Chain, Network } from './dto/chains';
-import { EVMProvider } from './providers/evm/evmProvider';
+import { EVMProvider } from './providers/evm/evm-provider';
 import { ContractType } from './dto/constants/chain-constants';
 import {
   AccountAccessDeniedException,
@@ -15,7 +15,7 @@ import {
 import { Web3ChainConfig } from './dto/configs/web3-config';
 import { IChainProvider } from './dto/interfaces/chain-provider.interface';
 import axios, { AxiosInstance } from 'axios';
-import { getAccounts } from './providers/evm/evmLogin';
+import { getAccounts } from './providers/evm/evm-login';
 import { ethers } from 'ethers';
 export class DropWeb3 {
   private axiosInstance: AxiosInstance;
@@ -195,7 +195,7 @@ export class DropWeb3 {
 
       // Check if an Ethereum provider is available
       if (!ethereum) {
-        throw new WalletNotFoundException('No EVM Wallet is installed');
+        throw new WalletNotFoundException();
       }
 
       // Check if MetaMask is installed
@@ -208,7 +208,8 @@ export class DropWeb3 {
         await ethereum.request({ method: 'eth_requestAccounts' });
       } catch (error: any) {
         // Handle case when user denies account access
-        throw new AccountAccessDeniedException(error.message);
+        console.error(error);
+        throw new AccountAccessDeniedException();
       }
 
       const nonce = Math.floor(Math.random() * 10000000);
@@ -247,8 +248,9 @@ export class DropWeb3 {
         const signer = provider.getSigner();
         signature = await signer.signMessage(message);
       } catch (error: any) {
+        console.error(error);
         // Handle case where the user refuses to sign the message
-        throw new SignatureRequestDeniedException(error.message);
+        throw new SignatureRequestDeniedException();
       }
 
       // Return the wallet information

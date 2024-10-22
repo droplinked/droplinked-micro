@@ -12,8 +12,8 @@ import {
   ModalInterface,
   defaultModal,
 } from '../../dto/interfaces/modal-interface.interface';
-import { EVMApproveRequest, EVMDisapproveRequest } from './evmAffiliate';
-import { deployEVMShop } from './evmDeployShop';
+import { EVMApproveRequest, EVMDisapproveRequest } from './evm-affiliate';
+import { deployEVMShop } from './evm-deploy-shop';
 import {
   evmLogin,
   isMetamaskInstalled,
@@ -21,11 +21,11 @@ import {
   isWalletConnected,
   isChainCorrect,
   changeChain,
-} from './evmLogin';
+} from './evm-login';
 import { EVMPublishRequest } from './evmPublish';
 import { recordBatch, recordProduct } from './evmRecord';
 import { RecordProduct } from '../../dto/record.dto';
-import { getERC20TokenTransferABI } from './evmConstants';
+import { getERC20TokenTransferABI } from './evm-constants';
 import axios, { AxiosInstance } from 'axios';
 import { ContractType } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';

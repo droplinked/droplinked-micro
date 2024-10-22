@@ -19,6 +19,10 @@ import {
   Unauthorized,
   UserDeniedException,
 } from '../../../web3';
+import {
+  SkaleUsdcAddressForMainnet,
+  SkaleUsdcAddressForTestnet,
+} from './evm-constants';
 
 /**
  * Handles the approval of custom tokens before making a purchase.
@@ -336,8 +340,8 @@ const skalePayment = async function (
   try {
     const usdcAddress =
       network === Network.TESTNET
-        ? '0x2aebcdc4f9f9149a50422fff86198cb0939ea165'
-        : '0x7Cf76E740Cb23b99337b21F392F22c47Ad910c67';
+        ? SkaleUsdcAddressForTestnet
+        : SkaleUsdcAddressForMainnet;
     const usdcContract = new ethers.Contract(usdcAddress, erc20ABI, signer);
 
     const userTokenBalance = await usdcContract['balanceOf'](address);
