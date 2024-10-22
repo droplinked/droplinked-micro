@@ -22,8 +22,8 @@ import {
   isChainCorrect,
   changeChain,
 } from './evm-login';
-import { EVMPublishRequest } from './evmPublish';
-import { recordBatch, recordProduct } from './evmRecord';
+import { EVMPublishRequest } from './evm-publish';
+import { recordBatch, recordProduct } from './evm-record';
 import { RecordProduct } from '../../dto/record.dto';
 import { getERC20TokenTransferABI } from './evm-constants';
 import axios, { AxiosInstance } from 'axios';
