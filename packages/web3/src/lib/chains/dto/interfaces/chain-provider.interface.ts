@@ -9,7 +9,6 @@ import {
 } from '../constants/chain-structs';
 import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
-import { RecordProduct } from '../record.dto';
 import { IDeployShop } from './deploy-shop.interface';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -19,12 +18,7 @@ export interface IChainProvider {
   deployShop(shopDetails: IDeployShop): Promise<DeployShopResponse>;
   recordProduct(
     productData: IProductDetails,
-    skuData: ISKUDetails
-  ): Promise<RecordResponse>;
-  recordBatch(
-    products: RecordProduct[],
-    shopAddress: string,
-    nftContract: string
+    skuData: ISKUDetails[]
   ): Promise<RecordResponse>;
   publishRequest(
     productId: Uint256,
