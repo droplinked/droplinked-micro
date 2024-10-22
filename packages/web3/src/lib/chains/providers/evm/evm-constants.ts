@@ -26,9 +26,11 @@ function getERC20TokenTransferABI() {
   ];
 }
 
-export const SkaleUsdcAddressForTestnet =
-  '0x2aebcdc4f9f9149a50422fff86198cb0939ea165';
-export const SkaleUsdcAddressForMainnet =
-  '0x7Cf76E740Cb23b99337b21F392F22c47Ad910c67';
+const SkaleUsdcAddressForTestnet = '0x2aebcdc4f9f9149a50422fff86198cb0939ea165';
+const SkaleUsdcAddressForMainnet = '0x7Cf76E740Cb23b99337b21F392F22c47Ad910c67';
 
-export { getERC20TokenTransferABI };
+export {
+  getERC20TokenTransferABI,
+  SkaleUsdcAddressForMainnet,
+  SkaleUsdcAddressForTestnet,
+};
