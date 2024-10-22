@@ -2,40 +2,147 @@
 import { ethers } from 'ethers';
 import { Chain, Network, getGasPrice } from '../../dto/chains';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
-import { erc20ABI } from '../../dto/constants/chain-abis';
+import { erc20ABI, getPaymentProxyABI } from '../../dto/constants/chain-abis';
 import {
-  getPaymentProxyABI,
   getProxyAddress,
+  ZERO_ADDRESS,
 } from '../../dto/constants/chain-constants';
+import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
+import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
+import { isAddress } from 'ethers/lib/utils';
 
+import {
+  InsufficientBalanceException,
+  InsufficientTokenBalanceException,
+  InvalidParametersException,
+  ModalInterface,
+  Unauthorized,
+  UserDeniedException,
+} from '../../../web3';
+
+/**
+ * Handles the approval of custom tokens before making a purchase.
+ * @param data Payment data required for processing the transaction.
+ * @param contractAddress Address of the contract to approve.
+ * @param provider Ethereum provider instance.
+ * @param signerAddress Address of the signer.
+ * @param modalInterface Interface for displaying modal messages.
+ */
+async function handleCustomTokenApproval(
+  data: IChainPayment,
+  contractAddress: string,
+  provider: ethers.providers.Provider,
+  signerAddress: string,
+  modalInterface: ModalInterface
+) {
+  modalInterface.waiting('Initiating token approval...');
+
+  if (!data.tokenAddress) {
+    throw new InvalidParametersException('Token address is not set');
+  }
+
+  try {
+    const customTokenContract = new ethers.Contract(
+      data.tokenAddress,
+      erc20ABI,
+      provider
+    );
+    const userTokenBalance = await customTokenContract['balanceOf'](
+      signerAddress
+    );
+
+    modalInterface.waiting('Calculating total sum...');
+    const totalSum = data.tbdValues.reduce(
+      (total, value) =>
+        (total as ethers.BigNumber).add(ethers.BigNumber.from(value)),
+      ethers.BigNumber.from(0)
+    );
+
+    modalInterface.waiting('Checking token balance...');
+    if (userTokenBalance.lt(totalSum)) {
+      throw new InsufficientTokenBalanceException();
+    }
+
+    modalInterface.waiting('Approving tokens...');
+    const approveTx = await customTokenContract['approve'](
+      contractAddress,
+      totalSum
+    );
+    modalInterface.waiting('Waiting for approval confirmation...');
+    await approveTx.wait();
+    modalInterface.waiting('Token approval confirmed');
+  } catch (error: unknown) {
+    handleError(error);
+  }
+}
+
+/**
+ * Main function to handle the droplinked payment process.
+ * @param chainConfig Configuration for the blockchain chain.
+ * @param web3Context Context containing web3 related interfaces.
+ * @param data Payment data required for processing the transaction.
+ * @returns An object containing the transaction hash and crypto amount.
+ */
 export const droplinked_payment = async function (
-  provider: any,
-  chain: Chain,
-  network: Network,
-  address: string,
+  chainConfig: DroplinkedChainConfig,
+  web3Context: IWeb3Context,
   data: IChainPayment
 ) {
+  const { modalInterface } = web3Context;
+  const { contractType, provider, chain, network, address } = chainConfig;
+
+  if (!data.tbdReceivers.every(isAddress)) {
+    throw new InvalidParametersException('Invalid receiver address found');
+  }
+
+  if (!data.tbdValues.every((value) => ethers.BigNumber.from(value).gt(0))) {
+    throw new InvalidParametersException('tbdValues must be positive numbers');
+  }
+
   const signer = provider.getSigner();
-  if (!data.cartItems) {
-    data.cartItems = [];
+
+  modalInterface.waiting('Got signer...');
+
+  data.cartItems = data.cartItems || [];
+  data.tbdReceivers = data.tbdReceivers || [];
+  data.tbdValues = data.tbdValues || [];
+
+  if (data.tbdReceivers.length !== data.tbdValues.length) {
+    throw new InvalidParametersException(
+      'tbdReceivers and tbdValues must be the same length'
+    );
   }
-  if (!data.tbdReceivers || !data.tbdValues) {
-    data.tbdReceivers = [];
-    data.tbdValues = [];
+
+  const signerAddress = (await signer.getAddress()).toLowerCase();
+  if (signerAddress !== address.toLowerCase()) {
+    throw new Unauthorized('droplinked_payment', signerAddress, address);
   }
-  if (
-    (await signer.getAddress()).toLocaleLowerCase() !==
-    address.toLocaleLowerCase()
-  )
-    throw new Error('Address does not match signer address');
-  const contractAddress = await getProxyAddress(chain, network);
-  const contract = new ethers.Contract(
-    contractAddress,
-    await getPaymentProxyABI(chain),
-    signer
-  );
+
+  modalInterface.waiting('Initial checks done...');
+
+  let contractAddress: string;
   try {
-    console.log(`
+    contractAddress = await getProxyAddress(chain, network);
+  } catch (error: any) {
+    throw new Error('Failed to get contract address: ' + error.message);
+  }
+
+  let contract: ethers.Contract;
+  try {
+    contract = new ethers.Contract(
+      contractAddress,
+      await getPaymentProxyABI(contractType),
+      signer
+    );
+  } catch (error: any) {
+    throw new Error('Failed to create contract instance: ' + error.message);
+  }
+
+  modalInterface.waiting('Got contract...');
+
+  try {
+    modalInterface.waiting(`
+Purchase Details:
 			data.tbdValues: ${data.tbdValues}
 			data.tbdReceivers: ${data.tbdReceivers}
 			data.cartItems: ${data.cartItems}
@@ -58,106 +165,106 @@ export const droplinked_payment = async function (
       );
     }
 
-    const isCustom =
-      data.tokenAddress &&
-      data.tokenAddress !== '0x0000000000000000000000000000000000000000';
+    const isCustom = data.tokenAddress && data.tokenAddress !== ZERO_ADDRESS;
+
+    modalInterface.waiting(`The payment is custom? ${isCustom}`);
 
     if (isCustom) {
-      console.log('approving');
-      const customTokenContract = new ethers.Contract(
-        data.tokenAddress as string,
-        erc20ABI,
-        provider
-      );
-
-      const userCustomTokenBalance = ethers.BigNumber.from(
-        await customTokenContract['balanceOf'](address)
-      );
-
-      const totalSum = data.tbdValues.reduce((total, currentValue) =>
-        ethers.BigNumber.from(total).add(ethers.BigNumber.from(currentValue))
-      );
-
-      if (userCustomTokenBalance.lt(totalSum)) {
-        throw new Error('Insufficient token balance');
-      }
-
-      if (!data.tokenAddress) {
-        throw new Error('Token Address is not set');
-      }
-
-      console.log('Approving');
-      const tokenContract = new ethers.Contract(
-        data.tokenAddress,
-        erc20ABI,
-        signer
-      );
-      const totalValue = ethers.BigNumber.from(totalSum);
-      const approveTx = await tokenContract['approve'](
+      await handleCustomTokenApproval(
+        data,
         contractAddress,
-        totalValue
+        provider,
+        signerAddress,
+        modalInterface
       );
-      await approveTx.wait();
-      console.log('Approved');
-    }
-    if (!isCustom) {
-      data.tbdValues = data.tbdValues.map((item, index) => {
-        return Number.parseInt(data.tbdValues[index].toString());
-      });
+    } else {
+      data.tbdValues = data.tbdValues.map((value) =>
+        parseInt(value.toString(), 10)
+      );
     }
 
-    // check native currency balance for gas and payment
-    const userBalance = await signer.getBalance();
-    if (userBalance.lt(data.totalPrice)) {
-      throw new Error('Insufficient balance');
-    }
+    modalInterface.waiting('Performing static call...');
 
-    await contract.callStatic['droplinkedPurchase'](
-      data.tbdValues,
-      data.tbdReceivers,
-      data.cartItems,
-      data.tokenAddress,
-      data.chainLinkRoundId!,
-      data.memo,
-      {
-        value: data.totalPrice,
-      }
-    );
-    console.log('static call done');
-    const gasPrice = await getGasPrice(provider);
-    const gasEstimation = (
-      await contract.estimateGas['droplinkedPurchase'](
+    try {
+      await contract.callStatic['droplinkedPurchase'](
         data.tbdValues,
         data.tbdReceivers,
         data.cartItems,
         data.tokenAddress,
-        data.chainLinkRoundId!,
+        data.chainLinkRoundId,
         data.memo,
         {
           value: data.totalPrice,
         }
-      )
-    )
-      .toBigInt()
-      .valueOf();
-    console.log('gas estimation done');
-    const gasLimit = (gasEstimation * BigInt(105)) / BigInt(100);
-    if (
-      userBalance.lt(
-        ethers.BigNumber.from(data.totalPrice).add(
-          gasLimit * gasPrice.valueOf()
-        )
-      )
-    ) {
-      throw new Error('Insufficient balance');
+      );
+    } catch (error: any) {
+      throw new Error('Transaction will fail: ' + error.message);
+    }
+    modalInterface.waiting('Static Call done');
+
+    let gasPrice: bigint;
+    try {
+      gasPrice = await getGasPrice(provider);
+    } catch (error: any) {
+      throw new Error('Failed to get gas price: ' + error.message);
     }
 
+    modalInterface.waiting(`Got gas price: ${gasPrice}`);
+
+    modalInterface.waiting('Calling estimate gas...');
+
+    let gasEstimation: ethers.BigNumber;
+    try {
+      gasEstimation = await contract.estimateGas['droplinkedPurchase'](
+        data.tbdValues,
+        data.tbdReceivers,
+        data.cartItems,
+        data.tokenAddress,
+        data.chainLinkRoundId,
+        data.memo,
+        {
+          value: data.totalPrice,
+        }
+      );
+    } catch (error: any) {
+      throw new Error(
+        `Gas estimation failed: ${error.message}. Please check the transaction parameters.`
+      );
+    }
+
+    modalInterface.waiting(`gas estimation done: ${gasEstimation.toString()}`);
+    const gasLimit = gasEstimation.mul(105).div(100);
+
+    const baseValue = isCustom
+      ? ethers.BigNumber.from(0)
+      : ethers.BigNumber.from(data.totalPrice);
+
+    modalInterface.waiting(
+      `Gas limit: ${gasLimit.toString()}, gas price: ${gasPrice.toString()}, base: ${baseValue.toString()}`
+    );
+
+    let userBalance: ethers.BigNumber;
+    try {
+      userBalance = await provider.getBalance(address);
+    } catch (error: any) {
+      throw new Error('Failed to get user balance: ' + error.message);
+    }
+
+    modalInterface.waiting(`User balance: ${userBalance}`);
+
+    const totalCost = baseValue.add(gasLimit.mul(gasPrice));
+
+    if (userBalance.lt(totalCost)) {
+      throw new InsufficientBalanceException();
+    }
+
+    modalInterface.waiting('Calling purchase...');
     const tx = await contract['droplinkedPurchase'](
       data.tbdValues,
       data.tbdReceivers,
       data.cartItems,
       data.tokenAddress,
-      data.chainLinkRoundId!,
+      data.chainLinkRoundId,
       data.memo,
       {
         gasLimit: gasLimit,
@@ -165,40 +272,59 @@ export const droplinked_payment = async function (
         value: data.totalPrice,
       }
     );
-    return { deploy_hash: tx.hash, cryptoAmount: data.totalPrice };
-  } catch (e: any) {
-    if (
-      (e?.code && e?.code?.toString() === 'ACTION_REJECTED') ||
-      (e?.message !== undefined && e?.message === 'User cancelled transaction')
-    ) {
-      throw new Error('Transaction Rejected');
-    }
-    throw e;
+
+    modalInterface.waiting('Waiting for transaction...');
+    await tx.wait();
+    modalInterface.waiting(`Transaction done`);
+    return { transactionHash: tx.hash, cryptoAmount: data.totalPrice };
+  } catch (e: unknown) {
+    handleError(e);
   }
 };
 
+/**
+ * Handles the payment process for the REDBELLY chain.
+ * @param data Payment data required for processing the transaction.
+ * @param contract Contract instance for the REDBELLY chain.
+ * @returns An object containing the transaction hash and crypto amount.
+ */
 const redbellyPayment = async function (
   data: IChainPayment,
   contract: ethers.Contract
 ) {
-  data.tbdValues = data.tbdValues.map((item, index) => {
-    return Number.parseInt(data.tbdValues[index].toString());
-  });
-  const tx = await contract['droplinkedPurchase'](
-    data.tbdValues,
-    data.tbdReceivers,
-    data.cartItems,
-    '0x0000000000000000000000000000000000000000',
-    data.chainLinkRoundId,
-    data.memo,
-    {
-      value: data.totalPrice,
-      gasLimit: 3e6,
-    }
-  );
-  return { deploy_hash: tx.hash, cryptoAmount: data.totalPrice };
+  try {
+    data.tbdValues = data.tbdValues.map((item, index) => {
+      return Number.parseInt(data.tbdValues[index].toString(), 10);
+    });
+
+    const tx = await contract['droplinkedPurchase'](
+      data.tbdValues,
+      data.tbdReceivers,
+      data.cartItems,
+      ZERO_ADDRESS,
+      data.chainLinkRoundId,
+      data.memo,
+      {
+        value: data.totalPrice,
+        gasLimit: 3_000_000, // Fixed gas limit
+      }
+    );
+    return { transactionHash: tx.hash, cryptoAmount: data.totalPrice };
+  } catch (error: unknown) {
+    handleError(error);
+  }
 };
 
+/**
+ * Handles the payment process for the SKALE chain.
+ * @param data Payment data required for processing the transaction.
+ * @param chain The blockchain chain identifier.
+ * @param network The network environment (testnet or mainnet).
+ * @param signer The signer instance.
+ * @param contract The contract instance.
+ * @param address The user's address.
+ * @returns An object containing the transaction hash and crypto amount.
+ */
 const skalePayment = async function (
   data: IChainPayment,
   chain: Chain,
@@ -207,29 +333,50 @@ const skalePayment = async function (
   contract: ethers.Contract,
   address: string
 ) {
-  const usdcAddress =
-    network === Network.TESTNET
-      ? '0x2aebcdc4f9f9149a50422fff86198cb0939ea165'
-      : '0x7Cf76E740Cb23b99337b21F392F22c47Ad910c67';
-  const usdcContract = new ethers.Contract(usdcAddress, erc20ABI, signer);
-  const userTokenBalance = await usdcContract['balanceOf'](address);
-  if (userTokenBalance.lt(data.totalPrice)) {
-    throw new Error('Insufficient balance');
+  try {
+    const usdcAddress =
+      network === Network.TESTNET
+        ? '0x2aebcdc4f9f9149a50422fff86198cb0939ea165'
+        : '0x7Cf76E740Cb23b99337b21F392F22c47Ad910c67';
+    const usdcContract = new ethers.Contract(usdcAddress, erc20ABI, signer);
+
+    const userTokenBalance = await usdcContract['balanceOf'](address);
+
+    if (userTokenBalance.lt(data.totalPrice)) {
+      throw new InsufficientTokenBalanceException();
+    }
+
+    const approveTx = await usdcContract['approve'](
+      await getProxyAddress(chain, network),
+      data.totalPrice
+    );
+
+    await approveTx.wait();
+
+    const tx = await contract['droplinkedPurchase'](
+      data.tbdValues,
+      data.tbdReceivers,
+      data.cartItems,
+      usdcAddress,
+      data.memo
+    );
+    return { transactionHash: tx.hash, cryptoAmount: data.totalPrice };
+  } catch (error: unknown) {
+    handleError(error);
   }
-  const approveTx = await usdcContract['approve'](
-    await getProxyAddress(chain, network),
-    data.totalPrice
-  );
-  console.log({ approveTx });
-  await approveTx.wait();
-  console.log('Approved');
-  console.log({ data });
-  const tx = await contract['droplinkedPurchase'](
-    data.tbdValues,
-    data.tbdReceivers,
-    data.cartItems,
-    usdcAddress,
-    data.memo
-  );
-  return { deploy_hash: tx.hash, cryptoAmount: data.totalPrice };
 };
+
+function handleError(error: unknown): never {
+  if (error instanceof Error) {
+    if (
+      (error as any).code?.toString() === 'ACTION_REJECTED' ||
+      error.message.includes('User denied') ||
+      error.message.includes('User cancelled transaction')
+    ) {
+      throw new UserDeniedException();
+    }
+    throw error;
+  } else {
+    throw new Error('An unknown error occurred');
+  }
+}
