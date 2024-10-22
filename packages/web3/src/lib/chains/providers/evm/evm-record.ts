@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethers } from 'ethers';
 import {
@@ -8,7 +7,6 @@ import {
 } from '../../dto/constants/chain-structs';
 import { Unauthorized } from '../../dto/errors/chain-errors';
 import { ContractType, getGasPrice } from '../../dto/constants/chain-constants';
-import { RecordProduct } from '../../dto/record.dto';
 import { getShopABI } from '../../dto/constants/chain-abis';
 import { checkWallet, uploadMetadata } from './evm.helpers';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
@@ -55,17 +53,17 @@ function getRecordData(
   return result;
 }
 
-export async function recordProduct(
+async function prepareRecordData(
   chainConfig: DroplinkedChainConfig,
   skuData: ISKUDetails,
   productData: IProductDetails,
   context: IWeb3Context
-): Promise<RecordResponse> {
-  const { nftContract, shopContractAddress, modalInterface } = context;
+) {
+  const { nftContract, modalInterface } = context;
 
-  if (!nftContract || !shopContractAddress) {
+  if (!nftContract) {
     throw new Unauthorized(
-      `Missing required fields: nftContract or shopContractAddress`,
+      `Missing required fields: nftContract`,
       chainConfig.address,
       chainConfig.address
     );
@@ -76,20 +74,6 @@ export async function recordProduct(
   const recordData = { ...skuData, ...productData };
 
   console.log(JSON.stringify(recordData));
-
-  const signer = chainConfig.provider.getSigner();
-
-  modalInterface.waiting('Connecting to wallet...');
-
-  await checkWallet(signer, chainConfig.address);
-
-  modalInterface.waiting('Getting shop contract...');
-
-  const contract = new ethers.Contract(
-    shopContractAddress,
-    getShopABI(chainConfig.contractType),
-    signer
-  );
 
   modalInterface.waiting('Uploading metadata...');
 
@@ -126,27 +110,63 @@ export async function recordProduct(
   );
 
   modalInterface.waiting('Got recordData');
+  return product;
+}
+
+export async function recordProduct(
+  chainConfig: DroplinkedChainConfig,
+  context: IWeb3Context,
+  product: IProductDetails,
+  skus: ISKUDetails[]
+): Promise<RecordResponse> {
+  const { modalInterface, nftContract, shopContractAddress } = context;
+
+  if (!nftContract || !shopContractAddress) {
+    throw new Unauthorized(
+      `Missing required fields: nftContract or shopContractAddress`,
+      chainConfig.address,
+      chainConfig.address
+    );
+  }
+
+  const signer = chainConfig.provider.getSigner();
+
+  modalInterface.waiting('Connecting to wallet...');
+
+  await checkWallet(signer, chainConfig.address);
+
+  modalInterface.waiting('Getting shop contract...');
+
+  const contract = new ethers.Contract(
+    shopContractAddress,
+    getShopABI(chainConfig.contractType),
+    signer
+  );
 
   try {
+    const products = skus.map((sku) => {
+      return prepareRecordData(chainConfig, sku, product, context);
+    });
+
     let tx;
     if (chainConfig.gasPredictable) {
       modalInterface.waiting('CallStatic...');
-      await contract.callStatic['mintAndRegister'](product);
+      await contract.callStatic['mintAndRegisterBatch'](products);
       modalInterface.waiting('Estimating gas...');
       const gasEstimation = (
-        await contract.estimateGas['mintAndRegister'](product)
+        await contract.estimateGas['mintAndRegisterBatch'](products)
       ).toBigInt();
       modalInterface.waiting('Got gas estimation: ' + gasEstimation);
       const gasPrice = (await getGasPrice(chainConfig.provider)).valueOf();
       modalInterface.waiting('Got gas price: ' + gasPrice);
       modalInterface.waiting('Sending transaction...');
-      tx = await contract['mintAndRegister'](product, {
+      tx = await contract['mintAndRegisterBatch'](products, {
         gasLimit: (gasEstimation * BigInt(105)) / BigInt(100),
         gasPrice: gasPrice,
       });
     } else {
       modalInterface.waiting('Sending transaction...');
-      tx = await contract['mintAndRegister'](product);
+      tx = await contract['mintAndRegisterBatch'](products);
     }
     await tx.wait();
     modalInterface.success('Transaction successful');
@@ -175,12 +195,4 @@ export async function recordProduct(
       throw error;
     }
   }
-}
-
-export async function recordBatch(
-  chainConfig: DroplinkedChainConfig,
-  context: IWeb3Context,
-  products: RecordProduct[]
-): Promise<RecordResponse> {
-  return { transactionHash: '' };
 }
