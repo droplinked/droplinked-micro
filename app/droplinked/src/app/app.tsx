@@ -159,6 +159,13 @@ export function App() {
         shopAddress="0xD8edb8198e7eF42790Af2e43339c8454d10fA7CB"
         walletAddress="0x9CA686090b4c6892Bd76200e3fAA2EeC98f0528F"
       />
+      <br></br>
+      <RecordProduct
+        chainName={Chain.BINANCE}
+        nftContract="0x7C7999d5de928e1d74570d2310EdbfbAeE18642E"
+        shopAddress="0xc93C130BD7D6A7Ac3BD8ebEd77D620DF01B69E15"
+        walletAddress="0xe29E7479c23Db494aAa0D36C93844B2d79f50c25"
+      />
     </div>
   );
 }
