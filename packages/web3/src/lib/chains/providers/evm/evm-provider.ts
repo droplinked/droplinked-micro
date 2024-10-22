@@ -23,8 +23,7 @@ import {
   changeChain,
 } from './evm-login';
 import { EVMPublishRequest } from './evm-publish';
-import { recordBatch, recordProduct } from './evm-record';
-import { RecordProduct } from '../../dto/record.dto';
+import { recordProduct } from './evm-record';
 import { getERC20TokenTransferABI } from './evm-constants';
 import axios, { AxiosInstance } from 'axios';
 import { ContractType } from '../../dto/constants/chain-constants';
@@ -247,25 +246,15 @@ export class EVMProvider implements IChainProvider {
 
   async recordProduct(
     productData: IProductDetails,
-    skuData: ISKUDetails
+    skuData: ISKUDetails[]
   ): Promise<RecordResponse> {
     this.checkDeployment();
     await this.handleWallet(this.address);
     return await recordProduct(
       this.getChainConfig(),
-      skuData,
-      productData,
-      this.getContext()
-    );
-  }
-
-  async recordBatch(products: RecordProduct[]): Promise<RecordResponse> {
-    this.checkDeployment();
-    await this.handleWallet(this.address);
-    return await recordBatch(
-      this.getChainConfig(),
       this.getContext(),
-      products
+      productData,
+      skuData
     );
   }
 
