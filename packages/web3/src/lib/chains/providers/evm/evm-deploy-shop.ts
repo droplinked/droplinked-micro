@@ -15,6 +15,7 @@ import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
 import {
   DeployShopResponse,
   EthAddress,
+  toEthAddress,
   UserDeniedException,
 } from '../../../web3';
 import { checkWallet } from './evm.helpers';
@@ -112,7 +113,9 @@ export async function deployEVMShop(
 
   await checkWallet(signer, address);
 
-  const deployerAddress = await getDeployerAddress(chain, network);
+  const deployerAddress = toEthAddress(
+    await getDeployerAddress(chain, network)
+  );
 
   modalInterface.waiting('Got deployer contract address');
 

@@ -15,7 +15,7 @@ import { Chain } from '../../dto/chains';
 export const EVMApproveRequest = async function (
   provider: any,
   chain: Chain,
-  address: string,
+  address: EthAddress,
   requestId: Uint256,
   shopAddress: EthAddress,
   modalInterface: ModalInterface,
@@ -68,7 +68,7 @@ export const EVMApproveRequest = async function (
 export const EVMDisapproveRequest = async function (
   provider: any,
   chain: Chain,
-  address: string,
+  address: EthAddress,
   requestId: Uint256,
   shopAddress: EthAddress,
   modalInterface: ModalInterface,

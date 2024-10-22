@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
 import { Chain, Network } from '../chains';
+import { toEthAddress } from './chain-structs';
 
-export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const ZERO_ADDRESS = toEthAddress(
+  '0x0000000000000000000000000000000000000000'
+);
 
 export enum ContractType {
   TYPE0,

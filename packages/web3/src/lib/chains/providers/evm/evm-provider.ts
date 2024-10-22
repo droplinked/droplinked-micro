@@ -5,6 +5,7 @@ import {
   DeployShopResponse,
   EthAddress,
   RecordResponse,
+  toEthAddress,
   Uint256,
 } from '../../dto/constants/chain-structs';
 import { Chain, ChainWallet, getGasPrice, Network } from '../../dto/chains';
@@ -26,7 +27,10 @@ import { EVMPublishRequest } from './evm-publish';
 import { recordProduct } from './evm-record';
 import { getERC20TokenTransferABI } from './evm-constants';
 import axios, { AxiosInstance } from 'axios';
-import { ContractType } from '../../dto/constants/chain-constants';
+import {
+  ContractType,
+  ZERO_ADDRESS,
+} from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
 import {
   IProductDetails,
@@ -40,13 +44,13 @@ import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
   network: Network = Network.TESTNET;
-  address = '';
+  address: EthAddress;
   modalInterface: ModalInterface = new defaultModal();
   wallet: ChainWallet = ChainWallet.Metamask;
   axiosInstance: AxiosInstance = axios.create({});
   contractType: ContractType;
-  nftContractAddress?: string;
-  shopContractAddress?: string;
+  nftContractAddress?: EthAddress;
+  shopContractAddress?: EthAddress;
   gasPredictable: boolean;
 
   constructor(
@@ -59,6 +63,7 @@ export class EVMProvider implements IChainProvider {
     this.network = _network;
     this.contractType = _contractType;
     this.gasPredictable = gasPredictable;
+    this.address = ZERO_ADDRESS;
   }
 
   setAxiosInstance(axiosInstance: AxiosInstance) {
@@ -67,12 +72,12 @@ export class EVMProvider implements IChainProvider {
   }
 
   setNFTContractAddress(address: string) {
-    this.nftContractAddress = address;
+    this.nftContractAddress = toEthAddress(address);
     return this;
   }
 
   setShopContractAddress(address: string) {
-    this.shopContractAddress = address;
+    this.shopContractAddress = toEthAddress(address);
     return this;
   }
 
@@ -144,7 +149,7 @@ export class EVMProvider implements IChainProvider {
   }
 
   setAddress(address: string): IChainProvider {
-    this.address = address;
+    this.address = toEthAddress(address);
     return this;
   }
 
@@ -233,7 +238,7 @@ export class EVMProvider implements IChainProvider {
       this.modalInterface,
       this.axiosInstance
     );
-    this.address = address;
+    this.address = toEthAddress(address);
     return { address, signature, date, nonce };
   }
 

@@ -1,5 +1,22 @@
+import { isAddress } from 'ethers/lib/utils';
+
 type Uint256 = bigint | string | number;
-type EthAddress = string;
+
+declare const BRAND: unique symbol;
+type EthAddress = string & { [BRAND]: 'EthAddress' };
+
+/**
+ * Validates and brands a string as an EthAddress.
+ * @param address The address string to validate and brand.
+ * @returns The branded EthAddress.
+ * @throws Error if the address is invalid.
+ */
+export function toEthAddress(address: string): EthAddress {
+  if (address !== '' && (address.length !== 42 || !isAddress(address))) {
+    throw new Error('Invalid Ethereum address');
+  }
+  return address as EthAddress;
+}
 
 type Beneficiary = {
   isPercentage: boolean;
