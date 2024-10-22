@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethers } from 'ethers';
-import { EthAddress, Uint256 } from '../../dto/constants/chain-structs';
+import {
+  EthAddress,
+  toEthAddress,
+  Uint256,
+} from '../../dto/constants/chain-structs';
 import { getShopABI } from '../../dto/constants/chain-abis';
 import { AlreadyRequested } from '../../dto/errors/chain-errors';
 import { ContractType, getGasPrice } from '../../dto/constants/chain-constants';
@@ -80,7 +84,7 @@ export const EVMPublishRequest = async function ({
     const err = contract.interface.parseError(e.data);
     if (err.name === 'AlreadyRequested') {
       modalInterface.error('Request Already Sent!');
-      throw new AlreadyRequested(productId, address);
+      throw new AlreadyRequested(productId, toEthAddress(address));
     }
     throw e;
   }
