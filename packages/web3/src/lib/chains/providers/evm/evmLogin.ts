@@ -212,9 +212,9 @@ export function isWalletInstalled(chain: string) {
       walletName: 'Phantom wallet',
     };
   } else if (chain === 'CASPER') {
-    throw new WalletNotFoundException('Casper is not supported yet');
+    throw new WalletNotFoundException();
   }
-  throw new WalletNotFoundException('Wallet not found');
+  throw new WalletNotFoundException();
 }
 
 // Utility: Check if wallet is connected
@@ -236,9 +236,8 @@ export async function isChainCorrect(
       (chainNames as any)[chain][network].chainId.toLowerCase()
     );
   } catch (error: any) {
-    throw new ChainSwitchException(
-      `Failed to verify the correct chain: ${error.message}`
-    );
+    console.error(`Failed to verify the correct chain: ${error.message}`);
+    throw new ChainSwitchException();
   }
 }
 
@@ -254,7 +253,8 @@ export async function changeChain(
       params: [{ chainId: (chainNames as any)[chain][network].chainId }],
     });
   } catch (error: any) {
-    throw new ChainSwitchException(`Failed to switch chains: ${error.message}`);
+    console.error(`Failed to switch chain: ${error.message}`);
+    throw new ChainSwitchException();
   }
 }
 
@@ -262,10 +262,9 @@ export async function changeChain(
 async function requestAccounts(ethereum: any) {
   try {
     return await ethereum.request({ method: 'eth_requestAccounts' });
-  } catch (error: any) {
-    throw new UserDeniedException(
-      `User denied account access: ${error.message}`
-    );
+  } catch (e) {
+    console.error(e);
+    throw new UserDeniedException();
   }
 }
 
