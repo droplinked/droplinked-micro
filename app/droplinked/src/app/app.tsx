@@ -5,11 +5,7 @@ import {
   Network,
   ProductType,
 } from '@droplinked/web3';
-import axios from 'axios';
-import {
-  IProductDetails,
-  ISKUDetails,
-} from 'packages/web3/src/lib/chains/dto/interfaces/record-web3-product.interface';
+import { ZERO_ADDRESS } from 'packages/web3/src/lib/chains/dto/constants/chain-constants';
 import { FC } from 'react';
 
 interface IDeployParams {
@@ -73,16 +69,18 @@ export const RecordProduct: FC<IRecordProduct> = (
             commission: 0,
             type: ProductType.DIGITAL,
             acceptsManageWallet: true,
-            currencyAddress: '0x0000000000000000000000000000000000000000',
+            currencyAddress: ZERO_ADDRESS,
           },
-          {
-            amount: 1000,
-            price: 1000,
-            beneficiaries: [],
-            skuProperties: {},
-            skuID: '670fcb2ea6738730848f8933',
-            imageUrl: 'https://k3rn3lpanic.img',
-          }
+          [
+            {
+              amount: 1000,
+              price: 1000,
+              beneficiaries: [],
+              skuProperties: {},
+              skuID: '670fcb2ea6738730848f8933',
+              imageUrl: 'https://k3rn3lpanic.img',
+            },
+          ]
         );
         console.log({ result });
       }}
