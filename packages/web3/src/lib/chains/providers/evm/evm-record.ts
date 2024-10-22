@@ -144,9 +144,9 @@ export async function recordProduct(
   );
 
   try {
-    const products = skus.map((sku) => {
-      return prepareRecordData(chainConfig, sku, product, context);
-    });
+    const products = await Promise.all(
+      skus.map((sku) => prepareRecordData(chainConfig, sku, product, context))
+    );
 
     let tx;
     if (chainConfig.gasPredictable) {
@@ -159,11 +159,9 @@ export async function recordProduct(
       modalInterface.waiting('Got gas estimation: ' + gasEstimation);
       const gasPrice = (await getGasPrice(chainConfig.provider)).valueOf();
       modalInterface.waiting('Got gas price: ' + gasPrice);
+
       modalInterface.waiting('Sending transaction...');
-      tx = await contract['mintAndRegisterBatch'](products, {
-        gasLimit: (gasEstimation * BigInt(105)) / BigInt(100),
-        gasPrice: gasPrice,
-      });
+      tx = await contract['mintAndRegisterBatch'](products);
     } else {
       modalInterface.waiting('Sending transaction...');
       tx = await contract['mintAndRegisterBatch'](products);
