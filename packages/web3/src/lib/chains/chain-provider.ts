@@ -12,7 +12,7 @@ import {
   WalletError,
   WalletNotFoundException,
 } from '../web3';
-import { Web3ChainConfig } from './dto/configs/web3-config';
+import { Web3Actions, Web3ChainConfig } from './dto/configs/web3-config';
 import { IChainProvider } from './dto/interfaces/chain-provider.interface';
 import axios, { AxiosInstance } from 'axios';
 import { getAccounts } from './providers/evm/evm-login';
@@ -167,11 +167,13 @@ export class DropWeb3 {
     let nftContractAddress = '';
     let shopContractAddress = '';
 
-    if (config.method === 'record-affiliate') {
+    if (config.method === Web3Actions.RECORD_AFFILIATE) {
       userAddress = config.userAddress;
       nftContractAddress = config.nftContractAddress;
       shopContractAddress = config.shopContractAddress;
-    } else if (config.method === 'deploy') {
+    } else if (config.method === Web3Actions.DEPLOY) {
+      userAddress = config.userAddress;
+    } else if (config.method === Web3Actions.PAYMENT) {
       userAddress = config.userAddress;
     }
 

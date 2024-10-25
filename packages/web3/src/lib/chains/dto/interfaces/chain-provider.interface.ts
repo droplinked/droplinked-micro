@@ -30,7 +30,9 @@ export interface IChainProvider {
     shopAddress: EthAddress
   ): Promise<string>;
   payment(
-    cartID: string
+    cartID: string,
+    paymentToken: string,
+    paymentType: string
   ): Promise<{ transactionHash: string; cryptoAmount: any }>;
   paymentWithToken(
     receiver: string,

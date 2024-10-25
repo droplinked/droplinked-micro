@@ -110,6 +110,7 @@ export const droplinked_payment = async function (
   data.cartItems = data.cartItems || [];
   data.tbdReceivers = data.tbdReceivers || [];
   data.tbdValues = data.tbdValues || [];
+  data.memo = data.memo || '';
 
   if (data.tbdReceivers.length !== data.tbdValues.length) {
     throw new InvalidParametersException(

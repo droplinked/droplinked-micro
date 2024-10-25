@@ -4,7 +4,6 @@ import {
   ContractType,
   getDeployerAddress,
   getFundsProxy,
-  getGasPrice,
   getShopByteCode,
 } from '../../dto/constants/chain-constants';
 import { deployerABI } from '../../dto/constants/chain-abis';
@@ -158,20 +157,12 @@ export async function deployEVMShop(
   try {
     let tx: any;
     const fullBytecode = byteCode + bytecodeWithArgs.split('0x')[1];
+    console.log({ fullBytecode });
     if (chainConfig.gasPredictable) {
       modalInterface.waiting('CallStatic to estimate gas');
       await contract.callStatic['deployShop'](fullBytecode, salt);
-      modalInterface.waiting('Estimating gas');
-      const gasEstimation = (
-        await contract.estimateGas['deployShop'](fullBytecode, salt)
-      )
-        .toBigInt()
-        .valueOf();
       modalInterface.waiting('Sending transaction');
-      tx = await contract['deployShop'](fullBytecode, salt, {
-        gasLimit: (gasEstimation * BigInt(105)) / BigInt(100),
-        gasPrice: await getGasPrice(provider),
-      });
+      tx = await contract['deployShop'](fullBytecode, salt, {});
     } else {
       modalInterface.waiting('Sending transaction');
       tx = await contract['deployShop'](fullBytecode, salt);

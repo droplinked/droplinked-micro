@@ -1,22 +1,29 @@
 import { Chain, ChainWallet } from '../chains';
 import { ModalInterface } from '../interfaces/modal-interface.interface';
 
+export enum Web3Actions {
+  LOGIN,
+  DEPLOY,
+  RECORD_AFFILIATE,
+  PAYMENT,
+}
+
 export type Web3ChainConfig =
   | {
-      method: 'login';
+      method: Web3Actions.LOGIN;
       chain: Chain;
       preferredWallet: ChainWallet;
       modalInterface?: ModalInterface;
     }
   | {
-      method: 'deploy';
+      method: Web3Actions.DEPLOY;
       chain: Chain;
       preferredWallet: ChainWallet;
       modalInterface?: ModalInterface;
       userAddress: string;
     }
   | {
-      method: 'record-affiliate';
+      method: Web3Actions.RECORD_AFFILIATE;
       chain: Chain;
       preferredWallet: ChainWallet;
       modalInterface?: ModalInterface;
@@ -25,8 +32,9 @@ export type Web3ChainConfig =
       shopContractAddress: string;
     }
   | {
-      method: 'payment';
+      method: Web3Actions.PAYMENT;
       chain: Chain;
+      userAddress: string;
       preferredWallet: ChainWallet;
       modalInterface?: ModalInterface;
     };
