@@ -235,7 +235,7 @@ export function App() {
       <Payment
         chainName={Chain.BINANCE}
         address="0xe29E7479c23Db494aAa0D36C93844B2d79f50c25"
-        cartID="671bf15b159badf2e1c60ab7"
+        cartID="671c8e07159badf2e1c614c7"
         paymentToken="BNB"
         paymentType="BINANCE"
       />

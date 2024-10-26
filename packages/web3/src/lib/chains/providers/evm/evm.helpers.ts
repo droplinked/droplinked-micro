@@ -33,6 +33,14 @@ export async function getCartData(
   ).data.data.paymentData as IChainPayment;
 }
 
+export async function getNonce(
+  walletAddress: string,
+  axiosInstance: AxiosInstance
+): Promise<number> {
+  return (await axiosInstance.get(`/auth/nonce?wallet=${walletAddress}`))
+    .data as number;
+}
+
 export async function checkWallet(signer: ethers.Signer, address: string) {
   if (
     (await signer.getAddress()).toLocaleLowerCase() !==

@@ -326,6 +326,7 @@ export class EVMProvider implements IChainProvider {
       this.address,
       this.axiosInstance
     );
+    console.log({ paymentData });
     const result = await droplinked_payment(
       this.getChainConfig(),
       this.getContext(),

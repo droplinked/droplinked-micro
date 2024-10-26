@@ -1,4 +1,4 @@
-import { isAddress } from 'ethers/lib/utils';
+import { ethers } from 'ethers';
 
 type Uint256 = bigint | string | number;
 
@@ -12,6 +12,7 @@ type EthAddress = string & { [BRAND]: 'EthAddress' };
  * @throws Error if the address is invalid.
  */
 export function toEthAddress(address: string): EthAddress {
+  const isAddress = ethers.utils.isAddress;
   if (address !== '' && (address.length !== 42 || !isAddress(address))) {
     throw new Error('Invalid Ethereum address');
   }

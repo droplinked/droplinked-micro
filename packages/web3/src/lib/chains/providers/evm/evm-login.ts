@@ -8,6 +8,7 @@ import {
   WalletError,
   WalletNotFoundException,
 } from '../../dto/errors/chain-errors';
+import { getNonce } from './evm.helpers';
 
 const chainNames = {
   [Chain.BINANCE]: {
@@ -344,8 +345,8 @@ export async function evmLogin(
     // Sign the message
     modalInterface.waiting('Signing message...');
     // Generate a nonce for added security
-    const nonce = Math.floor(Math.random() * 10000000);
-
+    // const nonce = Math.floor(Math.random() * 10000000);
+    const nonce = await getNonce(address, axiosInstance);
     // Get the current date and time for transparency
     const currentDate = new Date().toLocaleString();
     const message = `Welcome to Droplinked!
