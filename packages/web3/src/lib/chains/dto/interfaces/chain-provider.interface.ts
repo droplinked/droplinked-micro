@@ -1,4 +1,3 @@
-import { AxiosInstance } from 'axios';
 import { ChainWallet } from '../chains';
 import {
   AffiliateRequestData,
@@ -10,11 +9,14 @@ import {
 import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
 import { IDeployShop } from './deploy-shop.interface';
+import { ILoginResult } from './login-result.interface';
+import { IPaymentInputs } from './payment-interface';
+import { KyInstance } from 'ky';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IChainProvider {
-  setAxiosInstance(axiosInstance: AxiosInstance): IChainProvider;
-  walletLogin(): Promise<any>;
+  setAxiosInstance(axiosInstance: KyInstance): IChainProvider;
+  walletLogin(): Promise<ILoginResult>;
   deployShop(shopDetails: IDeployShop): Promise<DeployShopResponse>;
   recordProduct(
     productData: IProductDetails,
@@ -30,10 +32,8 @@ export interface IChainProvider {
     shopAddress: EthAddress
   ): Promise<string>;
   payment(
-    cartID: string,
-    paymentToken: string,
-    paymentType: string
-  ): Promise<{ transactionHash: string; cryptoAmount: any }>;
+    data: IPaymentInputs
+  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }>;
   paymentWithToken(
     receiver: string,
     amount: number,
@@ -44,4 +44,5 @@ export interface IChainProvider {
   setModal(modal: ModalInterface): IChainProvider;
   setNFTContractAddress(address: string): IChainProvider;
   setShopContractAddress(address: string): IChainProvider;
+  getPaymentData(cartID: string, paymentType: string, token: string): any;
 }

@@ -1,19 +1,20 @@
 import { ethers } from 'ethers';
 
 export enum Chain {
-  CASPER,
-  POLYGON,
-  BINANCE,
-  STACKS,
-  XRPLSIDECHAIN,
-  NEAR,
-  SKALE,
-  BASE,
-  LINEA,
-  ETH,
-  SOLANA,
-  REDBELLY,
+  CASPER = 'CASPER',
+  POLYGON = 'POLYGON',
+  BINANCE = 'BINANCE',
+  STACKS = 'STACKS',
+  XRPLSIDECHAIN = 'XRPLSIDECHAIN',
+  NEAR = 'NEAR',
+  SKALE = 'SKALE',
+  BASE = 'BASE',
+  LINEA = 'LINEA',
+  ETH = 'ETH',
+  SOLANA = 'SOLANA',
+  REDBELLY = 'REDBELLY',
 }
+
 export enum Network {
   MAINNET,
   TESTNET,

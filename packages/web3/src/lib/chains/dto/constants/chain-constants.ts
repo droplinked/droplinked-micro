@@ -1,7 +1,8 @@
-import axios from 'axios';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethers } from 'ethers';
 import { Chain, Network } from '../chains';
 import { toEthAddress } from './chain-structs';
+import ky from 'ky';
 
 export const ZERO_ADDRESS = toEthAddress(
   '0x0000000000000000000000000000000000000000'
@@ -27,9 +28,8 @@ async function getAddress(
     const chainName = toPascalCase(Chain[chain]);
     const networkName = toPascalCase(Network[network]);
     const url = `https://${apiPrefix}.droplinked.com/storage/${chainName}${networkName}ContractAddress${addressType}`;
-
-    const response = await axios.get(url);
-    return response.data.value;
+    const response = (await await ky.get(url).json()) as any;
+    return response.value;
   } catch (error) {
     console.error(
       `Failed to fetch ${addressType.toLowerCase()} address:`,
@@ -69,7 +69,7 @@ async function getShopByteCode(contractType: ContractType): Promise<string> {
   };
   try {
     const url = `https://apiv3dev.droplinked.com/storage/shopByteCode${shopByteCodesByType[contractType]}`;
-    const result = String((await axios.get(url)).data.value);
+    const result = String(((await await ky.get(url).json()) as any).value);
     return result;
   } catch (err) {
     console.error(`Failed to get shop bytecode: ${err}`);
@@ -84,5 +84,3 @@ async function getGasPrice(
 }
 
 export { getShopByteCode, getGasPrice };
-
-export default getDeployerAddress;

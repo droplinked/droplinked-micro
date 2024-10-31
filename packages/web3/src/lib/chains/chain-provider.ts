@@ -14,15 +14,15 @@ import {
 } from '../web3';
 import { Web3Actions, Web3ChainConfig } from './dto/configs/web3-config';
 import { IChainProvider } from './dto/interfaces/chain-provider.interface';
-import axios, { AxiosInstance } from 'axios';
 import { getAccounts } from './providers/evm/evm-login';
 import { ethers } from 'ethers';
+import ky, { KyInstance } from 'ky';
 export class DropWeb3 {
-  private axiosInstance: AxiosInstance;
+  private axiosInstance: KyInstance;
   private network: Network;
   constructor(workingNetwork: Network) {
-    this.axiosInstance = axios.create({
-      baseURL:
+    this.axiosInstance = ky.create({
+      prefixUrl:
         workingNetwork === Network.TESTNET
           ? 'https://apiv3dev.droplinked.com'
           : 'https://apiv3.droplinked.com',

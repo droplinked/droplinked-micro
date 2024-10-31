@@ -6,6 +6,7 @@ import {
   ProductType,
 } from '@droplinked/web3';
 import axios from 'axios';
+import ky from 'ky';
 import { Web3Actions } from 'packages/web3/src/lib/chains/dto/configs/web3-config';
 import { ZERO_ADDRESS } from 'packages/web3/src/lib/chains/dto/constants/chain-constants';
 import { getCartData } from 'packages/web3/src/lib/chains/providers/evm/evm.helpers';
@@ -43,11 +44,11 @@ export const Payment: FC<IPaymentProps> = (paymentParams: IPaymentProps) => {
           preferredWallet: ChainWallet.Metamask,
           userAddress: paymentParams.address,
         });
-        const result = await binance.payment(
-          paymentParams.cartID,
-          paymentParams.paymentToken,
-          paymentParams.paymentType
-        );
+        const result = await binance.payment({
+          cartID: paymentParams.cartID,
+          paymentToken: paymentParams.paymentToken,
+          paymentType: paymentParams.paymentType,
+        });
         console.log({ result });
       }}
     >
@@ -136,7 +137,7 @@ export function App() {
             'BNB',
             'BINANCE',
             '0xbec8c184a8f55e6443b315361bac3bbb2280e8e8',
-            axios.create({ baseURL: 'https://apiv3dev.droplinked.com' })
+            ky.create({ prefixUrl: 'https://apiv3dev.droplinked.com' })
           );
           console.log({ result });
         }}

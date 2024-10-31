@@ -26,7 +26,6 @@ import {
 import { EVMPublishRequest } from './evm-publish';
 import { recordProduct } from './evm-record';
 import { getERC20TokenTransferABI } from './evm-constants';
-import axios, { AxiosInstance } from 'axios';
 import {
   ContractType,
   ZERO_ADDRESS,
@@ -43,6 +42,9 @@ import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
 import { getCartData } from './evm.helpers';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
 import { droplinked_payment } from './evm-payments';
+import { ILoginResult } from '../../dto/interfaces/login-result.interface';
+import { IPaymentInputs } from '../../dto/interfaces/payment-interface';
+import ky, { KyInstance } from 'ky';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -50,7 +52,7 @@ export class EVMProvider implements IChainProvider {
   address: EthAddress;
   modalInterface: ModalInterface = new defaultModal();
   wallet: ChainWallet = ChainWallet.Metamask;
-  axiosInstance: AxiosInstance = axios.create({});
+  axiosInstance: KyInstance;
   contractType: ContractType;
   nftContractAddress?: EthAddress;
   shopContractAddress?: EthAddress;
@@ -67,9 +69,15 @@ export class EVMProvider implements IChainProvider {
     this.contractType = _contractType;
     this.gasPredictable = gasPredictable;
     this.address = ZERO_ADDRESS;
+    this.axiosInstance = ky.create({
+      prefixUrl:
+        this.network === Network.MAINNET
+          ? 'https://apiv3.droplinked.com'
+          : 'https://apiv3dev.droplinked.com',
+    });
   }
 
-  setAxiosInstance(axiosInstance: AxiosInstance) {
+  setAxiosInstance(axiosInstance: KyInstance) {
     this.axiosInstance = axiosInstance;
     return this;
   }
@@ -201,12 +209,14 @@ export class EVMProvider implements IChainProvider {
       this.handleWallet(_address);
     }
     if (this.chain === Chain.SKALE) {
-      const distributionRequest = (
+      const distributionRequest = await ((
         await this.axiosInstance.post(`shop/sFuelDistribution`, {
-          wallet: this.address,
-          isTestnet: this.network === Network.TESTNET,
+          json: {
+            wallet: this.address,
+            isTestnet: this.network === Network.TESTNET,
+          },
         })
-      ).data;
+      ).json() as any);
       console.log(distributionRequest);
     }
 
@@ -233,7 +243,7 @@ export class EVMProvider implements IChainProvider {
     };
   }
 
-  async walletLogin() {
+  async walletLogin(): Promise<ILoginResult> {
     const { address, signature, date, nonce } = await evmLogin(
       this.getWalletProvider(),
       this.chain,
@@ -315,24 +325,36 @@ export class EVMProvider implements IChainProvider {
   }
 
   async payment(
-    cartID: string,
-    paymentToken: string,
-    paymentType: string
-  ): Promise<{ transactionHash: string; cryptoAmount: any }> {
-    const paymentData: IChainPayment = await getCartData(
+    data: IPaymentInputs
+  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
+    this.handleWallet(this.address);
+    const { cartID, paymentToken, paymentType } = data;
+    const paymentDetails = await getCartData(
       cartID,
       paymentToken,
       paymentType,
       this.address,
       this.axiosInstance
     );
+    const paymentData: IChainPayment = paymentDetails.paymentData;
+    // return this too
     console.log({ paymentData });
     const result = await droplinked_payment(
       this.getChainConfig(),
       this.getContext(),
       paymentData
     );
-    return result;
+    return { ...result, orderID: paymentDetails.orderID };
+  }
+
+  async getPaymentData(cartID: string, paymentType: string, token: string) {
+    return await getCartData(
+      cartID,
+      token,
+      paymentType,
+      this.address,
+      this.axiosInstance
+    );
   }
 
   async paymentWithToken(

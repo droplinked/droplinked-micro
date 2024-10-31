@@ -273,8 +273,6 @@ Purchase Details:
       data.memo,
       {
         gasLimit: gasLimit,
-        gasPrice: gasPrice,
-        value: data.totalPrice,
       }
     );
 

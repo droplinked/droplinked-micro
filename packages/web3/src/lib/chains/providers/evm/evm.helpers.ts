@@ -1,21 +1,23 @@
-import { AxiosInstance } from 'axios';
 import { ethers } from 'ethers';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
+import { KyInstance } from 'ky';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function uploadMetadata(
   metadata: any,
   skuID: string,
-  axiosInstance: AxiosInstance
+  axiosInstance: KyInstance
 ) {
   if (typeof metadata == typeof {} || typeof metadata == typeof []) {
     metadata = JSON.stringify(metadata);
   }
-  const res = (
+  const res = await ((
     await axiosInstance.patch(`sku/metadata/${skuID}`, {
-      metadata: metadata,
+      json: {
+        metadata: metadata,
+      },
     })
-  ).data;
+  ).json() as any);
   return res.data;
 }
 
@@ -24,21 +26,30 @@ export async function getCartData(
   tokenType: string,
   paymentType: string,
   walletAddress: string,
-  axiosInstance: AxiosInstance
-): Promise<IChainPayment> {
-  return (
-    await axiosInstance.get(
-      `/checkout/order/crypto-payment-data/${cartID}/${tokenType}/${paymentType}/${walletAddress}`
-    )
-  ).data.data.paymentData as IChainPayment;
+  axiosInstance: KyInstance
+): Promise<{ paymentData: IChainPayment; orderID: string }> {
+  const result = (
+    (await (
+      await axiosInstance.get(
+        `checkout/order/crypto-payment-data/${cartID}/${tokenType}/${paymentType}/${walletAddress}`
+      )
+    ).json()) as any
+  ).data;
+  return {
+    paymentData: result.paymentData as IChainPayment,
+    orderID: result.orderID,
+  };
 }
 
 export async function getNonce(
   walletAddress: string,
-  axiosInstance: AxiosInstance
+  axiosInstance: KyInstance
 ): Promise<number> {
-  return (await axiosInstance.get(`/auth/nonce?wallet=${walletAddress}`))
-    .data as number;
+  return (
+    (await (
+      await axiosInstance.get(`auth/nonce?wallet=${walletAddress}`)
+    ).json()) as any
+  ).data as number;
 }
 
 export async function checkWallet(signer: ethers.Signer, address: string) {

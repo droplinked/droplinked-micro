@@ -15,6 +15,7 @@ import {
   ISKUDetails,
 } from '../../dto/interfaces/record-web3-product.interface';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
+import { Chain } from '../../dto/chains';
 
 function getRecordData(
   chainConfig: DroplinkedChainConfig,
@@ -22,7 +23,7 @@ function getRecordData(
   metadataURL: string,
   nftContract: string
 ) {
-  const { contractType } = chainConfig;
+  const { contractType, chain } = chainConfig;
   const {
     acceptsManageWallet,
     amount,
@@ -32,21 +33,39 @@ function getRecordData(
     royalty,
     type,
   } = product;
-  const result = {
-    _nftAddress: nftContract,
-    _uri: metadataURL,
-    _amount: amount,
-    _accepted: acceptsManageWallet,
-    _affiliatePercentage: royalty,
-    _price: price,
-    _currencyAddress: currencyAddress,
-    _royalty: royalty,
-    _nftType: NFTType.ERC1155,
-    _productType: type,
-    _paymentType: PaymentMethodType.USD,
-    _beneficiaries: beneficiaries,
-  };
-
+  let result;
+  if (chain === Chain.SKALE) {
+    result = {
+      nftAddress: nftContract,
+      uri: metadataURL,
+      amount: amount,
+      accepted: acceptsManageWallet,
+      affiliatePercentage: royalty,
+      price: price,
+      currencyAddress: currencyAddress,
+      royalty: royalty,
+      nftType: NFTType.ERC1155,
+      productType: type,
+      paymentType: PaymentMethodType.USD,
+      beneficiaries: beneficiaries,
+      receiveUSDC: true,
+    };
+  } else {
+    result = {
+      _nftAddress: nftContract,
+      _uri: metadataURL,
+      _amount: amount,
+      _accepted: acceptsManageWallet,
+      _affiliatePercentage: royalty,
+      _price: price,
+      _currencyAddress: currencyAddress,
+      _royalty: royalty,
+      _nftType: NFTType.ERC1155,
+      _productType: type,
+      _paymentType: PaymentMethodType.USD,
+      _beneficiaries: beneficiaries,
+    };
+  }
   if ([ContractType.TYPE0, ContractType.TYPE2].includes(contractType)) {
     return { ...result, _receiveUSDC: true };
   }
@@ -72,8 +91,6 @@ async function prepareRecordData(
   const { description } = productData;
   const { skuID } = skuData;
   const recordData = { ...skuData, ...productData };
-
-  console.log(JSON.stringify(recordData));
 
   modalInterface.waiting('Uploading metadata...');
 
@@ -159,7 +176,6 @@ export async function recordProduct(
       modalInterface.waiting('Got gas estimation: ' + gasEstimation);
       const gasPrice = (await getGasPrice(chainConfig.provider)).valueOf();
       modalInterface.waiting('Got gas price: ' + gasPrice);
-
       modalInterface.waiting('Sending transaction...');
       tx = await contract['mintAndRegisterBatch'](products);
     } else {

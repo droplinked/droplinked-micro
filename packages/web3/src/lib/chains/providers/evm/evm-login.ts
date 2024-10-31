@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Chain, Network } from '../../dto/chains';
 import { ModalInterface } from '../../dto/interfaces/modal-interface.interface';
-import { AxiosInstance } from 'axios';
 import {
   ChainSwitchException,
   UserDeniedException,
@@ -9,6 +8,8 @@ import {
   WalletNotFoundException,
 } from '../../dto/errors/chain-errors';
 import { getNonce } from './evm.helpers';
+import { ILoginResult } from '../../dto/interfaces/login-result.interface';
+import { KyInstance } from 'ky';
 
 const chainNames = {
   [Chain.BINANCE]: {
@@ -286,13 +287,8 @@ export async function evmLogin(
   chain: Chain,
   network: Network,
   modalInterface: ModalInterface,
-  axiosInstance: AxiosInstance
-): Promise<{
-  address: string;
-  signature: string;
-  nonce: number;
-  date: string;
-}> {
+  axiosInstance: KyInstance
+): Promise<ILoginResult> {
   const ethereum = provider.provider;
 
   try {
@@ -333,12 +329,14 @@ export async function evmLogin(
 
     // Handle SKALE-specific fuel distribution
     if (chain === Chain.SKALE) {
-      const distributionRequest = (
+      const distributionRequest = await (
         await axiosInstance.post('shop/sFuelDistribution', {
-          wallet: address,
-          isTestnet: network === Network.TESTNET,
+          json: {
+            wallet: address,
+            isTestnet: network === Network.TESTNET,
+          },
         })
-      ).data;
+      ).json();
       console.log(distributionRequest);
     }
 
