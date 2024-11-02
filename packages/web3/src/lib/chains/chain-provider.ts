@@ -9,6 +9,7 @@ import {
   MetaMaskNotFoundException,
   NoAccountsFoundException,
   SignatureRequestDeniedException,
+  toEthAddress,
   WalletError,
   WalletNotFoundException,
 } from '../web3';
@@ -17,6 +18,7 @@ import { IChainProvider } from './dto/interfaces/chain-provider.interface';
 import { getAccounts } from './providers/evm/evm-login';
 import { ethers } from 'ethers';
 import ky, { KyInstance } from 'ky';
+import { SolanaProvider } from './providers/solana/solana-provider';
 export class DropWeb3 {
   private axiosInstance: KyInstance;
   private network: Network;
@@ -141,8 +143,8 @@ export class DropWeb3 {
       ),
     },
     [Chain.SOLANA]: {
-      [Network.MAINNET]: null,
-      [Network.TESTNET]: null,
+      [Network.MAINNET]: new SolanaProvider(Network.MAINNET),
+      [Network.TESTNET]: new SolanaProvider(Network.TESTNET),
     },
     [Chain.REDBELLY]: {
       [Network.MAINNET]: new EVMProvider(
@@ -183,7 +185,7 @@ export class DropWeb3 {
       );
 
     return this.chainMapping[chain][network]
-      ?.setAddress(userAddress || '')
+      ?.setAddress(toEthAddress(userAddress) || toEthAddress(''))
       .setModal(modalInterface || new defaultModal())
       .setWallet(preferredWallet)
       .setAxiosInstance(this.axiosInstance)

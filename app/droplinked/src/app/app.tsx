@@ -152,8 +152,8 @@ export function App() {
           const web3 = new DropWeb3(Network.TESTNET);
           const chainProvider = web3.web3Instance({
             method: Web3Actions.LOGIN,
-            chain: Chain.BASE,
-            preferredWallet: ChainWallet.Metamask,
+            chain: Chain.SOLANA,
+            preferredWallet: ChainWallet.Phantom,
           });
           const loginData = await chainProvider.walletLogin();
           console.log({ loginData });
