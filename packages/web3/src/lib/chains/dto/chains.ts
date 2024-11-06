@@ -15,16 +15,31 @@ export enum Chain {
   REDBELLY = 'REDBELLY',
 }
 
+export enum PaymentTokens {
+  ETH = 'ETH',
+  RBNT = 'RBNT',
+  SOL = 'SOL',
+  USDC = 'USDC',
+  USDT = 'USDT',
+  MEW = 'MEW',
+  BNB = 'BNB',
+  MATIC = 'MATIC',
+  CSPR = 'CSPR',
+  PARAM = 'PARAM',
+  BDC = 'BDC',
+}
+
 export enum Network {
   MAINNET,
   TESTNET,
 }
 
 export enum ChainWallet {
-  Metamask,
-  CoinBase,
-  CasperWallet,
-  Phantom,
+  Metamask = 'Metamask',
+  CoinBase = 'CoinBase',
+  CasperWallet = 'CasperWallet',
+  Phantom = 'Phantom',
+  BaseSmartWallet = 'BaseSmartWallet',
 }
 
 export async function getGasPrice(

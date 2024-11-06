@@ -7,7 +7,7 @@ module.exports = {
     path: join(__dirname, '../../dist/app/droplinked'),
   },
   devServer: {
-    port: 4202,
+    port: 4201,
     historyApiFallback: {
       index: '/index.html',
       disableDotRule: true,

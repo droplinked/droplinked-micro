@@ -1,12 +1,10 @@
+import ky from 'ky';
 import {
   Chain,
   ChainWallet,
-  DropWeb3,
   Network,
-  ProductType,
-} from '@droplinked/web3';
-import axios from 'axios';
-import ky from 'ky';
+} from 'packages/web3/src/lib/chains/dto/chains';
+import { DropWeb3, ProductType } from 'packages/web3/src/index';
 import { Web3Actions } from 'packages/web3/src/lib/chains/dto/configs/web3-config';
 import { ZERO_ADDRESS } from 'packages/web3/src/lib/chains/dto/constants/chain-constants';
 import { getCartData } from 'packages/web3/src/lib/chains/providers/evm/evm.helpers';

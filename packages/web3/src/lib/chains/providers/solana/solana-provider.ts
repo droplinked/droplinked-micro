@@ -19,7 +19,7 @@ import { ChainWallet, Network } from '../../dto/chains';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { ILoginResult } from '../../dto/interfaces/login-result.interface';
 import { IPaymentInputs } from '../../dto/interfaces/payment-interface';
-import { getNonce } from '../evm/evm.helpers';
+import { getCartData, getNonce } from '../evm/evm.helpers';
 import { ContractType } from '../../dto/constants/chain-constants';
 import {
   clusterApiUrl,
@@ -29,6 +29,8 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { base58 } from 'ethers/lib/utils';
+import { BigNumber, ethers } from 'ethers';
 export class SolanaProvider implements IChainProvider {
   axiosInstance: KyInstance;
   network: Network;
@@ -75,7 +77,9 @@ export class SolanaProvider implements IChainProvider {
       This action will not incur any gas fees or blockchain transactions.`;
 
     const encodedMessage = new TextEncoder().encode(message);
-    const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
+    const signedMessage = base58.encode(
+      (await provider.signMessage(encodedMessage, 'utf8')).signature
+    );
     return {
       address: resp.publicKey.toString(),
       signature: signedMessage,
@@ -107,10 +111,157 @@ export class SolanaProvider implements IChainProvider {
   ): Promise<string> {
     throw new Error('Method not implemented.');
   }
-  payment(
+  async payment(
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
-    throw new Error('Method not implemented.');
+    const { paymentData, orderID } = await getCartData(
+      data.cartID,
+      data.paymentToken,
+      data.paymentType,
+      this.address,
+      this.axiosInstance
+    );
+    const { tbdReceivers, tbdValues, totalPrice, tokenAddress } = paymentData;
+    // Check if Phantom is available in the user's browser
+    if (!(window as any).solana || !(window as any).solana.isPhantom) {
+      window.open('https://phantom.app/', '_blank');
+      throw new WalletNotFoundException();
+    }
+    try {
+      const provider = (window as any).solana;
+      await provider.connect();
+      const senderPublicKey = provider.publicKey;
+      const connection = new Connection(
+        this.network === Network.MAINNET
+          ? 'https://little-withered-rain.solana-mainnet.quiknode.pro/4c55253145da61029f48dea8ca5d66c685b64408/'
+          : clusterApiUrl('devnet')
+      );
+      const mintPublicKey = new PublicKey(tokenAddress as string);
+
+      const mintToken = new Token(
+        connection,
+        mintPublicKey,
+        TOKEN_PROGRAM_ID,
+        provider // the wallet owner will pay to transfer and to create recipients associated token account if it does not yet exist.
+      );
+      console.log({ tbdReceivers: tbdReceivers, tbdValues: tbdValues });
+      const recipientPublicKeys = tbdReceivers.map(
+        (recipient) => new PublicKey(recipient)
+      );
+      console.log({ recipientPublicKeys });
+
+      const associatedDestinationTokenAddrs = recipientPublicKeys.map(
+        (recipientPublicKey) =>
+          Token.getAssociatedTokenAddress(
+            mintToken.associatedProgramId,
+            mintToken.programId,
+            mintPublicKey,
+            recipientPublicKey
+          )
+      );
+
+      const associatedFromTokenAddr = await Token.getAssociatedTokenAddress(
+        mintToken.associatedProgramId,
+        mintToken.programId,
+        mintPublicKey,
+        senderPublicKey
+      );
+
+      const fromTokenAccount = await connection.getAccountInfo(
+        associatedFromTokenAddr
+      );
+
+      const receiverAccounts = await Promise.all(
+        associatedDestinationTokenAddrs.map(
+          async (associatedDestinationTokenAddr) =>
+            connection.getAccountInfo(await associatedDestinationTokenAddr)
+        )
+      );
+
+      const instructions: TransactionInstruction[] = [];
+
+      for (let i = 0; i < receiverAccounts.length; i++) {
+        const receiverAccount = receiverAccounts[i];
+        if (receiverAccount === null) {
+          instructions.push(
+            Token.createAssociatedTokenAccountInstruction(
+              mintToken.associatedProgramId,
+              mintToken.programId,
+              mintPublicKey,
+              await associatedDestinationTokenAddrs[i],
+              recipientPublicKeys[i],
+              senderPublicKey
+            )
+          );
+        }
+      }
+
+      if (fromTokenAccount === null) {
+        instructions.push(
+          Token.createAssociatedTokenAccountInstruction(
+            mintToken.associatedProgramId,
+            mintToken.programId,
+            mintPublicKey,
+            associatedFromTokenAddr,
+            senderPublicKey,
+            senderPublicKey
+          )
+        );
+      }
+      for (let i = 0; i < associatedDestinationTokenAddrs.length; i++) {
+        instructions.push(
+          Token.createTransferInstruction(
+            TOKEN_PROGRAM_ID,
+            associatedFromTokenAddr,
+            await associatedDestinationTokenAddrs[i],
+            senderPublicKey,
+            [],
+            ethers.BigNumber.from(tbdValues[i])
+              .div(ethers.BigNumber.from(10).pow(9))
+              .toNumber()
+          )
+        );
+      }
+      const transaction = new Transaction().add(...instructions);
+      transaction.feePayer = senderPublicKey;
+      transaction.recentBlockhash = (
+        await connection.getLatestBlockhash()
+      ).blockhash;
+      const signedTransaction = await provider.signTransaction(transaction);
+      const transactionSignature = await connection.sendRawTransaction(
+        signedTransaction.serialize(),
+        { skipPreflight: true }
+      );
+      const latestBlockHash = await connection.getLatestBlockhash();
+      await connection.confirmTransaction({
+        blockhash: latestBlockHash.blockhash,
+        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+        signature: transactionSignature,
+      });
+      const delay = (delayInms: number) => {
+        return new Promise((resolve) => setTimeout(resolve, delayInms));
+      };
+
+      while (true) {
+        await delay(1500);
+        console.log('Checking transaction status...');
+        try {
+          if (await connection.getParsedTransaction(transactionSignature))
+            break;
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      await delay(1000);
+      return {
+        transactionHash: transactionSignature,
+        cryptoAmount: totalPrice,
+        orderID: orderID,
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
   async paymentWithToken(
     receiver: string,
