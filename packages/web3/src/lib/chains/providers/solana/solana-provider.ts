@@ -31,6 +31,7 @@ import {
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { base58 } from 'ethers/lib/utils';
 import { BigNumber, ethers } from 'ethers';
+import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
 export class SolanaProvider implements IChainProvider {
   axiosInstance: KyInstance;
   network: Network;
@@ -51,6 +52,9 @@ export class SolanaProvider implements IChainProvider {
     });
     this.address = '';
     this.contractType = ContractType.TYPE0;
+  }
+  claimNFTs(data: ClaimNFTInputs): Promise<string> {
+    throw new Error('Method not implemented.');
   }
 
   setAxiosInstance(axiosInstance: KyInstance): IChainProvider {

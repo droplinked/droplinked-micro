@@ -3,12 +3,14 @@ import {
   Chain,
   ChainWallet,
   Network,
+  PaymentTokens,
 } from 'packages/web3/src/lib/chains/dto/chains';
 import { DropWeb3, ProductType } from 'packages/web3/src/index';
 import { Web3Actions } from 'packages/web3/src/lib/chains/dto/configs/web3-config';
 import { ZERO_ADDRESS } from 'packages/web3/src/lib/chains/dto/constants/chain-constants';
 import { getCartData } from 'packages/web3/src/lib/chains/providers/evm/evm.helpers';
 import { FC } from 'react';
+import { PurchaseSignature } from 'packages/web3/src/lib/chains/dto/interfaces/claim-nft-inputs';
 
 interface IDeployParams {
   chainName: Chain;
@@ -26,8 +28,15 @@ interface IPaymentProps {
   chainName: Chain;
   address: string;
   cartID: string;
-  paymentToken: string;
+  paymentToken: PaymentTokens;
   paymentType: string;
+}
+
+interface IClaimNFTSProps {
+  chainName: Chain;
+  address: string;
+  signature: PurchaseSignature;
+  shopAddress: string;
 }
 
 export const Payment: FC<IPaymentProps> = (paymentParams: IPaymentProps) => {
@@ -45,7 +54,7 @@ export const Payment: FC<IPaymentProps> = (paymentParams: IPaymentProps) => {
         const result = await binance.payment({
           cartID: paymentParams.cartID,
           paymentToken: paymentParams.paymentToken,
-          paymentType: paymentParams.paymentType,
+          paymentType: paymentParams.chainName,
         });
         console.log({ result });
       }}
@@ -77,6 +86,32 @@ export const DeployShop: FC<IDeployParams> = (deployParams: IDeployParams) => {
       }}
     >
       Deploy Shop on {Chain[deployParams.chainName]}
+    </button>
+  );
+};
+
+export const ClaimNFTs: FC<IClaimNFTSProps> = (
+  claimParams: IClaimNFTSProps
+) => {
+  return (
+    <button
+      onClick={async () => {
+        const web3 = new DropWeb3(Network.TESTNET);
+        const chainInstance = web3.web3Instance({
+          method: Web3Actions.CLAIM,
+          chain: claimParams.chainName,
+          preferredWallet: ChainWallet.Metamask,
+          userAddress: claimParams.address,
+          shopContractAddress: claimParams.shopAddress,
+        });
+        const result = await chainInstance.claimNFTs({
+          shopContractAddress: claimParams.shopAddress,
+          signature: claimParams.signature,
+        });
+        console.log({ result });
+      }}
+    >
+      Claim {claimParams.chainName}
     </button>
   );
 };
@@ -217,8 +252,8 @@ export function App() {
       <br></br>
       <RecordProduct
         chainName={Chain.BINANCE}
-        nftContract="0x7C7999d5de928e1d74570d2310EdbfbAeE18642E"
-        shopAddress="0xc93C130BD7D6A7Ac3BD8ebEd77D620DF01B69E15"
+        nftContract="0x6AEf48944b9c4FE84DA4359f059EfbC2b28dfFBA"
+        shopAddress="0xDE248D788622a28e97903946c99733c0F9d38a05"
         walletAddress="0xe29E7479c23Db494aAa0D36C93844B2d79f50c25"
       />
       <br></br>
@@ -235,8 +270,28 @@ export function App() {
         chainName={Chain.BINANCE}
         address="0xe29E7479c23Db494aAa0D36C93844B2d79f50c25"
         cartID="671c8e07159badf2e1c614c7"
-        paymentToken="BNB"
+        paymentToken={PaymentTokens.BNB}
         paymentType="BINANCE"
+      />
+      <br></br>
+      <h1>** Claim NFT **</h1>
+      <ClaimNFTs
+        address="0xe29E7479c23Db494aAa0D36C93844B2d79f50c25"
+        chainName={Chain.BINANCE}
+        shopAddress="0xDE248D788622a28e97903946c99733c0F9d38a05"
+        signature={{
+          signature:
+            '0x891347c4c682a0ac3b8849db78725024d5e4f7646cc1ad51aad4478fc6e164f41c51ff9c35bf06fb92b6eda5ed0e7e150c17af689fb2943e35532829a6bdacbe1b',
+          purchaseData: [
+            {
+              amount: 5,
+              productId:
+                '52016425286446959491621875784841268570278260520849950042800701673080151161074',
+              nullifier:
+                '0x7eae68f7f2ed5db0d397fa6b068dd5c0fcdfc94099ad2d22d56984e942271dea',
+            },
+          ],
+        }}
       />
     </div>
   );

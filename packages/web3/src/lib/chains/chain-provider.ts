@@ -177,6 +177,9 @@ export class DropWeb3 {
       userAddress = config.userAddress;
     } else if (config.method === Web3Actions.PAYMENT) {
       userAddress = config.userAddress;
+    } else if (config.method === Web3Actions.CLAIM) {
+      userAddress = config.userAddress;
+      shopContractAddress = config.shopContractAddress;
     }
 
     if (this.chainMapping[chain][network] == null)

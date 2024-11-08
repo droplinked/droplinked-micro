@@ -6,7 +6,7 @@ import {
   RecordResponse,
 } from '../../dto/constants/chain-structs';
 import { Unauthorized } from '../../dto/errors/chain-errors';
-import { ContractType, getGasPrice } from '../../dto/constants/chain-constants';
+import { getGasPrice } from '../../dto/constants/chain-constants';
 import { getShopABI } from '../../dto/constants/chain-abis';
 import { checkWallet, uploadMetadata } from './evm.helpers';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
@@ -23,7 +23,7 @@ function getRecordData(
   metadataURL: string,
   nftContract: string
 ) {
-  const { contractType, chain } = chainConfig;
+  const { chain } = chainConfig;
   const {
     acceptsManageWallet,
     amount,
@@ -57,18 +57,14 @@ function getRecordData(
       _amount: amount,
       _accepted: acceptsManageWallet,
       _affiliatePercentage: royalty,
-      _price: price,
-      _currencyAddress: currencyAddress,
       _royalty: royalty,
       _nftType: NFTType.ERC1155,
       _productType: type,
-      _paymentType: PaymentMethodType.USD,
-      _beneficiaries: beneficiaries,
     };
   }
-  if ([ContractType.TYPE0, ContractType.TYPE2].includes(contractType)) {
-    return { ...result, _receiveUSDC: true };
-  }
+  // if ([ContractType.TYPE0, ContractType.TYPE2].includes(contractType)) {
+  //   return { ...result, _receiveUSDC: true };
+  // }
   return result;
 }
 
@@ -164,7 +160,7 @@ export async function recordProduct(
     const products = await Promise.all(
       skus.map((sku) => prepareRecordData(chainConfig, sku, product, context))
     );
-
+    console.log({ products });
     let tx;
     if (chainConfig.gasPredictable) {
       modalInterface.waiting('CallStatic...');

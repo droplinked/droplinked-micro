@@ -3,11 +3,9 @@ import { ethers } from 'ethers';
 import {
   ContractType,
   getDeployerAddress,
-  getFundsProxy,
   getShopByteCode,
 } from '../../dto/constants/chain-constants';
 import { deployerABI } from '../../dto/constants/chain-abis';
-import { chainLink } from '../../dto/configs/chainlink-addresses';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
@@ -55,10 +53,8 @@ const deploymentParameters = {
 };
 
 async function getConstructorArgs(
-  contractType: ContractType,
   shopDetails: IDeployShop,
   deployerAddress: EthAddress,
-  chainConfig: DroplinkedChainConfig,
   address: string
 ) {
   const commonArgs = [
@@ -69,26 +65,26 @@ async function getConstructorArgs(
     shopDetails.shopDescription || '',
     deployerAddress,
   ];
-
-  if (contractType === ContractType.TYPE0) {
-    return [
-      ...commonArgs,
-      (chainLink as any)[chainConfig.chain][chainConfig.network],
-      await getFundsProxy(chainConfig.chain, chainConfig.network),
-    ];
-  } else if (contractType === ContractType.TYPE1) {
-    return [
-      ...commonArgs,
-      (chainLink as any)[chainConfig.chain][chainConfig.network],
-    ];
-  } else if (contractType === ContractType.TYPE3) {
-    return commonArgs;
-  } else {
-    return [
-      ...commonArgs,
-      await getFundsProxy(chainConfig.chain, chainConfig.network),
-    ];
-  }
+  return commonArgs;
+  // if (contractType === ContractType.TYPE0) {
+  //   return [
+  //     ...commonArgs,
+  //     (chainLink as any)[chainConfig.chain][chainConfig.network],
+  //     await getFundsProxy(chainConfig.chain, chainConfig.network),
+  //   ];
+  // } else if (contractType === ContractType.TYPE1) {
+  //   return [
+  //     ...commonArgs,
+  //     (chainLink as any)[chainConfig.chain][chainConfig.network],
+  //   ];
+  // } else if (contractType === ContractType.TYPE3) {
+  //   return commonArgs;
+  // } else {
+  //   return [
+  //     ...commonArgs,
+  //     await getFundsProxy(chainConfig.chain, chainConfig.network),
+  //   ];
+  // }
 }
 
 export async function deployEVMShop(
@@ -136,10 +132,8 @@ export async function deployEVMShop(
   console.log(salt);
 
   const constructorArgs = await getConstructorArgs(
-    contractType,
     shopDetails,
     deployerAddress,
-    chainConfig,
     address
   );
 

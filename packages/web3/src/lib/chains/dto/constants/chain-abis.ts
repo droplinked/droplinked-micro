@@ -420,23 +420,23 @@ const type0ShopABI = [
         name: '_deployer',
         type: 'address',
       },
-      {
-        internalType: 'address',
-        name: '_chainLink',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_IFundsProxy',
-        type: 'address',
-      },
     ],
     stateMutability: 'nonpayable',
     type: 'constructor',
   },
   {
     inputs: [],
+    name: 'AccessDenied',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'AffiliatePOD',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'AlreadyClaimed',
     type: 'error',
   },
   {
@@ -581,31 +581,6 @@ const type0ShopABI = [
       {
         indexed: true,
         internalType: 'address',
-        name: 'buyer',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount',
-        type: 'uint256',
-      },
-    ],
-    name: 'AffiliatePurchase',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'uint256',
-        name: 'requestId',
-        type: 'uint256',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
         name: 'approver',
         type: 'address',
       },
@@ -661,37 +636,6 @@ const type0ShopABI = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'beneficiaryHash',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'bool',
-        name: 'isPercentage',
-        type: 'bool',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'address',
-        name: 'wallet',
-        type: 'address',
-      },
-    ],
-    name: 'BeneficiaryAdded',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: 'address',
         name: 'previousOwner',
@@ -719,7 +663,7 @@ const type0ShopABI = [
       {
         indexed: true,
         internalType: 'address',
-        name: 'buyer',
+        name: 'claimer',
         type: 'address',
       },
       {
@@ -729,7 +673,7 @@ const type0ShopABI = [
         type: 'uint256',
       },
     ],
-    name: 'ProductPurchased',
+    name: 'ProductClaimed',
     type: 'event',
   },
   {
@@ -816,42 +760,6 @@ const type0ShopABI = [
     type: 'function',
   },
   {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: 'bool',
-            name: 'isPercentage',
-            type: 'bool',
-          },
-          {
-            internalType: 'uint256',
-            name: 'value',
-            type: 'uint256',
-          },
-          {
-            internalType: 'address',
-            name: 'wallet',
-            type: 'address',
-          },
-        ],
-        internalType: 'struct Beneficiary',
-        name: 'beneficary',
-        type: 'tuple',
-      },
-    ],
-    name: 'addBeneficiary',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
     inputs: [],
     name: 'affiliateRequestCount',
     outputs: [
@@ -909,30 +817,53 @@ const type0ShopABI = [
   {
     inputs: [
       {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    name: 'beneficiaries',
-    outputs: [
-      {
-        internalType: 'bool',
-        name: 'isPercentage',
-        type: 'bool',
-      },
-      {
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-      {
         internalType: 'address',
-        name: 'wallet',
+        name: 'manager',
         type: 'address',
       },
+      {
+        internalType: 'bytes',
+        name: 'signature',
+        type: 'bytes',
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'amount',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'productId',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'nullifier',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct PurchasedItem[]',
+            name: 'cart',
+            type: 'tuple[]',
+          },
+          {
+            internalType: 'address',
+            name: 'shop',
+            type: 'address',
+          },
+        ],
+        internalType: 'struct PurchaseSignature',
+        name: 'purchaseSignature',
+        type: 'tuple',
+      },
     ],
-    stateMutability: 'view',
+    name: 'claimPurchase',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -1013,83 +944,68 @@ const type0ShopABI = [
   {
     inputs: [
       {
-        internalType: 'uint256',
-        name: '_hash',
-        type: 'uint256',
+        internalType: 'bytes32',
+        name: 'messageHash',
+        type: 'bytes32',
       },
     ],
-    name: 'getBeneficiary',
+    name: 'getEthSignedMessageHash',
     outputs: [
       {
-        components: [
-          {
-            internalType: 'bool',
-            name: 'isPercentage',
-            type: 'bool',
-          },
-          {
-            internalType: 'uint256',
-            name: 'value',
-            type: 'uint256',
-          },
-          {
-            internalType: 'address',
-            name: 'wallet',
-            type: 'address',
-          },
-        ],
-        internalType: 'struct Beneficiary',
+        internalType: 'bytes32',
         name: '',
-        type: 'tuple',
+        type: 'bytes32',
       },
     ],
-    stateMutability: 'view',
+    stateMutability: 'pure',
     type: 'function',
   },
   {
     inputs: [
       {
-        internalType: 'uint256',
-        name: 'productId',
-        type: 'uint256',
-      },
-    ],
-    name: 'getPaymentInfo',
-    outputs: [
-      {
         components: [
           {
-            internalType: 'uint256',
-            name: 'price',
-            type: 'uint256',
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'amount',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'productId',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'nullifier',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct PurchasedItem[]',
+            name: 'cart',
+            type: 'tuple[]',
           },
           {
             internalType: 'address',
-            name: 'currencyAddress',
+            name: 'shop',
             type: 'address',
           },
-          {
-            internalType: 'uint256[]',
-            name: 'beneficiaries',
-            type: 'uint256[]',
-          },
-          {
-            internalType: 'enum PaymentMethodType',
-            name: 'paymentType',
-            type: 'uint8',
-          },
-          {
-            internalType: 'bool',
-            name: 'receiveUSDC',
-            type: 'bool',
-          },
         ],
-        internalType: 'struct PaymentInfo',
-        name: '',
+        internalType: 'struct PurchaseSignature',
+        name: 'data',
         type: 'tuple',
       },
     ],
-    stateMutability: 'view',
+    name: 'getMessageHash',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'pure',
     type: 'function',
   },
   {
@@ -1123,38 +1039,6 @@ const type0ShopABI = [
             internalType: 'enum ProductType',
             name: 'productType',
             type: 'uint8',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'price',
-                type: 'uint256',
-              },
-              {
-                internalType: 'address',
-                name: 'currencyAddress',
-                type: 'address',
-              },
-              {
-                internalType: 'uint256[]',
-                name: 'beneficiaries',
-                type: 'uint256[]',
-              },
-              {
-                internalType: 'enum PaymentMethodType',
-                name: 'paymentType',
-                type: 'uint8',
-              },
-              {
-                internalType: 'bool',
-                name: 'receiveUSDC',
-                type: 'bool',
-              },
-            ],
-            internalType: 'struct PaymentInfo',
-            name: 'paymentInfo',
-            type: 'tuple',
           },
           {
             internalType: 'uint256',
@@ -1206,38 +1090,6 @@ const type0ShopABI = [
             internalType: 'enum ProductType',
             name: 'productType',
             type: 'uint8',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'price',
-                type: 'uint256',
-              },
-              {
-                internalType: 'address',
-                name: 'currencyAddress',
-                type: 'address',
-              },
-              {
-                internalType: 'uint256[]',
-                name: 'beneficiaries',
-                type: 'uint256[]',
-              },
-              {
-                internalType: 'enum PaymentMethodType',
-                name: 'paymentType',
-                type: 'uint8',
-              },
-              {
-                internalType: 'bool',
-                name: 'receiveUSDC',
-                type: 'bool',
-              },
-            ],
-            internalType: 'struct PaymentInfo',
-            name: 'paymentInfo',
-            type: 'tuple',
           },
           {
             internalType: 'uint256',
@@ -1316,38 +1168,6 @@ const type0ShopABI = [
             internalType: 'enum ProductType',
             name: 'productType',
             type: 'uint8',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'price',
-                type: 'uint256',
-              },
-              {
-                internalType: 'address',
-                name: 'currencyAddress',
-                type: 'address',
-              },
-              {
-                internalType: 'uint256[]',
-                name: 'beneficiaries',
-                type: 'uint256[]',
-              },
-              {
-                internalType: 'enum PaymentMethodType',
-                name: 'paymentType',
-                type: 'uint8',
-              },
-              {
-                internalType: 'bool',
-                name: 'receiveUSDC',
-                type: 'bool',
-              },
-            ],
-            internalType: 'struct PaymentInfo',
-            name: 'paymentInfo',
-            type: 'tuple',
           },
           {
             internalType: 'uint256',
@@ -1455,6 +1275,25 @@ const type0ShopABI = [
   {
     inputs: [
       {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    name: 'managers',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         components: [
           {
             internalType: 'address',
@@ -1483,16 +1322,6 @@ const type0ShopABI = [
           },
           {
             internalType: 'uint256',
-            name: '_price',
-            type: 'uint256',
-          },
-          {
-            internalType: 'address',
-            name: '_currencyAddress',
-            type: 'address',
-          },
-          {
-            internalType: 'uint256',
             name: '_royalty',
             type: 'uint256',
           },
@@ -1505,38 +1334,6 @@ const type0ShopABI = [
             internalType: 'enum ProductType',
             name: '_productType',
             type: 'uint8',
-          },
-          {
-            internalType: 'enum PaymentMethodType',
-            name: '_paymentType',
-            type: 'uint8',
-          },
-          {
-            components: [
-              {
-                internalType: 'bool',
-                name: 'isPercentage',
-                type: 'bool',
-              },
-              {
-                internalType: 'uint256',
-                name: 'value',
-                type: 'uint256',
-              },
-              {
-                internalType: 'address',
-                name: 'wallet',
-                type: 'address',
-              },
-            ],
-            internalType: 'struct Beneficiary[]',
-            name: '_beneficiaries',
-            type: 'tuple[]',
-          },
-          {
-            internalType: 'bool',
-            name: '_receiveUSDC',
-            type: 'bool',
           },
         ],
         internalType: 'struct RecordData',
@@ -1586,16 +1383,6 @@ const type0ShopABI = [
           },
           {
             internalType: 'uint256',
-            name: '_price',
-            type: 'uint256',
-          },
-          {
-            internalType: 'address',
-            name: '_currencyAddress',
-            type: 'address',
-          },
-          {
-            internalType: 'uint256',
             name: '_royalty',
             type: 'uint256',
           },
@@ -1609,38 +1396,6 @@ const type0ShopABI = [
             name: '_productType',
             type: 'uint8',
           },
-          {
-            internalType: 'enum PaymentMethodType',
-            name: '_paymentType',
-            type: 'uint8',
-          },
-          {
-            components: [
-              {
-                internalType: 'bool',
-                name: 'isPercentage',
-                type: 'bool',
-              },
-              {
-                internalType: 'uint256',
-                name: 'value',
-                type: 'uint256',
-              },
-              {
-                internalType: 'address',
-                name: 'wallet',
-                type: 'address',
-              },
-            ],
-            internalType: 'struct Beneficiary[]',
-            name: '_beneficiaries',
-            type: 'tuple[]',
-          },
-          {
-            internalType: 'bool',
-            name: '_receiveUSDC',
-            type: 'bool',
-          },
         ],
         internalType: 'struct RecordData[]',
         name: 'recordData',
@@ -1650,6 +1405,25 @@ const type0ShopABI = [
     name: 'mintAndRegisterBatch',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    name: 'nullifiers',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -1821,38 +1595,6 @@ const type0ShopABI = [
         type: 'uint8',
       },
       {
-        components: [
-          {
-            internalType: 'uint256',
-            name: 'price',
-            type: 'uint256',
-          },
-          {
-            internalType: 'address',
-            name: 'currencyAddress',
-            type: 'address',
-          },
-          {
-            internalType: 'uint256[]',
-            name: 'beneficiaries',
-            type: 'uint256[]',
-          },
-          {
-            internalType: 'enum PaymentMethodType',
-            name: 'paymentType',
-            type: 'uint8',
-          },
-          {
-            internalType: 'bool',
-            name: 'receiveUSDC',
-            type: 'bool',
-          },
-        ],
-        internalType: 'struct PaymentInfo',
-        name: 'paymentInfo',
-        type: 'tuple',
-      },
-      {
         internalType: 'uint256',
         name: 'affiliatePercentage',
         type: 'uint256',
@@ -1862,77 +1604,27 @@ const type0ShopABI = [
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'proxyRouter',
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'ethSignedMessageHash',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes',
+        name: 'signature',
+        type: 'bytes',
+      },
+    ],
+    name: 'recoverSigner',
     outputs: [
       {
-        internalType: 'contract IFundsProxy',
+        internalType: 'address',
         name: '',
         type: 'address',
       },
     ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: 'id',
-        type: 'uint256',
-      },
-      {
-        internalType: 'bool',
-        name: 'isAffiliate',
-        type: 'bool',
-      },
-      {
-        internalType: 'uint256',
-        name: 'amount',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint80',
-        name: 'roundId',
-        type: 'uint80',
-      },
-    ],
-    name: 'purchaseProduct',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'receiver',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: 'id',
-        type: 'uint256',
-      },
-      {
-        internalType: 'bool',
-        name: 'isAffiliate',
-        type: 'bool',
-      },
-      {
-        internalType: 'uint256',
-        name: 'amount',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint80',
-        name: 'roundId',
-        type: 'uint80',
-      },
-    ],
-    name: 'purchaseProductFor',
-    outputs: [],
-    stateMutability: 'payable',
+    stateMutability: 'pure',
     type: 'function',
   },
   {
@@ -1953,16 +1645,6 @@ const type0ShopABI = [
         type: 'uint256',
       },
       {
-        internalType: 'uint256',
-        name: '_price',
-        type: 'uint256',
-      },
-      {
-        internalType: 'address',
-        name: '_currencyAddress',
-        type: 'address',
-      },
-      {
         internalType: 'enum NFTType',
         name: '_nftType',
         type: 'uint8',
@@ -1971,38 +1653,6 @@ const type0ShopABI = [
         internalType: 'enum ProductType',
         name: '_productType',
         type: 'uint8',
-      },
-      {
-        internalType: 'enum PaymentMethodType',
-        name: '_paymentType',
-        type: 'uint8',
-      },
-      {
-        components: [
-          {
-            internalType: 'bool',
-            name: 'isPercentage',
-            type: 'bool',
-          },
-          {
-            internalType: 'uint256',
-            name: 'value',
-            type: 'uint256',
-          },
-          {
-            internalType: 'address',
-            name: 'wallet',
-            type: 'address',
-          },
-        ],
-        internalType: 'struct Beneficiary[]',
-        name: '_beneficiaries',
-        type: 'tuple[]',
-      },
-      {
-        internalType: 'bool',
-        name: '_receiveUSDC',
-        type: 'bool',
       },
     ],
     name: 'registerProduct',
@@ -2045,6 +1695,61 @@ const type0ShopABI = [
   {
     inputs: [
       {
+        internalType: 'address',
+        name: 'manager',
+        type: 'address',
+      },
+    ],
+    name: 'revokeManager',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'manager',
+        type: 'address',
+      },
+    ],
+    name: 'setManager',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes',
+        name: 'sig',
+        type: 'bytes',
+      },
+    ],
+    name: 'splitSignature',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: 'r',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: 's',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint8',
+        name: 'v',
+        type: 'uint8',
+      },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'bytes4',
         name: 'interfaceId',
         type: 'bytes4',
@@ -2059,6 +1764,19 @@ const type0ShopABI = [
       },
     ],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'newManager',
+        type: 'address',
+      },
+    ],
+    name: 'transferManagerShip',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -2085,6 +1803,64 @@ const type0ShopABI = [
     name: 'unregisterProduct',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'signer',
+        type: 'address',
+      },
+      {
+        internalType: 'bytes',
+        name: 'signature',
+        type: 'bytes',
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'amount',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'productId',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'nullifier',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct PurchasedItem[]',
+            name: 'cart',
+            type: 'tuple[]',
+          },
+          {
+            internalType: 'address',
+            name: 'shop',
+            type: 'address',
+          },
+        ],
+        internalType: 'struct PurchaseSignature',
+        name: 'data',
+        type: 'tuple',
+      },
+    ],
+    name: 'verifyPurchase',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'pure',
     type: 'function',
   },
 ];

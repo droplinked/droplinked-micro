@@ -12,6 +12,7 @@ import { IDeployShop } from './deploy-shop.interface';
 import { ILoginResult } from './login-result.interface';
 import { IPaymentInputs } from './payment-interface';
 import { KyInstance } from 'ky';
+import { ClaimNFTInputs } from './claim-nft-inputs';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IChainProvider {
@@ -39,6 +40,7 @@ export interface IChainProvider {
     amount: number,
     tokenAddress: string
   ): Promise<string>;
+  claimNFTs(data: ClaimNFTInputs): Promise<string>;
   setAddress(address: EthAddress): IChainProvider;
   setWallet(wallet: ChainWallet): IChainProvider;
   setModal(modal: ModalInterface): IChainProvider;
