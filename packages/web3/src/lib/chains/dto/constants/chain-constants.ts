@@ -10,13 +10,6 @@ export const ZERO_ADDRESS = toEthAddress(
 
 export const DROPLINKED_MANAGER = '0x2F86E1B1A69D259b9609b40E3cbEBEa29946f979';
 
-export enum ContractType {
-  TYPE0,
-  TYPE1,
-  TYPE2,
-  TYPE3,
-}
-
 async function getAddress(
   chain: Chain,
   network: Network,
@@ -62,15 +55,9 @@ export async function getFundsProxy(
   return getAddress(chain, network, 'FundsProxy');
 }
 
-async function getShopByteCode(contractType: ContractType): Promise<string> {
-  const shopByteCodesByType = {
-    [ContractType.TYPE0]: 'Type0',
-    [ContractType.TYPE1]: 'Type1',
-    [ContractType.TYPE2]: 'Type2',
-    [ContractType.TYPE3]: 'Type3',
-  };
+async function getShopByteCode(): Promise<string> {
   try {
-    const url = `https://apiv3dev.droplinked.com/storage/shopByteCode${shopByteCodesByType[contractType]}`;
+    const url = `https://apiv3dev.droplinked.com/storage/shopByteCodeType0`;
     const result = String(((await await ky.get(url).json()) as any).value);
     return result;
   } catch (err) {

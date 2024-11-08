@@ -2,7 +2,6 @@
 import { ethers } from 'ethers';
 import {
   NFTType,
-  PaymentMethodType,
   RecordResponse,
 } from '../../dto/constants/chain-structs';
 import { Unauthorized } from '../../dto/errors/chain-errors';
@@ -15,57 +14,28 @@ import {
   ISKUDetails,
 } from '../../dto/interfaces/record-web3-product.interface';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
-import { Chain } from '../../dto/chains';
 
 function getRecordData(
-  chainConfig: DroplinkedChainConfig,
   product: ISKUDetails & IProductDetails,
   metadataURL: string,
   nftContract: string
 ) {
-  const { chain } = chainConfig;
   const {
     acceptsManageWallet,
     amount,
-    beneficiaries,
-    currencyAddress,
-    price,
     royalty,
     type,
   } = product;
-  let result;
-  if (chain === Chain.SKALE) {
-    result = {
-      nftAddress: nftContract,
-      uri: metadataURL,
-      amount: amount,
-      accepted: acceptsManageWallet,
-      affiliatePercentage: royalty,
-      price: price,
-      currencyAddress: currencyAddress,
-      royalty: royalty,
-      nftType: NFTType.ERC1155,
-      productType: type,
-      paymentType: PaymentMethodType.USD,
-      beneficiaries: beneficiaries,
-      receiveUSDC: true,
-    };
-  } else {
-    result = {
-      _nftAddress: nftContract,
-      _uri: metadataURL,
-      _amount: amount,
-      _accepted: acceptsManageWallet,
-      _affiliatePercentage: royalty,
-      _royalty: royalty,
-      _nftType: NFTType.ERC1155,
-      _productType: type,
-    };
-  }
-  // if ([ContractType.TYPE0, ContractType.TYPE2].includes(contractType)) {
-  //   return { ...result, _receiveUSDC: true };
-  // }
-  return result;
+  return {
+    nftAddress: nftContract,
+    uri: metadataURL,
+    amount: amount,
+    accepted: acceptsManageWallet,
+    affiliatePercentage: royalty,
+    royalty: royalty,
+    nftType: NFTType.ERC1155,
+    productType: type,
+  };
 }
 
 async function prepareRecordData(
@@ -100,12 +70,14 @@ async function prepareRecordData(
     royalty: recordData.skuProperties['royalty'],
     createdAt: recordData.skuProperties['createdAt'],
   };
+
   const metadata = {
     name: recordData.productTitle,
     description: description,
     image: recordData.imageUrl,
     properties: properties,
   };
+
   const metadataURL = await uploadMetadata(
     metadata,
     skuID,
@@ -116,7 +88,6 @@ async function prepareRecordData(
 
   modalInterface.waiting('Getting recordData');
   const product = getRecordData(
-    chainConfig,
     recordData,
     metadataURL,
     nftContract
@@ -152,7 +123,7 @@ export async function recordProduct(
 
   const contract = new ethers.Contract(
     shopContractAddress,
-    getShopABI(chainConfig.contractType),
+    getShopABI(),
     signer
   );
 
@@ -164,15 +135,24 @@ export async function recordProduct(
     let tx;
     if (chainConfig.gasPredictable) {
       modalInterface.waiting('CallStatic...');
+
       await contract.callStatic['mintAndRegisterBatch'](products);
+
       modalInterface.waiting('Estimating gas...');
       const gasEstimation = (
         await contract.estimateGas['mintAndRegisterBatch'](products)
       ).toBigInt();
+
       modalInterface.waiting('Got gas estimation: ' + gasEstimation);
+
+      modalInterface.waiting(`Getting the gasPrice of the network...`);
+
       const gasPrice = (await getGasPrice(chainConfig.provider)).valueOf();
+
       modalInterface.waiting('Got gas price: ' + gasPrice);
+
       modalInterface.waiting('Sending transaction...');
+
       tx = await contract['mintAndRegisterBatch'](products);
     } else {
       modalInterface.waiting('Sending transaction...');

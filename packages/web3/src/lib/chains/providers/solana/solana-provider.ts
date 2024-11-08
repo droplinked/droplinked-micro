@@ -20,7 +20,6 @@ import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { ILoginResult } from '../../dto/interfaces/login-result.interface';
 import { IPaymentInputs } from '../../dto/interfaces/payment-interface';
 import { getCartData, getNonce } from '../evm/evm.helpers';
-import { ContractType } from '../../dto/constants/chain-constants';
 import {
   clusterApiUrl,
   Connection,
@@ -38,7 +37,6 @@ export class SolanaProvider implements IChainProvider {
   address: string;
   modalInterface: ModalInterface = new defaultModal();
   wallet: ChainWallet = ChainWallet.Phantom;
-  contractType: ContractType;
   nftContractAddress?: EthAddress;
   shopContractAddress?: EthAddress;
 
@@ -51,7 +49,6 @@ export class SolanaProvider implements IChainProvider {
           : 'https://apiv3dev.droplinked.com',
     });
     this.address = '';
-    this.contractType = ContractType.TYPE0;
   }
   claimNFTs(data: ClaimNFTInputs): Promise<string> {
     throw new Error('Method not implemented.');

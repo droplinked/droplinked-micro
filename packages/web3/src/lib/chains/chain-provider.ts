@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Chain, Network } from './dto/chains';
 import { EVMProvider } from './providers/evm/evm-provider';
-import { ContractType } from './dto/constants/chain-constants';
 import {
   AccountAccessDeniedException,
   ChainNotImplementedException,
@@ -36,13 +35,11 @@ export class DropWeb3 {
       [Network.TESTNET]: new EVMProvider(
         Chain.BINANCE,
         Network.TESTNET,
-        ContractType.TYPE0,
         true
       ),
       [Network.MAINNET]: new EVMProvider(
         Chain.BINANCE,
         Network.MAINNET,
-        ContractType.TYPE0,
         true
       ),
     },
@@ -50,13 +47,11 @@ export class DropWeb3 {
       [Network.TESTNET]: new EVMProvider(
         Chain.POLYGON,
         Network.TESTNET,
-        ContractType.TYPE1,
         true
       ),
       [Network.MAINNET]: new EVMProvider(
         Chain.POLYGON,
         Network.MAINNET,
-        ContractType.TYPE0,
         true
       ),
     },
@@ -64,13 +59,11 @@ export class DropWeb3 {
       [Network.TESTNET]: new EVMProvider(
         Chain.NEAR,
         Network.TESTNET,
-        ContractType.TYPE3,
         true // todo
       ),
       [Network.MAINNET]: new EVMProvider(
         Chain.NEAR,
         Network.MAINNET,
-        ContractType.TYPE3,
         true //todo
       ),
     },
@@ -86,13 +79,11 @@ export class DropWeb3 {
       [Network.TESTNET]: new EVMProvider(
         Chain.BASE,
         Network.TESTNET,
-        ContractType.TYPE1,
         true
       ),
       [Network.MAINNET]: new EVMProvider(
         Chain.BASE,
         Network.MAINNET,
-        ContractType.TYPE0,
         true
       ),
     },
@@ -104,13 +95,11 @@ export class DropWeb3 {
       [Network.TESTNET]: new EVMProvider(
         Chain.SKALE,
         Network.TESTNET,
-        ContractType.TYPE3,
         false
       ),
       [Network.MAINNET]: new EVMProvider(
         Chain.SKALE,
         Network.MAINNET,
-        ContractType.TYPE3,
         false
       ),
     },
@@ -118,13 +107,11 @@ export class DropWeb3 {
       [Network.TESTNET]: new EVMProvider(
         Chain.LINEA,
         Network.TESTNET,
-        ContractType.TYPE3,
         true
       ),
       [Network.MAINNET]: new EVMProvider(
         Chain.LINEA,
         Network.MAINNET,
-        ContractType.TYPE0,
         true
       ),
     },
@@ -132,13 +119,11 @@ export class DropWeb3 {
       [Network.TESTNET]: new EVMProvider(
         Chain.ETH,
         Network.TESTNET,
-        ContractType.TYPE1,
         true
       ),
       [Network.MAINNET]: new EVMProvider(
         Chain.ETH,
         Network.MAINNET,
-        ContractType.TYPE0,
         true
       ),
     },
@@ -150,13 +135,11 @@ export class DropWeb3 {
       [Network.MAINNET]: new EVMProvider(
         Chain.REDBELLY,
         Network.MAINNET,
-        ContractType.TYPE3,
         false
       ),
       [Network.TESTNET]: new EVMProvider(
         Chain.REDBELLY,
         Network.TESTNET,
-        ContractType.TYPE3,
         false
       ),
     },

@@ -2,7 +2,7 @@
 import { ethers } from 'ethers';
 import { EthAddress, Uint256 } from '../../dto/constants/chain-structs';
 import { getShopABI } from '../../dto/constants/chain-abis';
-import { ContractType, getGasPrice } from '../../dto/constants/chain-constants';
+import { getGasPrice } from '../../dto/constants/chain-constants';
 import {
   RequestAlreadyConfirmed,
   RequestDoesntExist,
@@ -12,14 +12,13 @@ import {
 import { ModalInterface } from '../../dto/interfaces/modal-interface.interface';
 import { Chain } from '../../dto/chains';
 
-export const EVMApproveRequest = async function (
+export const EVMApproveRequest = async function(
   provider: any,
   chain: Chain,
   address: EthAddress,
   requestId: Uint256,
   shopAddress: EthAddress,
   modalInterface: ModalInterface,
-  contractType: ContractType
 ): Promise<string> {
   const signer = provider.getSigner();
   if (
@@ -31,7 +30,7 @@ export const EVMApproveRequest = async function (
   modalInterface.waiting('Approving request...');
   const contract = new ethers.Contract(
     shopAddress,
-    getShopABI(contractType),
+    getShopABI(),
     signer
   );
   try {
@@ -65,14 +64,13 @@ export const EVMApproveRequest = async function (
   }
 };
 
-export const EVMDisapproveRequest = async function (
+export const EVMDisapproveRequest = async function(
   provider: any,
   chain: Chain,
   address: EthAddress,
   requestId: Uint256,
   shopAddress: EthAddress,
   modalInterface: ModalInterface,
-  contractType: ContractType
 ) {
   const signer = provider.getSigner();
   if (
@@ -84,7 +82,7 @@ export const EVMDisapproveRequest = async function (
   modalInterface.waiting('Disapproving request...');
   const contract = new ethers.Contract(
     shopAddress,
-    getShopABI(contractType),
+    getShopABI(),
     signer
   );
   try {

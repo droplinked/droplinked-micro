@@ -27,7 +27,6 @@ import { EVMPublishRequest } from './evm-publish';
 import { recordProduct } from './evm-record';
 import { getERC20TokenTransferABI } from './evm-constants';
 import {
-  ContractType,
   ZERO_ADDRESS,
 } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
@@ -55,7 +54,6 @@ export class EVMProvider implements IChainProvider {
   modalInterface: ModalInterface = new defaultModal();
   wallet: ChainWallet = ChainWallet.Metamask;
   axiosInstance: KyInstance;
-  contractType: ContractType;
   nftContractAddress?: EthAddress;
   shopContractAddress?: EthAddress;
   gasPredictable: boolean;
@@ -63,12 +61,10 @@ export class EVMProvider implements IChainProvider {
   constructor(
     _chain: Chain,
     _network: Network,
-    _contractType: ContractType = ContractType.TYPE0,
     gasPredictable: boolean
   ) {
     this.chain = _chain;
     this.network = _network;
-    this.contractType = _contractType;
     this.gasPredictable = gasPredictable;
     this.address = ZERO_ADDRESS;
     this.axiosInstance = ky.create({
@@ -238,7 +234,6 @@ export class EVMProvider implements IChainProvider {
     return {
       address: this.address,
       chain: this.chain,
-      contractType: this.contractType,
       network: this.network,
       provider: this.getWalletProvider(),
       gasPredictable: this.gasPredictable,
@@ -299,7 +294,6 @@ export class EVMProvider implements IChainProvider {
       productId,
       shopAddress,
       modalInterface: this.modalInterface,
-      contractType: this.contractType,
     });
   }
   async approveRequest(
@@ -315,7 +309,6 @@ export class EVMProvider implements IChainProvider {
       requestId,
       shopAddress,
       this.modalInterface,
-      this.contractType
     );
   }
   async disapproveRequest(
@@ -331,7 +324,6 @@ export class EVMProvider implements IChainProvider {
       requestId,
       shopAddress,
       this.modalInterface,
-      this.contractType
     );
   }
 

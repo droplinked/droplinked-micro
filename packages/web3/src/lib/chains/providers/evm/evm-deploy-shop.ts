@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethers } from 'ethers';
 import {
-  ContractType,
   getDeployerAddress,
   getShopByteCode,
 } from '../../dto/constants/chain-constants';
@@ -21,37 +20,6 @@ const sixify = (num: number): string => {
   return num.toString().padStart(6, '0');
 };
 
-const deploymentParameters = {
-  [ContractType.TYPE0]: [
-    'string',
-    'string',
-    'address',
-    'string',
-    'string',
-    'address',
-    'address',
-    'address',
-  ],
-  [ContractType.TYPE1]: [
-    'string',
-    'string',
-    'address',
-    'string',
-    'string',
-    'address',
-    'address',
-  ],
-  [ContractType.TYPE2]: [],
-  [ContractType.TYPE3]: [
-    'string',
-    'string',
-    'address',
-    'string',
-    'string',
-    'address',
-  ],
-};
-
 async function getConstructorArgs(
   shopDetails: IDeployShop,
   deployerAddress: EthAddress,
@@ -66,25 +34,6 @@ async function getConstructorArgs(
     deployerAddress,
   ];
   return commonArgs;
-  // if (contractType === ContractType.TYPE0) {
-  //   return [
-  //     ...commonArgs,
-  //     (chainLink as any)[chainConfig.chain][chainConfig.network],
-  //     await getFundsProxy(chainConfig.chain, chainConfig.network),
-  //   ];
-  // } else if (contractType === ContractType.TYPE1) {
-  //   return [
-  //     ...commonArgs,
-  //     (chainLink as any)[chainConfig.chain][chainConfig.network],
-  //   ];
-  // } else if (contractType === ContractType.TYPE3) {
-  //   return commonArgs;
-  // } else {
-  //   return [
-  //     ...commonArgs,
-  //     await getFundsProxy(chainConfig.chain, chainConfig.network),
-  //   ];
-  // }
 }
 
 export async function deployEVMShop(
@@ -92,8 +41,6 @@ export async function deployEVMShop(
   web3Context: IWeb3Context,
   shopDetails: IDeployShop
 ): Promise<DeployShopResponse> {
-  // console.log(ethers.utils.id('(address)'));
-
   console.log({
     ...chainConfig,
     ...web3Context,
@@ -101,7 +48,7 @@ export async function deployEVMShop(
   });
 
   const { modalInterface } = web3Context;
-  const { address, chain, contractType, network, provider } = chainConfig;
+  const { address, chain, network, provider } = chainConfig;
   const signer = provider.getSigner();
 
   modalInterface.waiting('got the signer: ' + (await signer.getAddress()));
@@ -118,7 +65,7 @@ export async function deployEVMShop(
 
   modalInterface.waiting('Getting shop bytecode');
 
-  const byteCode = await getShopByteCode(contractType);
+  const byteCode = await getShopByteCode();
 
   modalInterface.waiting('got bytecode');
 
@@ -141,7 +88,14 @@ export async function deployEVMShop(
   console.log(constructorArgs);
 
   const bytecodeWithArgs = ethers.utils.defaultAbiCoder.encode(
-    deploymentParameters[contractType],
+    [
+      'string',
+      'string',
+      'address',
+      'string',
+      'string',
+      'address',
+    ],
     constructorArgs
   );
 

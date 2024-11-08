@@ -8,18 +8,17 @@ import {
 } from '../../dto/constants/chain-structs';
 import { getShopABI } from '../../dto/constants/chain-abis';
 import { AlreadyRequested } from '../../dto/errors/chain-errors';
-import { ContractType, getGasPrice } from '../../dto/constants/chain-constants';
+import { getGasPrice } from '../../dto/constants/chain-constants';
 import { ModalInterface } from '../../dto/interfaces/modal-interface.interface';
 import { Chain } from '../../dto/chains';
 
-export const EVMPublishRequest = async function ({
+export const EVMPublishRequest = async function({
   provider,
   chain,
   address,
   productId,
   shopAddress,
   modalInterface,
-  contractType,
 }: {
   provider: any;
   chain: Chain;
@@ -27,7 +26,6 @@ export const EVMPublishRequest = async function ({
   productId: Uint256;
   shopAddress: EthAddress;
   modalInterface: ModalInterface;
-  contractType: ContractType;
 }) {
   const signer = provider.getSigner();
   if (
@@ -39,7 +37,7 @@ export const EVMPublishRequest = async function ({
   modalInterface.waiting('Requesting affiliate...');
   const contract = new ethers.Contract(
     shopAddress,
-    getShopABI(contractType),
+    getShopABI(),
     signer
   );
   try {

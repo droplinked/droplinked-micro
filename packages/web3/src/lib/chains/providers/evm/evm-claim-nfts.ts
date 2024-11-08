@@ -17,7 +17,7 @@ export async function claimNFT(
   console.log({ data, chainConfig, context });
   const { modalInterface } = context;
   const signer = chainConfig.provider.getSigner();
-  const shopABI = getShopABI(chainConfig.contractType);
+  const shopABI = getShopABI();
   modalInterface.waiting('Claiming NFTs...');
   const contract = new ethers.Contract(
     toEthAddress(context.shopContractAddress as string),
