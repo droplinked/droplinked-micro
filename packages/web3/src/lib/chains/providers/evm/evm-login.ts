@@ -104,10 +104,10 @@ const chainNames = {
       rpcUrls: ['https://testnet.skalenodes.com/v1/giant-half-dual-testnet'],
     },
     [Network.MAINNET]: {
-      chainName: 'SKALE Testnet Calypso Hub',
-      chainId: '0x3A14269B',
+      chainName: 'SKALE Calypso Hub',
+      chainId: '0x5D456C62',
       nativeCurrency: { name: 'sFUEL', decimals: 18, symbol: 'sFUEL' },
-      rpcUrls: ['https://testnet.skalenodes.com/v1/giant-half-dual-testnet'],
+      rpcUrls: ['https://mainnet.skalenodes.com/v1/honorable-steel-rasalhague'],
     },
   },
   [Chain.BASE]: {

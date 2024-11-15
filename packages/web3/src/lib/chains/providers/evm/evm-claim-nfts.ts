@@ -34,7 +34,7 @@ export async function claimNFT(
           nullifier: item.nullifier,
         };
       }),
-      shop: data.shopContractAddress,
+      shop: context.shopContractAddress,
     });
     type PurchasedItem = {
       amount: number;
@@ -53,7 +53,7 @@ export async function claimNFT(
       data.signature.signature,
       {
         cart: cart,
-        shop: data.shopContractAddress,
+        shop: context.shopContractAddress,
       }
     );
     modalInterface.waiting('Waiting for transaction...');

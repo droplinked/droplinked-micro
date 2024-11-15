@@ -16,5 +16,4 @@ export type PurchaseSignature = {
 
 export interface ClaimNFTInputs {
   signature: PurchaseSignature;
-  shopContractAddress: string;
 }

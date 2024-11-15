@@ -26,9 +26,7 @@ import {
 import { EVMPublishRequest } from './evm-publish';
 import { recordProduct } from './evm-record';
 import { getERC20TokenTransferABI } from './evm-constants';
-import {
-  ZERO_ADDRESS,
-} from '../../dto/constants/chain-constants';
+import { ZERO_ADDRESS } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
 import {
   IProductDetails,
@@ -58,11 +56,7 @@ export class EVMProvider implements IChainProvider {
   shopContractAddress?: EthAddress;
   gasPredictable: boolean;
 
-  constructor(
-    _chain: Chain,
-    _network: Network,
-    gasPredictable: boolean
-  ) {
+  constructor(_chain: Chain, _network: Network, gasPredictable: boolean) {
     this.chain = _chain;
     this.network = _network;
     this.gasPredictable = gasPredictable;
@@ -101,6 +95,7 @@ export class EVMProvider implements IChainProvider {
   }
 
   async claimNFTs(data: ClaimNFTInputs): Promise<string> {
+    await this.handleWallet(this.address);
     const result = await claimNFT(
       data,
       this.getChainConfig(),
@@ -192,7 +187,7 @@ export class EVMProvider implements IChainProvider {
             },
           ],
         });
-        this.handleWallet(_address);
+        await this.handleWallet(_address);
       }
     }
     if (!(await isChainCorrect(ethereum, this.chain, this.network))) {
@@ -308,7 +303,7 @@ export class EVMProvider implements IChainProvider {
       this.address,
       requestId,
       shopAddress,
-      this.modalInterface,
+      this.modalInterface
     );
   }
   async disapproveRequest(
@@ -323,14 +318,14 @@ export class EVMProvider implements IChainProvider {
       this.address,
       requestId,
       shopAddress,
-      this.modalInterface,
+      this.modalInterface
     );
   }
 
   async payment(
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
-    this.handleWallet(this.address);
+    await this.handleWallet(this.address);
     const { cartID, paymentToken, paymentType } = data;
     const paymentDetails = await getCartData(
       cartID,

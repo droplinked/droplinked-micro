@@ -13,4 +13,5 @@ export * from './chains/dto/interfaces/chain-provider.interface';
 export * from './chains/dto/interfaces/deploy-shop.interface';
 export * from './chains/dto/interfaces/record-web3-product.interface';
 export * from './chains/dto/interfaces/web3-context.interface';
+export * from './chains/dto/interfaces/claim-nft-inputs';
 export { ZERO_ADDRESS };
