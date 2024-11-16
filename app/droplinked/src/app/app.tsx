@@ -7,7 +7,6 @@ import {
 } from 'packages/web3/src/lib/chains/dto/chains';
 import { DropWeb3, ProductType } from 'packages/web3/src/index';
 import { Web3Actions } from 'packages/web3/src/lib/chains/dto/configs/web3-config';
-import { ZERO_ADDRESS } from 'packages/web3/src/lib/chains/dto/constants/chain-constants';
 import { getCartData } from 'packages/web3/src/lib/chains/providers/evm/evm.helpers';
 import { FC } from 'react';
 import { PurchaseSignature } from 'packages/web3/src/lib/chains/dto/interfaces/claim-nft-inputs';
@@ -105,7 +104,6 @@ export const ClaimNFTs: FC<IClaimNFTSProps> = (
           shopContractAddress: claimParams.shopAddress,
         });
         const result = await chainInstance.claimNFTs({
-          shopContractAddress: claimParams.shopAddress,
           signature: claimParams.signature,
         });
         console.log({ result });
@@ -139,13 +137,10 @@ export const RecordProduct: FC<IRecordProduct> = (
             commission: 0,
             type: ProductType.DIGITAL,
             acceptsManageWallet: true,
-            currencyAddress: ZERO_ADDRESS,
           },
           [
             {
               amount: 1000,
-              price: 1000,
-              beneficiaries: [],
               skuProperties: {},
               skuID: '670fcb2ea6738730848f8933',
               imageUrl: 'https://k3rn3lpanic.img',

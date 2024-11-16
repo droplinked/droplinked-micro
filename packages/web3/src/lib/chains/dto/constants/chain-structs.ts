@@ -19,12 +19,6 @@ export function toEthAddress(address: string): EthAddress {
   return address as EthAddress;
 }
 
-type Beneficiary = {
-  isPercentage: boolean;
-  value: number;
-  wallet: string;
-};
-
 enum NFTType {
   ERC1155,
   ERC721,
@@ -42,19 +36,11 @@ enum ProductType {
   PHYSICAL,
 }
 
-type PaymentInfo = {
-  price: Uint256;
-  currencyAddress: EthAddress;
-  beneficiaries: Uint256[];
-  paymentType: PaymentMethodType;
-};
-
 type Product = {
   tokenId: Uint256;
   nftAddress: EthAddress;
   nftType: NFTType;
   productType: ProductType;
-  paymentInfo: PaymentInfo;
   affiliatePercentage: Uint256;
 };
 
@@ -106,10 +92,8 @@ export type {
   DeployShopResponse,
   AffiliateRequestData,
   RecordResponse,
-  Beneficiary,
   EthAddress,
   Issuer,
-  PaymentInfo,
   Product,
   PurchaseData,
   ShopInfo,

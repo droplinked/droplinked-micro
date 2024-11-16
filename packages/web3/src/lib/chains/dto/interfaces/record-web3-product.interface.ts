@@ -1,6 +1,4 @@
 import {
-  Beneficiary,
-  EthAddress,
   ProductType,
 } from '../constants/chain-structs';
 
@@ -12,15 +10,12 @@ export interface IProductDetails {
   commission: number;
   type: ProductType;
   acceptsManageWallet: boolean;
-  currencyAddress: EthAddress;
   royalty: number;
 }
 
 export interface ISKUDetails {
   skuProperties: any;
   imageUrl: string;
-  price: number;
   amount: number;
-  beneficiaries: Beneficiary[];
   skuID: string;
 }
