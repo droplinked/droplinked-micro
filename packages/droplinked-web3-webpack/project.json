@@ -1,0 +1,32 @@
+{
+  "name": "droplinked-web3-webpack",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/droplinked-web3-webpack/src",
+  "projectType": "library",
+  "release": {
+    "version": {
+      "generatorOptions": {
+        "packageRoot": "dist/{projectRoot}",
+        "currentVersionResolver": "git-tag"
+      }
+    }
+  },
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/droplinked-web3-webpack",
+        "main": "packages/droplinked-web3-webpack/src/index.ts",
+        "tsConfig": "packages/droplinked-web3-webpack/tsconfig.lib.json",
+        "assets": ["packages/droplinked-web3-webpack/*.md"]
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
+    }
+  }
+}

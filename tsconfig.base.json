@@ -18,7 +18,10 @@
       "@droplinked-micro/types": ["packages/types/src/index.ts"],
       "@droplinked-micro/ui": ["packages/ui/src/index.ts"],
       "@droplinked-micro/utils": ["packages/utils/src/index.ts"],
-      "@droplinked/web3": ["packages/web3/src/index.ts"]
+      "@droplinked/web3": ["packages/web3/src/index.ts"],
+      "droplinked-web3-frontend": [
+        "packages/droplinked-web3-webpack/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]
