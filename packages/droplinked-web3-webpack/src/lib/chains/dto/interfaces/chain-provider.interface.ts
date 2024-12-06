@@ -10,7 +10,7 @@ import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
 import { IDeployShop } from './deploy-shop.interface';
 import { ILoginResult } from './login-result.interface';
-import { ICustomPaymentInputs, IPaymentInputs } from './payment-interface';
+import { IPaymentInputs } from './payment-interface';
 import { KyInstance } from 'ky';
 import { ClaimNFTInputs } from './claim-nft-inputs';
 import { IChainPayment } from './chain-payment.interface';
