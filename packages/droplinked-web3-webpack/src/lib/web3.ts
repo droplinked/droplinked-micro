@@ -1,6 +1,7 @@
 import { ZERO_ADDRESS } from './chains/dto/constants/chain-constants';
 
 export * from './chains/chain-provider';
+export * from './chains/providers/evm/evm-login';
 export * from './chains/dto/errors/chain-errors';
 export * from './chains/dto/constants/chain-structs';
 export * from './chains/dto/chains';
