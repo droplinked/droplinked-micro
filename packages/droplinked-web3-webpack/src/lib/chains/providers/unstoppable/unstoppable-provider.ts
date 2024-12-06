@@ -16,6 +16,7 @@ import {
   defaultModal,
   toEthAddress,
   ClaimNFTInputs,
+  IChainPayment,
 } from '../../../web3';
 import { ChainWallet, Network } from '../../dto/chains';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
@@ -44,6 +45,11 @@ export class UnstoppableProvider implements IChainProvider {
     this.address = '';
     this.clientID = '';
     this.redirectUri = '';
+  }
+  customPayment(
+    data: IChainPayment
+  ): Promise<{ transactionHash: string; cryptoAmount: any }> {
+    throw new Error('Method not implemented.');
   }
 
   setClientID(clientID: string, redirectUri: string) {

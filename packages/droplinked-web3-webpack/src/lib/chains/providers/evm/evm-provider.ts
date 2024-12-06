@@ -40,7 +40,10 @@ import { getCartData } from './evm.helpers';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
 import { droplinked_payment } from './evm-payments';
 import { ILoginResult } from '../../dto/interfaces/login-result.interface';
-import { IPaymentInputs } from '../../dto/interfaces/payment-interface';
+import {
+  ICustomPaymentInputs,
+  IPaymentInputs,
+} from '../../dto/interfaces/payment-interface';
 import ky, { KyInstance } from 'ky';
 import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
 import { claimNFT } from './evm-claim-nfts';
@@ -95,6 +98,16 @@ export class EVMProvider implements IChainProvider {
   setModal(modal: ModalInterface): IChainProvider {
     this.modalInterface = modal;
     return this;
+  }
+
+  async customPayment(
+    data: IChainPayment
+  ): Promise<{ transactionHash: string; cryptoAmount: any }> {
+    return await droplinked_payment(
+      this.getChainConfig(),
+      this.getContext(),
+      data
+    );
   }
 
   async claimNFTs(data: ClaimNFTInputs): Promise<string> {

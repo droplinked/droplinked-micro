@@ -10,9 +10,10 @@ import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
 import { IDeployShop } from './deploy-shop.interface';
 import { ILoginResult } from './login-result.interface';
-import { IPaymentInputs } from './payment-interface';
+import { ICustomPaymentInputs, IPaymentInputs } from './payment-interface';
 import { KyInstance } from 'ky';
 import { ClaimNFTInputs } from './claim-nft-inputs';
+import { IChainPayment } from './chain-payment.interface';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IChainProvider {
@@ -36,6 +37,10 @@ export interface IChainProvider {
   payment(
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }>;
+  customPayment(data: IChainPayment): Promise<{
+    transactionHash: string;
+    cryptoAmount: any;
+  }>;
   paymentWithToken(
     receiver: string,
     amount: number,

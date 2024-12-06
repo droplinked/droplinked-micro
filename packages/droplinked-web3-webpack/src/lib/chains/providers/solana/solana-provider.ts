@@ -14,6 +14,7 @@ import {
   WalletNotFoundException,
   defaultModal,
   toEthAddress,
+  IChainPayment,
 } from '../../../web3';
 import { ChainWallet, Network } from '../../dto/chains';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
@@ -49,6 +50,11 @@ export class SolanaProvider implements IChainProvider {
           : 'https://apiv3dev.droplinked.com',
     });
     this.address = '';
+  }
+  customPayment(
+    data: IChainPayment
+  ): Promise<{ transactionHash: string; cryptoAmount: any }> {
+    throw new Error('Method not implemented.');
   }
   unstoppableLogin(clientID: string, redirectUri: string): Promise<any> {
     throw new Error('Method not implemented.');
