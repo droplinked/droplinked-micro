@@ -347,15 +347,7 @@ export async function evmLogin(
     const nonce = await getNonce(address, axiosInstance);
     // Get the current date and time for transparency
     const currentDate = new Date().toLocaleString();
-    const message = `Welcome to Droplinked!
-      
-      Please sign this message to verify your identity and securely log in.
-      
-      - Nonce: ${nonce}
-      - Date: ${currentDate}
-      
-      This action will not incur any gas fees or blockchain transactions.`;
-
+    const message = `Welcome to Droplinked! Please sign this message to verify your ownership over your wallet and log in. - Nonce: ${nonce} - Date: ${currentDate}`;
     const signer = provider.getSigner();
 
     const signature = await signer.signMessage(message);
