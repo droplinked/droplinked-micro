@@ -89,16 +89,8 @@ export class DropWeb3 {
       [Network.TESTNET]: new UnstoppableProvider(Network.TESTNET),
     },
     [Chain.REDBELLY]: {
-      [Network.MAINNET]: new EVMProvider(
-        Chain.REDBELLY,
-        Network.MAINNET,
-        false
-      ),
-      [Network.TESTNET]: new EVMProvider(
-        Chain.REDBELLY,
-        Network.TESTNET,
-        false
-      ),
+      [Network.MAINNET]: new EVMProvider(Chain.REDBELLY, Network.MAINNET, true),
+      [Network.TESTNET]: new EVMProvider(Chain.REDBELLY, Network.TESTNET, true),
     },
   };
 

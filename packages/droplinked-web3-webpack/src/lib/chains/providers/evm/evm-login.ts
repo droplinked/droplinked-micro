@@ -159,7 +159,12 @@ const chainNames = {
       nativeCurrency: { name: 'RBNT', decimals: 18, symbol: 'RBNT' },
       rpcUrls: ['https://governors.testnet.redbelly.network'],
     },
-    [Network.MAINNET]: null,
+    [Network.MAINNET]: {
+      chainName: 'Redbelly Network Mainnet',
+      chainId: '0x97',
+      nativeCurrency: { name: 'RBNT', decimals: 18, symbol: 'RBNT' },
+      rpcUrls: ['https://governors.mainnet.redbelly.network'],
+    },
   },
 };
 
