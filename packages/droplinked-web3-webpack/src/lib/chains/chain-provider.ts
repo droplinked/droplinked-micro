@@ -92,6 +92,10 @@ export class DropWeb3 {
       [Network.MAINNET]: new EVMProvider(Chain.REDBELLY, Network.MAINNET, true),
       [Network.TESTNET]: new EVMProvider(Chain.REDBELLY, Network.TESTNET, true),
     },
+    [Chain.BITLAYER]: {
+      [Network.MAINNET]: new EVMProvider(Chain.BITLAYER, Network.MAINNET, true),
+      [Network.TESTNET]: new EVMProvider(Chain.BITLAYER, Network.TESTNET, true),
+    },
   };
 
   web3Instance(config: Web3ChainConfig): IChainProvider {

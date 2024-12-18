@@ -14,6 +14,7 @@ export enum Chain {
   SOLANA = 'SOLANA',
   REDBELLY = 'REDBELLY',
   UNSTOPPABLE = 'UNSTOPPABLE',
+  BITLAYER = 'BITLAYER',
 }
 
 export enum PaymentTokens {
@@ -28,6 +29,7 @@ export enum PaymentTokens {
   CSPR = 'CSPR',
   PARAM = 'PARAM',
   BDC = 'BDC',
+  BTC = 'BTC',
 }
 
 export enum Network {

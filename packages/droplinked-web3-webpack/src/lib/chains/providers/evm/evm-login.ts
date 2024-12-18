@@ -166,6 +166,20 @@ const chainNames = {
       rpcUrls: ['https://governors.mainnet.redbelly.network'],
     },
   },
+  [Chain.BITLAYER]: {
+    [Network.MAINNET]: {
+      chainName: 'Bitlayer Mainnet',
+      chainId: '0x310C5',
+      nativeCurrency: { name: 'BTC', decimals: 18, symbol: 'BTC' },
+      rpcUrls: ['https://rpc.bitlayer.org'],
+    },
+    [Network.TESTNET]: {
+      chainName: 'Bitlayer Testnet',
+      chainId: '0x3106A',
+      nativeCurrency: { name: 'BTC', decimals: 18, symbol: 'BTC' },
+      rpcUrls: ['https://testnet-rpc.bitlayer.org'],
+    },
+  },
 };
 
 export const isMetamaskInstalled = (): boolean => {
