@@ -221,7 +221,8 @@ export function isWalletInstalled(chain: string) {
       'ETH',
       'REDBELLY',
       'SKALE',
-    ].includes(chain)
+      'BITLAYER',
+    ].includes(chain.toUpperCase())
   ) {
     return {
       installed: isMetamaskInstalled(),

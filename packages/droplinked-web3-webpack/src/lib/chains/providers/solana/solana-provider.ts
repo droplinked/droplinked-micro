@@ -143,7 +143,7 @@ export class SolanaProvider implements IChainProvider {
       const senderPublicKey = provider.publicKey;
       const connection = new Connection(
         this.network === Network.MAINNET
-          ? 'https://little-withered-rain.solana-mainnet.quiknode.pro/4c55253145da61029f48dea8ca5d66c685b64408/'
+          ? 'https://multi-greatest-voice.solana-mainnet.quiknode.pro/908c9dd72998ac69ec2205d5cdb2eccd654dfd0b'
           : clusterApiUrl('devnet')
       );
       const mintPublicKey = new PublicKey(tokenAddress as string);
@@ -227,7 +227,7 @@ export class SolanaProvider implements IChainProvider {
             senderPublicKey,
             [],
             ethers.BigNumber.from(tbdValues[i])
-              .div(ethers.BigNumber.from(10).pow(9))
+              .div(ethers.BigNumber.from(10).pow(13))
               .toNumber()
           )
         );
@@ -289,7 +289,7 @@ export class SolanaProvider implements IChainProvider {
       const senderPublicKey = provider.publicKey;
       const connection = new Connection(
         this.network === Network.MAINNET
-          ? 'https://little-withered-rain.solana-mainnet.quiknode.pro/4c55253145da61029f48dea8ca5d66c685b64408/'
+          ? 'https://multi-greatest-voice.solana-mainnet.quiknode.pro/908c9dd72998ac69ec2205d5cdb2eccd654dfd0b'
           : clusterApiUrl('devnet')
       );
       const mintPublicKey = new PublicKey(tokenAddress);

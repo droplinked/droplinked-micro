@@ -114,6 +114,8 @@ export const droplinked_payment = async function (
     throw new InvalidParametersException('tbdValues must be positive numbers');
   }
 
+  data.chainLinkRoundId = data.chainLinkRoundId || '0';
+
   const signer = provider.getSigner();
 
   modalInterface.waiting('Got signer...');
@@ -222,7 +224,7 @@ export const droplinked_payment = async function (
         data.chainLinkRoundId,
         data.memo,
         {
-          value: data.totalPrice,
+          value: isCustom ? ethers.BigNumber.from(0) : data.totalPrice,
         }
       );
     } catch (error: any) {
@@ -250,7 +252,7 @@ export const droplinked_payment = async function (
         data.chainLinkRoundId,
         data.memo,
         {
-          value: data.totalPrice,
+          value: isCustom ? ethers.BigNumber.from(0) : data.totalPrice,
         }
       );
     } catch (error: any) {
@@ -294,7 +296,7 @@ export const droplinked_payment = async function (
       data.memo,
       {
         gasLimit: gasLimit,
-        value: data.totalPrice,
+        value: isCustom ? ethers.BigNumber.from(0) : data.totalPrice,
       }
     );
 
