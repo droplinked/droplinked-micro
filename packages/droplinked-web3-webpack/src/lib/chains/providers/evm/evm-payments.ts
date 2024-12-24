@@ -182,9 +182,7 @@ export const droplinked_payment = async function (
 			data.totalPrice: ${Number(data.totalPrice)}
 			`);
 
-    if (chain === Chain.REDBELLY) {
-      return await redbellyPayment(data, contract);
-    } else if (chain === Chain.SKALE) {
+    if (chain === Chain.SKALE) {
       return await skalePayment(
         data,
         network,
