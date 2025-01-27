@@ -52,10 +52,7 @@ async function handleCustomTokenApproval(
       signer
     );
 
-    const approvalAmount = await customTokenContract['allowance'](
-      signerAddress,
-      contractAddress
-    );
+    console.log({ signerAddress, customTokenContract });
 
     const userTokenBalance = await customTokenContract['balanceOf'](
       signerAddress
@@ -67,11 +64,6 @@ async function handleCustomTokenApproval(
         (total as ethers.BigNumber).add(ethers.BigNumber.from(value)),
       ethers.BigNumber.from(0)
     );
-
-    if (approvalAmount.gt(totalSum)) {
-      modalInterface.waiting('Already approved the needed amount');
-      return;
-    }
 
     modalInterface.waiting('Checking token balance...');
     if (userTokenBalance.lt(totalSum)) {

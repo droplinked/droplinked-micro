@@ -35,6 +35,7 @@ export enum PaymentTokens {
 export enum Network {
   MAINNET,
   TESTNET,
+  DEV
 }
 
 export enum ChainWallet {
@@ -43,6 +44,7 @@ export enum ChainWallet {
   CasperWallet = 'CasperWallet',
   Phantom = 'Phantom',
   BaseSmartWallet = 'BaseSmartWallet',
+  UnstoppableDomains = 'UnstoppableDomains',
 }
 
 export async function getGasPrice(

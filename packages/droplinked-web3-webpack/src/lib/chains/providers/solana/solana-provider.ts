@@ -77,15 +77,7 @@ export class SolanaProvider implements IChainProvider {
     const resp = await provider.connect();
     const nonce = await getNonce(resp.publicKey.toString(), this.axiosInstance);
     const currentDate = new Date().toLocaleString();
-    const message = `Welcome to Droplinked!
-
-      Please sign this message to verify your identity and securely log in.
-
-      - Nonce: ${nonce}
-      - Date: ${currentDate}
-
-      This action will not incur any gas fees or blockchain transactions.`;
-
+    const message = `Welcome to Droplinked! Please sign this message to verify your ownership over your wallet and log in. - Nonce: ${nonce} - Date: ${currentDate}`;
     const encodedMessage = new TextEncoder().encode(message);
     const signedMessage = base58.encode(
       (await provider.signMessage(encodedMessage, 'utf8')).signature

@@ -314,16 +314,16 @@ export async function evmLogin(
   try {
     modalInterface.waiting('Connecting to wallet...');
 
+    if (!isWalletInstalled(chain)) {
+      throw new WalletNotFoundException();
+    }
+
     if (!(await isWalletConnected(ethereum))) {
       modalInterface.waiting('Requesting account access...');
       await requestAccounts(ethereum);
     }
 
     const address = (await getAccounts(ethereum))[0];
-
-    // Switch to the correct chain
-    modalInterface.waiting('Switching to the correct chain...');
-    await changeChain(ethereum, chain, network);
 
     // Optionally add the chain
     const chainDetails = (chainNames as any)[chain][network];
@@ -347,18 +347,22 @@ export async function evmLogin(
       );
     }
 
+    // Switch to the correct chain
+    // modalInterface.waiting('Switching to the correct chain...');
+    // await changeChain(ethereum, chain, network);
+
     // Handle SKALE-specific fuel distribution
-    if (chain === Chain.SKALE) {
-      const distributionRequest = await (
-        await axiosInstance.post('shop/sFuelDistribution', {
-          json: {
-            wallet: address,
-            isTestnet: network === Network.TESTNET,
-          },
-        })
-      ).json();
-      console.log(distributionRequest);
-    }
+    // if (chain === Chain.SKALE) {
+    const distributionRequest = await (
+      await axiosInstance.post('shop/sFuelDistribution', {
+        json: {
+          wallet: address,
+          isTestnet: network === Network.TESTNET,
+        },
+      })
+    ).json();
+    console.log(distributionRequest);
+    // }
 
     // Sign the message
     modalInterface.waiting('Signing message...');

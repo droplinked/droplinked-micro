@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Chain, Network } from './dto/chains';
+import { Chain, ChainWallet, Network } from './dto/chains';
 import { EVMProvider } from './providers/evm/evm-provider';
 import {
   AccountAccessDeniedException,
@@ -27,21 +27,30 @@ export class DropWeb3 {
       prefixUrl:
         workingNetwork === Network.TESTNET
           ? 'https://apiv3dev.droplinked.com'
-          : 'https://apiv3.droplinked.com',
+          : workingNetwork === Network.MAINNET
+          ? 'https://apiv3.droplinked.com'
+          : 'http://127.0.0.1',
     });
     this.network = workingNetwork;
   }
   private chainMapping = {
     [Chain.BINANCE]: {
       [Network.TESTNET]: new EVMProvider(Chain.BINANCE, Network.TESTNET, true),
+      [Network.DEV]: new EVMProvider(Chain.BINANCE, Network.TESTNET, true),
       [Network.MAINNET]: new EVMProvider(Chain.BINANCE, Network.MAINNET, true),
     },
     [Chain.POLYGON]: {
       [Network.TESTNET]: new EVMProvider(Chain.POLYGON, Network.TESTNET, true),
+      [Network.DEV]: new EVMProvider(Chain.POLYGON, Network.TESTNET, true),
       [Network.MAINNET]: new EVMProvider(Chain.POLYGON, Network.MAINNET, true),
     },
     [Chain.NEAR]: {
       [Network.TESTNET]: new EVMProvider(
+        Chain.NEAR,
+        Network.TESTNET,
+        true // todo
+      ),
+      [Network.DEV]: new EVMProvider(
         Chain.NEAR,
         Network.TESTNET,
         true // todo
@@ -54,76 +63,104 @@ export class DropWeb3 {
     },
     [Chain.CASPER]: {
       [Network.TESTNET]: null,
+      [Network.DEV]: null,
       [Network.MAINNET]: null,
     },
     [Chain.XRPLSIDECHAIN]: {
       [Network.TESTNET]: null,
+      [Network.DEV]: null,
       [Network.MAINNET]: null,
     },
     [Chain.BASE]: {
       [Network.TESTNET]: new EVMProvider(Chain.BASE, Network.TESTNET, true),
+      [Network.DEV]: new EVMProvider(Chain.BASE, Network.TESTNET, true),
       [Network.MAINNET]: new EVMProvider(Chain.BASE, Network.MAINNET, true),
     },
     [Chain.STACKS]: {
       [Network.TESTNET]: null,
+      [Network.DEV]: null,
       [Network.MAINNET]: null,
     },
     [Chain.SKALE]: {
       [Network.TESTNET]: new EVMProvider(Chain.SKALE, Network.TESTNET, false),
+      [Network.DEV]: new EVMProvider(Chain.SKALE, Network.TESTNET, false),
       [Network.MAINNET]: new EVMProvider(Chain.SKALE, Network.MAINNET, false),
     },
     [Chain.LINEA]: {
       [Network.TESTNET]: new EVMProvider(Chain.LINEA, Network.TESTNET, true),
+      [Network.DEV]: new EVMProvider(Chain.LINEA, Network.TESTNET, true),
       [Network.MAINNET]: new EVMProvider(Chain.LINEA, Network.MAINNET, true),
     },
     [Chain.ETH]: {
       [Network.TESTNET]: new EVMProvider(Chain.ETH, Network.TESTNET, true),
+      [Network.DEV]: new EVMProvider(Chain.ETH, Network.TESTNET, true),
       [Network.MAINNET]: new EVMProvider(Chain.ETH, Network.MAINNET, true),
     },
     [Chain.SOLANA]: {
       [Network.MAINNET]: new SolanaProvider(Network.MAINNET),
       [Network.TESTNET]: new SolanaProvider(Network.TESTNET),
+      [Network.DEV]: new SolanaProvider(Network.TESTNET),
     },
     [Chain.UNSTOPPABLE]: {
       [Network.MAINNET]: new UnstoppableProvider(Network.MAINNET),
       [Network.TESTNET]: new UnstoppableProvider(Network.TESTNET),
+      [Network.DEV]: new UnstoppableProvider(Network.TESTNET),
     },
     [Chain.REDBELLY]: {
       [Network.MAINNET]: new EVMProvider(Chain.REDBELLY, Network.MAINNET, true),
       [Network.TESTNET]: new EVMProvider(Chain.REDBELLY, Network.TESTNET, true),
+      [Network.DEV]: new EVMProvider(Chain.REDBELLY, Network.TESTNET, true),
     },
     [Chain.BITLAYER]: {
       [Network.MAINNET]: new EVMProvider(Chain.BITLAYER, Network.MAINNET, true),
       [Network.TESTNET]: new EVMProvider(Chain.BITLAYER, Network.TESTNET, true),
+      [Network.DEV]: new EVMProvider(Chain.BITLAYER, Network.TESTNET, true),
     },
   };
 
   web3Instance(config: Web3ChainConfig): IChainProvider {
     const network = this.network;
-    const { chain, modalInterface, preferredWallet } = config;
+    const { modalInterface, preferredWallet } = config;
     let userAddress = '';
     let nftContractAddress = '';
     let shopContractAddress = '';
+    let chain: Chain = Chain.ETH;
 
     if (config.method === Web3Actions.RECORD_AFFILIATE) {
       userAddress = config.userAddress;
       nftContractAddress = config.nftContractAddress;
       shopContractAddress = config.shopContractAddress;
+      chain = config.chain;
     } else if (config.method === Web3Actions.DEPLOY) {
       userAddress = config.userAddress;
+      chain = config.chain;
     } else if (config.method === Web3Actions.PAYMENT) {
       userAddress = config.userAddress;
+      chain = config.chain;
     } else if (config.method === Web3Actions.CLAIM) {
       userAddress = config.userAddress;
       shopContractAddress = config.shopContractAddress;
+      chain = config.chain;
+    } else if (config.method === Web3Actions.LOGIN) {
+      if (preferredWallet === ChainWallet.Phantom) {
+        chain = Chain.SOLANA;
+      } else if (preferredWallet === ChainWallet.UnstoppableDomains) {
+        chain = Chain.UNSTOPPABLE;
+      } else {
+        chain = Chain.ETH;
+      }
     }
 
-    if (this.chainMapping[chain][network] == null)
+    if (
+      this.chainMapping[chain][network] === null ||
+      this.chainMapping[chain][network] === undefined
+    ) {
       throw new ChainNotImplementedException(
         `The given chain <${chain}> and network <${network}> is not implemented yet`
       );
+    }
 
-    return this.chainMapping[chain][network]
+    return (this.chainMapping[chain][network] as IChainProvider)
       ?.setAddress(toEthAddress(userAddress) || toEthAddress(''))
       .setModal(modalInterface || new defaultModal())
       .setWallet(preferredWallet)

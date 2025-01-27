@@ -1,6 +1,6 @@
 {
   "name": "droplinked-web3",
-  "version": "1.9.9",
+  "version": "2.0.9",
   "dependencies": {
     "ethers": "^5.7.2",
     "ky": "^1.7.2",

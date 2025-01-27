@@ -100,6 +100,7 @@ export class EVMProvider implements IChainProvider {
   async customPayment(
     data: IChainPayment
   ): Promise<{ transactionHash: string; cryptoAmount: any }> {
+    await this.handleChain();
     return await droplinked_payment(
       this.getChainConfig(),
       this.getContext(),
@@ -109,6 +110,7 @@ export class EVMProvider implements IChainProvider {
 
   async claimNFTs(data: ClaimNFTInputs): Promise<string> {
     await this.handleWallet(this.address);
+    await this.handleChain();
     const result = await claimNFT(
       data,
       this.getChainConfig(),
@@ -164,6 +166,7 @@ export class EVMProvider implements IChainProvider {
 
   async deployShop(shopDetails: IDeployShop): Promise<DeployShopResponse> {
     await this.handleWallet(this.address);
+    await this.handleChain();
     return await deployEVMShop(
       this.getChainConfig(),
       {
@@ -177,6 +180,14 @@ export class EVMProvider implements IChainProvider {
   setAddress(address: string): IChainProvider {
     this.address = toEthAddress(address);
     return this;
+  }
+
+  async handleChain() {
+    const provider = this.getWalletProvider();
+    if (!isChainCorrect(provider.provider, this.chain, this.network)) {
+      console.log('Changing chain...');
+      await changeChain(provider.provider, this.chain, this.network);
+    }
   }
 
   async handleWallet(_address: string) {
@@ -203,10 +214,10 @@ export class EVMProvider implements IChainProvider {
         await this.handleWallet(_address);
       }
     }
-    if (!(await isChainCorrect(ethereum, this.chain, this.network))) {
-      this.modalInterface.waiting('Changing chain...');
-      await changeChain(ethereum, this.chain, this.network);
-    }
+    // if (!(await isChainCorrect(ethereum, this.chain, this.network))) {
+    //   this.modalInterface.waiting('Changing chain...');
+    //   await changeChain(ethereum, this.chain, this.network);
+    // }
     if (
       String(accounts[0]).toLocaleLowerCase() !== _address.toLocaleLowerCase()
     ) {
@@ -282,6 +293,7 @@ export class EVMProvider implements IChainProvider {
   ): Promise<RecordResponse> {
     this.checkDeployment();
     await this.handleWallet(this.address);
+    await this.handleChain();
     return await recordProduct(
       this.getChainConfig(),
       this.getContext(),
@@ -295,6 +307,7 @@ export class EVMProvider implements IChainProvider {
     shopAddress: EthAddress
   ): Promise<AffiliateRequestData> {
     await this.handleWallet(this.address);
+    await this.handleChain();
     return await EVMPublishRequest({
       provider: this.getWalletProvider(),
       chain: this.chain,
@@ -310,6 +323,7 @@ export class EVMProvider implements IChainProvider {
   ): Promise<string> {
     this.checkDeployment();
     await this.handleWallet(this.address);
+    await this.handleChain();
     return await EVMApproveRequest(
       this.getWalletProvider(),
       this.chain,
@@ -325,6 +339,7 @@ export class EVMProvider implements IChainProvider {
   ): Promise<string> {
     this.checkDeployment();
     await this.handleWallet(this.address);
+    await this.handleChain();
     return await EVMDisapproveRequest(
       this.getWalletProvider(),
       this.chain,
@@ -338,6 +353,7 @@ export class EVMProvider implements IChainProvider {
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
     await this.handleWallet(this.address);
+    await this.handleChain();
     const { cartID, paymentToken, paymentType } = data;
     const paymentDetails = await getCartData(
       cartID,
@@ -373,6 +389,7 @@ export class EVMProvider implements IChainProvider {
     tokenAddress: string
   ): Promise<string> {
     await this.handleWallet(this.address);
+    await this.handleChain();
     const abi = getERC20TokenTransferABI();
     const provider = this.getWalletProvider().getSigner();
     const contract = new ethers.Contract(tokenAddress, abi, provider);

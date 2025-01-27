@@ -12,7 +12,6 @@ export enum Web3Actions {
 export type Web3ChainConfig =
   | {
       method: Web3Actions.LOGIN;
-      chain: Chain;
       preferredWallet: ChainWallet;
       modalInterface?: ModalInterface;
     }
