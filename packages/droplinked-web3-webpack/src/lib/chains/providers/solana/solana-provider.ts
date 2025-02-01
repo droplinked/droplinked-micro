@@ -32,6 +32,7 @@ import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { base58 } from 'ethers/lib/utils';
 import { BigNumber, ethers } from 'ethers';
 import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
+import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
 export class SolanaProvider implements IChainProvider {
   axiosInstance: KyInstance;
   network: Network;
@@ -51,6 +52,13 @@ export class SolanaProvider implements IChainProvider {
     });
     this.address = '';
   }
+
+  executeAirdrop(
+    tokenDetails: ITokenDetails
+  ): Promise<{ transactionHashes: string[] }> {
+    throw new Error('Method not implemented.');
+  }
+
   customPayment(
     data: IChainPayment
   ): Promise<{ transactionHash: string; cryptoAmount: any }> {

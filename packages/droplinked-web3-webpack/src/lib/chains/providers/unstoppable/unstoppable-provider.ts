@@ -22,6 +22,7 @@ import { ChainWallet, Network } from '../../dto/chains';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { ILoginResult } from '../../dto/interfaces/login-result.interface';
 import { IPaymentInputs } from '../../dto/interfaces/payment-interface';
+import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
 
 export class UnstoppableProvider implements IChainProvider {
   axiosInstance: KyInstance;
@@ -45,6 +46,11 @@ export class UnstoppableProvider implements IChainProvider {
     this.address = '';
     this.clientID = '';
     this.redirectUri = '';
+  }
+  executeAirdrop(
+    tokenDetails: ITokenDetails
+  ): Promise<{ transactionHashes: string[] }> {
+    throw new Error('Method not implemented.');
   }
   customPayment(
     data: IChainPayment

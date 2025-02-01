@@ -6,11 +6,25 @@ enum TokenStandard {
   ERC20 = 'ERC20',
 }
 
-interface ITokenDetails {
-  type: TokenStandard;
-  tokenAddress: EthAddress;
-  receivers: EthAddress[];
-  amounts: number[];
-}
+type ITokenDetails =
+  | {
+      type: TokenStandard.ERC721;
+      tokenAddress: EthAddress;
+      receivers: { receiver: string; amount: number }[];
+      airdropId: string;
+    }
+  | {
+      type: TokenStandard.ERC1155;
+      tokenAddress: EthAddress;
+      tokenId: number;
+      receivers: { receiver: string; amount: number }[];
+      airdropId: string;
+    }
+  | {
+      type: TokenStandard.ERC20;
+      tokenAddress: EthAddress;
+      receivers: { receiver: string; amount: number }[];
+      airdropId: string;
+    };
 
 export { ITokenDetails, TokenStandard };

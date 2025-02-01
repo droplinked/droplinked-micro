@@ -5,6 +5,19 @@ const airdropABI = [
     type: 'error',
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'airdropId',
+        type: 'string',
+      },
+    ],
+    name: 'AirdropDone',
+    type: 'event',
+  },
+  {
     inputs: [
       {
         internalType: 'address',
@@ -22,9 +35,14 @@ const airdropABI = [
         type: 'address[]',
       },
       {
-        internalType: 'uint256',
-        name: 'amount',
-        type: 'uint256',
+        internalType: 'uint256[]',
+        name: 'amounts',
+        type: 'uint256[]',
+      },
+      {
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
       },
     ],
     name: 'distributeERC1155',
@@ -49,6 +67,11 @@ const airdropABI = [
         name: 'amounts',
         type: 'uint256[]',
       },
+      {
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
+      },
     ],
     name: 'distributeERC20',
     outputs: [],
@@ -71,6 +94,11 @@ const airdropABI = [
         internalType: 'uint256[]',
         name: 'tokenIds',
         type: 'uint256[]',
+      },
+      {
+        internalType: 'string',
+        name: 'memo',
+        type: 'string',
       },
     ],
     name: 'distributeERC721',

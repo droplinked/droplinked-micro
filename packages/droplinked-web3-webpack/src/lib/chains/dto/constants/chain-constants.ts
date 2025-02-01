@@ -13,7 +13,7 @@ export const DROPLINKED_MANAGER = '0x2F86E1B1A69D259b9609b40E3cbEBEa29946f979';
 async function getAddress(
   chain: Chain,
   network: Network,
-  addressType: 'Deployer' | 'Proxy' | 'FundsProxy'
+  addressType: 'Deployer' | 'Proxy' | 'FundsProxy' | 'Airdrop'
 ): Promise<string> {
   const toPascalCase = (str: string) =>
     str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -53,6 +53,13 @@ export async function getFundsProxy(
   network: Network
 ): Promise<string> {
   return getAddress(chain, network, 'FundsProxy');
+}
+
+export async function getAirdropAddress(
+  chain: Chain,
+  network: Network
+): Promise<string> {
+  return getAddress(chain, network, 'Airdrop');
 }
 
 async function getShopByteCode(): Promise<string> {

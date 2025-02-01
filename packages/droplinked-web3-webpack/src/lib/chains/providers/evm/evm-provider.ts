@@ -44,6 +44,8 @@ import { IPaymentInputs } from '../../dto/interfaces/payment-interface';
 import ky, { KyInstance } from 'ky';
 import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
 import { claimNFT } from './evm-claim-nfts';
+import { airdrop } from './evm-airdrop';
+import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -299,6 +301,18 @@ export class EVMProvider implements IChainProvider {
       this.getContext(),
       productData,
       skuData
+    );
+  }
+
+  async executeAirdrop(
+    tokenDetails: ITokenDetails
+  ): Promise<{ transactionHashes: string[] }> {
+    await this.handleWallet(this.address);
+    await this.handleChain();
+    return await airdrop(
+      this.getChainConfig(),
+      this.getContext(),
+      tokenDetails
     );
   }
 
