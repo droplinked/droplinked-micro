@@ -37,6 +37,7 @@ async function airdrop(
   context: IWeb3Context,
   token: ITokenDetails
 ) {
+  // TODO: approve the token for the airdrop contract before using the contract!
   const modalInterface = context.modalInterface;
   const signer = chainConfig.provider.getSigner();
   modalInterface.waiting('Connecting to wallet...');
@@ -78,7 +79,8 @@ async function airdrop(
   try {
     let tx;
     const { receivers, amounts } = calculateAmounts(token.receivers);
-    const chunks = splitAirdrop(receivers, amounts);
+    const chunkSize = token.chunkSize || 300;
+    const chunks = splitAirdrop(receivers, amounts, chunkSize);
     const txHashes = [];
     for (const [i, chunk] of chunks.entries()) {
       modalInterface.waiting(

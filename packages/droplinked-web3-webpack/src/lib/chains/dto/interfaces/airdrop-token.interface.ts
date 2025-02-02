@@ -12,6 +12,7 @@ type ITokenDetails =
       tokenAddress: EthAddress;
       receivers: { receiver: string; amount: number }[];
       airdropId: string;
+      chunkSize?: number;
     }
   | {
       type: TokenStandard.ERC1155;
@@ -19,12 +20,14 @@ type ITokenDetails =
       tokenId: number;
       receivers: { receiver: string; amount: number }[];
       airdropId: string;
+      chunkSize?: number;
     }
   | {
       type: TokenStandard.ERC20;
       tokenAddress: EthAddress;
       receivers: { receiver: string; amount: number }[];
       airdropId: string;
+      chunkSize?: number;
     };
 
 export { ITokenDetails, TokenStandard };
