@@ -32,12 +32,34 @@ async function sendTransaction(
   }
 }
 
+async function approveTokenForAirdrop(
+  airdropContractAddress: string,
+  tokenAddress: string,
+  tokenStandard: TokenStandard,
+  signer: ethers.providers.JsonRpcSigner,
+  modalInterface: ModalInterface
+) {
+  if (tokenStandard !== TokenStandard.ERC1155) {
+    throw new Error('Only ERC1155 tokens are supported right now');
+  }
+  const erc1155ABI = ['function setApprovalForAll(address, bool) public'];
+  const contract = new ethers.Contract(tokenAddress, erc1155ABI, signer);
+  modalInterface.waiting('Approving token for airdrop...');
+  const tx = await contract['setApprovalForAll'](airdropContractAddress, true);
+  await tx.wait();
+  modalInterface.waiting('Token approved for airdrop');
+  return;
+}
+
 async function airdrop(
   chainConfig: DroplinkedChainConfig,
   context: IWeb3Context,
   token: ITokenDetails
 ) {
   // TODO: approve the token for the airdrop contract before using the contract!
+  if (token.type !== TokenStandard.ERC1155) {
+    throw new Error('Only ERC1155 tokens are supported right now');
+  }
   const modalInterface = context.modalInterface;
   const signer = chainConfig.provider.getSigner();
   modalInterface.waiting('Connecting to wallet...');
@@ -51,6 +73,13 @@ async function airdrop(
     airdropContractAddress,
     airdropABI,
     signer
+  );
+  await approveTokenForAirdrop(
+    airdropContractAddress,
+    token.tokenAddress,
+    token.type,
+    signer,
+    modalInterface
   );
   modalInterface.waiting('Initializing airdrop');
   const calculateAmounts = (data: { receiver: string; amount: number }[]) => {
