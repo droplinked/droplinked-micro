@@ -57,9 +57,6 @@ async function airdrop(
   token: ITokenDetails
 ) {
   // TODO: approve the token for the airdrop contract before using the contract!
-  if (token.type !== TokenStandard.ERC1155) {
-    throw new Error('Only ERC1155 tokens are supported right now');
-  }
   const modalInterface = context.modalInterface;
   const signer = chainConfig.provider.getSigner();
   modalInterface.waiting('Connecting to wallet...');
