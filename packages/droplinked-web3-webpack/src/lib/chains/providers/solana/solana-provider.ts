@@ -53,9 +53,7 @@ export class SolanaProvider implements IChainProvider {
     this.address = '';
   }
 
-  executeAirdrop(
-    tokenDetails: ITokenDetails
-  ): Promise<{ transactionHashes: string[] }> {
+  executeAirdrop(airdropId: string): Promise<{ transactionHashes: string[] }> {
     throw new Error('Method not implemented.');
   }
 

@@ -54,7 +54,5 @@ export interface IChainProvider {
   setNFTContractAddress(address: string): IChainProvider;
   setShopContractAddress(address: string): IChainProvider;
   getPaymentData(cartID: string, paymentType: string, token: string): any;
-  executeAirdrop(
-    tokenDetails: ITokenDetails
-  ): Promise<{ transactionHashes: string[] }>;
+  executeAirdrop(airdropId: string): Promise<{ transactionHashes: string[] }>;
 }

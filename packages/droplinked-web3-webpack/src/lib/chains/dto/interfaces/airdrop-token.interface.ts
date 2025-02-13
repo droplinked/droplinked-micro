@@ -17,7 +17,7 @@ type ITokenDetails =
   | {
       type: TokenStandard.ERC1155;
       tokenAddress: EthAddress;
-      tokenId: number;
+      tokenId: number | string;
       receivers: { receiver: string; amount: number }[];
       airdropId: string;
       chunkSize?: number;

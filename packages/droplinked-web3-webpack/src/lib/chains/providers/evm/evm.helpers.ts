@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
 import { KyInstance } from 'ky';
+import { Chain, Network } from '../../../web3';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function uploadMetadata(
@@ -39,6 +40,28 @@ export async function getCartData(
     paymentData: result.paymentData as IChainPayment,
     orderID: result.orderID,
   };
+}
+
+export type AirdropReceivers = { receiver: string; amount: number }[];
+
+export interface AirdropResponse {
+  shopId: string;
+  tokenAddress: string;
+  tokenId: string;
+  chain: Chain;
+  networkName: Network;
+  receivers: AirdropReceivers;
+  status: string;
+}
+
+export async function getAirdropData(
+  airdropID: string,
+  axiosInstance: KyInstance
+): Promise<AirdropResponse> {
+  const result = (
+    (await (await axiosInstance.get(`nfts/airdrop/${airdropID}`)).json()) as any
+  ).data;
+  return result;
 }
 
 export async function getNonce(

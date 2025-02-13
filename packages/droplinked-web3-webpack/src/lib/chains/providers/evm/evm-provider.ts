@@ -36,7 +36,7 @@ import { WalletNotFoundException } from '../../dto/errors/chain-errors';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
-import { getCartData } from './evm.helpers';
+import { getAirdropData, getCartData } from './evm.helpers';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
 import { droplinked_payment } from './evm-payments';
 import { ILoginResult } from '../../dto/interfaces/login-result.interface';
@@ -45,7 +45,7 @@ import ky, { KyInstance } from 'ky';
 import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
 import { claimNFT } from './evm-claim-nfts';
 import { airdrop } from './evm-airdrop';
-import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
+import { TokenStandard } from '../../dto/interfaces/airdrop-token.interface';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -305,15 +305,19 @@ export class EVMProvider implements IChainProvider {
   }
 
   async executeAirdrop(
-    tokenDetails: ITokenDetails
+    airdropId: string
   ): Promise<{ transactionHashes: string[] }> {
+    const airdropData = await getAirdropData(airdropId, this.axiosInstance);
     await this.handleWallet(this.address);
     await this.handleChain();
-    return await airdrop(
-      this.getChainConfig(),
-      this.getContext(),
-      tokenDetails
-    );
+    return await airdrop(this.getChainConfig(), this.getContext(), {
+      type: TokenStandard.ERC1155,
+      airdropId: airdropId,
+      receivers: airdropData.receivers,
+      tokenAddress: toEthAddress(airdropData.tokenAddress),
+      tokenId: airdropData.tokenId,
+      chunkSize: 300,
+    });
   }
 
   async publishRequest(
