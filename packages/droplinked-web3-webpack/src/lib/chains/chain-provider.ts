@@ -149,6 +149,9 @@ export class DropWeb3 {
       } else {
         chain = Chain.ETH;
       }
+    } else if (config.method === Web3Actions.AIRDROP) {
+      chain = config.chain;
+      userAddress = config.userAddress;
     }
 
     if (

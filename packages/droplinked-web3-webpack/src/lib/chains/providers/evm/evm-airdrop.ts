@@ -56,11 +56,10 @@ async function airdrop(
   context: IWeb3Context,
   token: ITokenDetails
 ) {
-  // TODO: approve the token for the airdrop contract before using the contract!
   const modalInterface = context.modalInterface;
   const signer = chainConfig.provider.getSigner();
   modalInterface.waiting('Connecting to wallet...');
-  await checkWallet(chainConfig.provider, chainConfig.address);
+  await checkWallet(signer, chainConfig.address);
   modalInterface.waiting('Getting airdrop contract address...');
   const airdropContractAddress = await getAirdropAddress(
     chainConfig.chain,

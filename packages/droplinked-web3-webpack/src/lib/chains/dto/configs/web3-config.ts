@@ -7,6 +7,7 @@ export enum Web3Actions {
   RECORD_AFFILIATE = 'RECORD_AFFILIATE',
   PAYMENT = 'PAYMENT',
   CLAIM = 'CLAIM',
+  AIRDROP = 'AIRDROP',
 }
 
 export type Web3ChainConfig =
@@ -44,5 +45,12 @@ export type Web3ChainConfig =
       userAddress: string;
       preferredWallet: ChainWallet;
       shopContractAddress: string;
+      modalInterface?: ModalInterface;
+    }
+  | {
+      method: Web3Actions.AIRDROP;
+      chain: Chain;
+      userAddress: string;
+      preferredWallet: ChainWallet;
       modalInterface?: ModalInterface;
     };
