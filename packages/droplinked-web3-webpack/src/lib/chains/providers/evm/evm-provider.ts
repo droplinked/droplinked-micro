@@ -22,6 +22,7 @@ import {
   isWalletConnected,
   isChainCorrect,
   changeChain,
+  addChain,
 } from './evm-login';
 import { EVMPublishRequest } from './evm-publish';
 import { recordProduct } from './evm-record';
@@ -186,7 +187,8 @@ export class EVMProvider implements IChainProvider {
 
   async handleChain() {
     const provider = this.getWalletProvider();
-    if (!isChainCorrect(provider.provider, this.chain, this.network)) {
+    await addChain(provider, this.chain, this.network, this.modalInterface);
+    if (!(await isChainCorrect(provider.provider, this.chain, this.network))) {
       console.log('Changing chain...');
       await changeChain(provider.provider, this.chain, this.network);
     }
@@ -307,6 +309,7 @@ export class EVMProvider implements IChainProvider {
   async executeAirdrop(
     airdropId: string
   ): Promise<{ transactionHashes: string[] }> {
+    console.log({ airdropId });
     const airdropData = await getAirdropData(airdropId, this.axiosInstance);
     await this.handleWallet(this.address);
     await this.handleChain();
