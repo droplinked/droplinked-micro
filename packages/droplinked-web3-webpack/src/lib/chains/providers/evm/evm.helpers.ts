@@ -58,9 +58,9 @@ export async function getAirdropData(
   airdropID: string,
   axiosInstance: KyInstance
 ): Promise<AirdropResponse> {
-  const result = (
-    (await (await axiosInstance.get(`nfts/airdrop/${airdropID}`)).json()) as any
-  ).data;
+  const result = (await (
+    await axiosInstance.get(`nfts/airdrop/${airdropID}`)
+  ).json()) as any;
   return result;
 }
 
