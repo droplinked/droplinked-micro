@@ -302,6 +302,45 @@ export async function getBalance(
   );
 }
 
+export async function addChain(
+  provider: any,
+  chain: Chain,
+  network: Network,
+  modalInterface: ModalInterface
+) {
+  try {
+    const ethereum = provider.provider;
+    modalInterface.waiting('Adding chain...');
+    if (!isWalletInstalled(chain)) {
+      throw new WalletNotFoundException();
+    }
+
+    if (!(await isWalletConnected(ethereum))) {
+      modalInterface.waiting('Requesting account access...');
+      await requestAccounts(ethereum);
+    }
+
+    // Optionally add the chain
+    const chainDetails = (chainNames as any)[chain][network];
+    await ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [
+        {
+          chainName: chainDetails.chainName,
+          chainId: chainDetails.chainId,
+          nativeCurrency: chainDetails.nativeCurrency,
+          rpcUrls: chainDetails.rpcUrls,
+        },
+      ],
+    });
+  } catch (err) {
+    console.warn(
+      'Chain already added or error occurred while adding chain:',
+      err
+    );
+  }
+}
+
 export async function evmLogin(
   provider: any,
   chain: Chain,
