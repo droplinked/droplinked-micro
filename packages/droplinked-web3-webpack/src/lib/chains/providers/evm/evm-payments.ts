@@ -300,40 +300,6 @@ export const droplinked_payment = async function (
 };
 
 /**
- * Handles the payment process for the REDBELLY chain.
- * @param data Payment data required for processing the transaction.
- * @param contract Contract instance for the REDBELLY chain.
- * @returns An object containing the transaction hash and crypto amount.
- */
-const redbellyPayment = async function (
-  data: IChainPayment,
-  contract: ethers.Contract
-) {
-  try {
-    data.tbdValues = data.tbdValues.map((_item, index) => {
-      return Number.parseInt(data.tbdValues[index].toString(), 10);
-    });
-
-    const tx = await contract['droplinkedPurchase'](
-      data.tbdValues,
-      data.tbdReceivers,
-      ZERO_ADDRESS,
-      data.chainLinkRoundId,
-      data.memo,
-      {
-        value: data.totalPrice,
-        gasLimit: 3_000_000, // Fixed gas limit
-      }
-    );
-    // wait for the transaction to submit
-    await tx.wait();
-    return { transactionHash: tx.hash, cryptoAmount: data.totalPrice };
-  } catch (error: unknown) {
-    handleError(error);
-  }
-};
-
-/**
  * Handles the payment process for the SKALE chain.
  * @param data Payment data required for processing the transaction.
  * @param chain The blockchain chain identifier.
