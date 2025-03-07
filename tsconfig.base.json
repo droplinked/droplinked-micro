@@ -19,10 +19,14 @@
       "@droplinked-micro/ui": ["packages/ui/src/index.ts"],
       "@droplinked-micro/utils": ["packages/utils/src/index.ts"],
       "@droplinked/web3": ["packages/web3/src/index.ts"],
+      "droplinked-payment-intent": [
+        "packages/droplinked-payment-intent/src/index.ts"
+      ],
       "droplinked-web3-frontend": [
         "packages/droplinked-web3-webpack/src/index.ts"
       ]
-    }
+    },
+    "composite": true
   },
   "exclude": ["node_modules", "tmp"]
 }

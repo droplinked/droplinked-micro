@@ -1,0 +1,9 @@
+{
+  "name": "droplinked-payment-intent",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/droplinked-payment-intent/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project droplinked-payment-intent --web",
+  "targets": {}
+}
