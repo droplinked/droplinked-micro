@@ -1,6 +1,6 @@
 import React from 'react';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-
+//sfs
 /**
  * Props interface for the StripePaymentForm component
  * @typedef {Object} StripePaymentFormProps

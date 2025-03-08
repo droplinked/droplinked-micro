@@ -8,7 +8,7 @@ import { PaymentElementProps } from '../droplinked-payment-intent';
 const stripePromise = loadStripe(
   'pk_test_51Odtp1JYpy7bkFtuwoI9JX5KEjpK66XQ1KO2nzmJ7d0aUM2g2alhMhsA6kELz2VvJO64RpgL82vqoBpAx4WsCjOc00mW98oWYW'
 );
-
+//sfs
 /**
  * Props type for StripePaymentProvider, excluding the 'type' field from PaymentElementProps
  */

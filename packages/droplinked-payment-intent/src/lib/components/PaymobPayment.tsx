@@ -3,6 +3,7 @@ import { PaymentElementProps } from '../droplinked-payment-intent';
 
 type PaymobPaymentProps = Omit<PaymentElementProps, 'type' | 'theme'>;
 
+// This component is responsible for rendering the Paymob payment interface
 export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   clientSecret,
   onSuccess,
