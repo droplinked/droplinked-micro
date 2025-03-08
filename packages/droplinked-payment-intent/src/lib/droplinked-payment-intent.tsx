@@ -7,12 +7,24 @@ import styles from './styles.module.css';
 
 export interface Appearance {
   theme: 'light' | 'dark' | 'flat';
+  labels?: 'above' | 'floating';
+  variables?: {
+    colorBackground?: string;
+    colorBackgroundText?: string;
+    colorText?: string;
+    borderRadius?: string;
+    colorSuccess?: string;
+    colorDanger?: string;
+    focusOutline?: string;
+    focusBoxShadow?: string;
+  };
+  rules?: { [selector: string]: { [cssPropertyName: string]: string } };
 }
 
 export interface PaymentElementProps {
   clientSecret: string;
   type: PaymentType;
-  theme?: Appearance['theme'];
+  appearance?: Appearance;
   onSuccess?: () => void;
   onError?: (error: unknown) => void;
   formProps?: ComponentProps<'form'>;
@@ -25,7 +37,6 @@ export interface PaymentElementProps {
 export function DroplinkedPaymentIntent({
   clientSecret,
   type,
-  theme = 'light',
   ...rest
 }: PaymentElementProps) {
   switch (type) {
@@ -33,7 +44,6 @@ export function DroplinkedPaymentIntent({
       return (
         <StripePaymentProvider
           clientSecret={clientSecret}
-          theme={theme}
           {...rest}
         />
       );

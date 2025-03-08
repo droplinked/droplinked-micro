@@ -13,7 +13,7 @@ type StripePaymentProviderProps = Omit<PaymentElementProps, 'type'>;
 
 export const StripePaymentProvider: React.FC<StripePaymentProviderProps> = ({
   clientSecret,
-  theme,
+  appearance,
   onSuccess,
   onError,
   formProps,
@@ -22,12 +22,18 @@ export const StripePaymentProvider: React.FC<StripePaymentProviderProps> = ({
   submitButtonProps,
   return_url,
 }) => {
-  const appearanceTheme: 'flat' | 'stripe' | 'night' | undefined =
-    theme === 'light' ? 'stripe' : theme === 'dark' ? 'night' : theme;
+  const stripeTheme: 'flat' | 'stripe' | 'night' = appearance?.theme === 'light' 
+    ? 'stripe' 
+    : appearance?.theme === 'dark' 
+      ? 'night' 
+      : 'flat';
 
   const options = {
     clientSecret,
-    appearance: { theme: appearanceTheme },
+    appearance: {
+      ...appearance,
+      theme: stripeTheme,
+    },
   };
 
   return (
