@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^3.3.0",
-    "@stripe/stripe-js": "^5.10.0"
+    "@stripe/stripe-js": "^5.10.0",
+    "vite-plugin-node-polyfills": "^0.22.0"
   }
 }

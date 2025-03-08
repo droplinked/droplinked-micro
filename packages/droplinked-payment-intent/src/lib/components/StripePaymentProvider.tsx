@@ -17,16 +17,19 @@ export const StripePaymentProvider: React.FC<StripePaymentProviderProps> = ({
   formProps,
   ActionButtonsContainerProps,
   cancelButtonProps,
-  submitButtonProps
+  submitButtonProps,
 }) => {
+  const appearanceTheme: 'flat' | 'stripe' | 'night' | undefined =
+    theme === 'light' ? 'stripe' : theme === 'dark' ? 'night' : theme;
+
   const options = {
     clientSecret,
-    appearance: theme
+    appearance: { theme: appearanceTheme },
   };
 
   return (
     <Elements stripe={stripePromise} options={options}>
-      <StripePaymentForm 
+      <StripePaymentForm
         onSuccess={onSuccess}
         onError={onError}
         formProps={formProps}
@@ -36,4 +39,4 @@ export const StripePaymentProvider: React.FC<StripePaymentProviderProps> = ({
       />
     </Elements>
   );
-}; 
+};

@@ -1,6 +1,11 @@
-import { DroplinkedPaymentIntent, PaymentKey } from 'droplinked-payment-intent';
+import {
+  DroplinkedPaymentIntent,
+  PaymentType,
+  Appearance,
+  PaymentElementProps,
+} from 'droplinked-payment-intent';
 function app() {
-  return <DroplinkedPaymentIntent paymentKey={PaymentKey.Label} />;
+  return <DroplinkedPaymentIntent />;
 }
 
 export default app;

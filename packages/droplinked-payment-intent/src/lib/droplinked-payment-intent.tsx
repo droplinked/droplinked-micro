@@ -13,8 +13,8 @@ export interface PaymentElementProps {
   clientSecret: string;
   type: PaymentType;
   theme?: Appearance['theme'];
-  onSuccess?: Function;
-  onError?: Function;
+  onSuccess?: () => void;
+  onError?: (error: unknown) => void;
   formProps?: ComponentProps<'form'>;
   ActionButtonsContainerProps?: ComponentProps<'div'>;
   cancelButtonProps?: ComponentProps<'button'>;
@@ -29,11 +29,19 @@ export function DroplinkedPaymentIntent({
 }: PaymentElementProps) {
   switch (type) {
     case PaymentType.Stripe:
-      return <StripePaymentProvider clientSecret={clientSecret} theme={theme} {...rest} />;
+      return (
+        <StripePaymentProvider
+          clientSecret={clientSecret}
+          theme={theme}
+          {...rest}
+        />
+      );
     case PaymentType.Paymob:
       return <PaymobPayment clientSecret={clientSecret} {...rest} />;
     default:
-      return <div className={styles.error}>Unsupported payment type: {type}</div>;
+      return (
+        <div className={styles.error}>Unsupported payment type: {type}</div>
+      );
   }
 }
 
