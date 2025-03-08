@@ -1,26 +1,40 @@
 // DroplinkedPaymentIntent.tsx
-import { PaymentKey } from './enums';
+import React, { ComponentProps } from 'react';
+import { PaymentType } from './enums';
+import { StripePaymentProvider } from './components/StripePaymentProvider';
+import { PaymobPayment } from './components/PaymobPayment';
+import styles from './styles.module.css';
 
-interface DroplinkedPaymentIntentProps {
-  paymentKey: PaymentKey; // Renamed to paymentKey to avoid conflict with React's key
+export interface Appearance {
+  theme: 'light' | 'dark' | 'flat';
+}
+
+export interface PaymentElementProps {
+  clientSecret: string;
+  type: PaymentType;
+  theme?: Appearance['theme'];
+  onSuccess?: Function;
+  onError?: Function;
+  formProps?: ComponentProps<'form'>;
+  ActionButtonsContainerProps?: ComponentProps<'div'>;
+  cancelButtonProps?: ComponentProps<'button'>;
+  submitButtonProps?: ComponentProps<'button'>;
 }
 
 export function DroplinkedPaymentIntent({
-  paymentKey,
-}: DroplinkedPaymentIntentProps) {
-  const renderComponent = () => {
-    console.log({ paymentKey }); // Log the renamed prop
-    switch (paymentKey) {
-      case PaymentKey.Button:
-        return <button>Click Me</button>;
-      case PaymentKey.Label:
-        return <label>This is a label</label>;
-      default:
-        return <h1>Invalid Key</h1>;
-    }
-  };
-
-  return <div>{renderComponent()}</div>;
+  clientSecret,
+  type,
+  theme = 'light',
+  ...rest
+}: PaymentElementProps) {
+  switch (type) {
+    case PaymentType.Stripe:
+      return <StripePaymentProvider clientSecret={clientSecret} theme={theme} {...rest} />;
+    case PaymentType.Paymob:
+      return <PaymobPayment clientSecret={clientSecret} {...rest} />;
+    default:
+      return <div className={styles.error}>Unsupported payment type: {type}</div>;
+  }
 }
 
 export default DroplinkedPaymentIntent;
