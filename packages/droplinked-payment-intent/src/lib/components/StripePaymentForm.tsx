@@ -8,6 +8,7 @@ type StripePaymentFormProps = {
   ActionButtonsContainerProps?: React.HTMLAttributes<HTMLDivElement>;
   cancelButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   submitButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  return_url?: string;
 };
 
 export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
@@ -16,7 +17,8 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   formProps,
   ActionButtonsContainerProps,
   cancelButtonProps,
-  submitButtonProps
+  submitButtonProps,  
+  return_url
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -32,7 +34,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: window.location.href,
+          return_url: return_url || window.location.href, 
         },
       });
 
@@ -53,12 +55,12 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
           <PaymentElement />
         </div>
         <div {...ActionButtonsContainerProps}>
-          <button type="button" {...cancelButtonProps}>
+          <button type="button" disabled={!stripe} {...cancelButtonProps}>
             انصراف
           </button>
-          <button 
-            type="submit" 
-            {...submitButtonProps} 
+          <button
+            type="submit"
+            {...submitButtonProps}
             disabled={!stripe}
           >
             پرداخت

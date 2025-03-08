@@ -19,6 +19,7 @@ export interface PaymentElementProps {
   ActionButtonsContainerProps?: ComponentProps<'div'>;
   cancelButtonProps?: ComponentProps<'button'>;
   submitButtonProps?: ComponentProps<'button'>;
+  return_url: string;
 }
 
 export function DroplinkedPaymentIntent({

@@ -20,6 +20,7 @@ export const StripePaymentProvider: React.FC<StripePaymentProviderProps> = ({
   ActionButtonsContainerProps,
   cancelButtonProps,
   submitButtonProps,
+  return_url,
 }) => {
   const appearanceTheme: 'flat' | 'stripe' | 'night' | undefined =
     theme === 'light' ? 'stripe' : theme === 'dark' ? 'night' : theme;
@@ -38,6 +39,7 @@ export const StripePaymentProvider: React.FC<StripePaymentProviderProps> = ({
         ActionButtonsContainerProps={ActionButtonsContainerProps}
         cancelButtonProps={cancelButtonProps}
         submitButtonProps={submitButtonProps}
+        return_url={return_url}
       />
     </Elements>
   );
