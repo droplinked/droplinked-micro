@@ -91,14 +91,14 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
         {/* Action buttons container */}
         <div {...ActionButtonsContainerProps}>
           <button type="button" disabled={!stripe} {...cancelButtonProps}>
-            انصراف
+            Cancel
           </button>
           <button
             type="submit"
             {...submitButtonProps}
             disabled={!stripe}
           >
-            پرداخت
+            Pay
           </button>
         </div>
       </form>
