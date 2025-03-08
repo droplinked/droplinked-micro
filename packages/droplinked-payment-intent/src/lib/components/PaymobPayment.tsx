@@ -15,19 +15,7 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   return (
     <div className="paymob-payment-container">
       {/* Paymob iframe will be implemented here */}
-      <form {...formProps} onSubmit={(e) => e.preventDefault()}>
-        <div className="paymob-iframe-container">
-          {/* Paymob iframe will be mounted here */}
-        </div>
-        <div {...ActionButtonsContainerProps}>
-          <button type="button" {...cancelButtonProps}>
-            Cancel
-          </button>
-          <button type="submit" {...submitButtonProps}>
-            Pay
-          </button>
-        </div>
-      </form>
+     not provided
     </div>
   );
 }; 

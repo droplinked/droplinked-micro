@@ -5,7 +5,9 @@ import { StripePaymentForm } from './StripePaymentForm';
 import { PaymentElementProps } from '../droplinked-payment-intent';
 
 // استرایپ را خارج از کامپوننت بارگذاری می‌کنیم
-const stripePromise = loadStripe(process.env.STRIPE_PUBLIC_KEY || '');
+const stripePromise = loadStripe(
+  'pk_test_51Odtp1JYpy7bkFtuwoI9JX5KEjpK66XQ1KO2nzmJ7d0aUM2g2alhMhsA6kELz2VvJO64RpgL82vqoBpAx4WsCjOc00mW98oWYW'
+);
 
 type StripePaymentProviderProps = Omit<PaymentElementProps, 'type'>;
 
