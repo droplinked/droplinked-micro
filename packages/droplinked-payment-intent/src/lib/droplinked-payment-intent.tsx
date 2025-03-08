@@ -1,6 +1,5 @@
 // DroplinkedPaymentIntent.tsx
 import React, { ComponentProps } from 'react';
-import { PaymentType } from './enums';
 import { StripePaymentProvider } from './components/StripePaymentProvider';
 import { PaymobPayment } from './components/PaymobPayment';
 import styles from './styles.module.css';
@@ -20,6 +19,8 @@ export interface Appearance {
   };
   rules?: { [selector: string]: { [cssPropertyName: string]: string } };
 }
+
+export type PaymentType = 'stripe' | 'paymob';
 
 export interface PaymentElementProps {
   clientSecret: string;
@@ -43,19 +44,21 @@ export function DroplinkedPaymentIntent({
     console.error('Client secret is required.');
     throw new Error('Client secret is required.');
   }
-  if (!type) {
-    console.error('Payment type is required.');
-    throw new Error('Payment type is required.');
+  
+  if (type !== 'stripe' && type !== 'paymob') {
+    console.error('Payment type must be either "stripe" or "paymob"');
+    throw new Error('Invalid payment type. Must be either "stripe" or "paymob"');
   }
+
   switch (type) {
-    case PaymentType.Stripe:
+    case 'stripe':
       return (
         <StripePaymentProvider
           clientSecret={clientSecret}
           {...rest}
         />
       );
-    case PaymentType.Paymob:
+    case 'paymob':
       return <PaymobPayment clientSecret={clientSecret} {...rest} />;
     default:
       return (
