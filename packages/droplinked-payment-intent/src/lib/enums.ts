@@ -1,4 +1,4 @@
-export enum PaymentKey {
-  Button = 'Button',
-  Label = 'Label',
+export enum PaymentType {
+  Stripe = 'Stripe',
+  Paymob = 'Paymob',
 }

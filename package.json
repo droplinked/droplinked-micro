@@ -88,6 +88,8 @@
     "includedScripts": []
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^3.3.0",
+    "@stripe/stripe-js": "^5.10.0",
     "@uauth/js": "^3.0.1",
     "ky": "^1.7.2",
     "prando": "^6.0.1",

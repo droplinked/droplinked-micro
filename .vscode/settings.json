@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["SOLANA"]
+  "cSpell.words": [
+    "SOLANA"
+  ],
+  "prettier.enable": false
 }
