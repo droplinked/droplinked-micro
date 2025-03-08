@@ -39,6 +39,14 @@ export function DroplinkedPaymentIntent({
   type,
   ...rest
 }: PaymentElementProps) {
+  if (!clientSecret) {
+    console.error('Client secret is required.');
+    throw new Error('Client secret is required.');
+  }
+  if (!type) {
+    console.error('Payment type is required.');
+    throw new Error('Payment type is required.');
+  }
   switch (type) {
     case PaymentType.Stripe:
       return (
