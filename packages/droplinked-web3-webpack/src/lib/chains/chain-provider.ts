@@ -147,7 +147,7 @@ export class DropWeb3 {
       } else if (preferredWallet === ChainWallet.UnstoppableDomains) {
         chain = Chain.UNSTOPPABLE;
       } else {
-        chain = Chain.ETH;
+        chain = Chain.BASE;
       }
     } else if (config.method === Web3Actions.AIRDROP) {
       chain = config.chain;
