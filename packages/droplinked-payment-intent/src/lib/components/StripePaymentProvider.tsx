@@ -1,8 +1,8 @@
 import React from 'react';
 import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Appearance as StripeAppearance } from '@stripe/stripe-js';
 import { StripePaymentForm } from './StripePaymentForm';
-import { PaymentElementProps } from '../droplinked-payment-intent';
+import { PaymentElementProps, CommonStyle ,PaymentType } from '../droplinked-payment-intent';
 
 // Initialize Stripe instance outside of component for better performance
 const stripePromise = loadStripe(
@@ -13,6 +13,68 @@ const stripePromise = loadStripe(
  * Props type for StripePaymentProvider, excluding the 'type' field from PaymentElementProps
  */
 type StripePaymentProviderProps = Omit<PaymentElementProps, 'type'>;
+
+interface PaymobProps {
+  clientSecret: string;
+  commonStyle: CommonStyle;
+  onSuccess?: () => void;
+  onError?: (error: unknown) => void;
+  return_url: string;
+}
+
+/**
+ * تبدیل CommonStyle به Appearance مورد نیاز Stripe
+ */
+const convertCommonStyleToStripeAppearance = (commonStyle: CommonStyle): StripeAppearance => {
+  return {
+    theme: commonStyle.theme === 'dark' ? 'night' : 'stripe',
+    labels: 'above',
+    variables: {
+      colorPrimary: commonStyle.colorPrimary,
+      colorBackground: commonStyle.backgroundBody || '#ffffff',
+      colorText: commonStyle.textColorParagraphs || '#1f1f1f',
+      colorDanger: commonStyle.colorError,
+      colorTextSecondary: commonStyle.textColorLabel,
+      colorTextPlaceholder: commonStyle.placeholderColor,
+      colorBackgroundText: commonStyle.textColorParagraphs || '#1f1f1f',
+      borderRadius: commonStyle.borderRadius,
+      fontFamily: commonStyle.fontFamily,
+      fontSizeBase: commonStyle.fontSizeInput,
+      fontWeightNormal: commonStyle.fontWeightInput.toString(),
+      fontLineHeight: '1.5',
+      // اضافه کردن متغیرهای خاص Stripe
+      focusOutline: 'unset',
+      focusBoxShadow: 'none',
+      colorSuccess: commonStyle.colorPrimary,
+    },
+    rules: {
+      '.Input': {
+        border: `1px solid ${commonStyle.colorBorderInput}`,
+        backgroundColor: commonStyle.colorInput,
+        color: commonStyle.textColorInput,
+      },
+      '.Input:focus': {
+        borderColor: commonStyle.colorPrimary,
+      },
+      '.Input:hover': {
+        borderColor: commonStyle.colorBorderInput,
+      },
+      '.Label': {
+        color: commonStyle.textColorLabel,
+        fontSize: commonStyle.fontSizeLabel,
+        fontWeight: commonStyle.fontWeightLabel.toString(),
+      },
+      '.Tab': {
+        backgroundColor: commonStyle.colorContainer,
+        borderColor: commonStyle.colorBorderInput,
+      },
+      '.Tab--selected': {
+        backgroundColor: commonStyle.colorPrimary,
+        color: commonStyle.textColorPaymentButton,
+      },
+    },
+  };
+};
 
 /**
  * Provider component for Stripe payment integration
@@ -42,31 +104,16 @@ type StripePaymentProviderProps = Omit<PaymentElementProps, 'type'>;
  * 
  * @returns {JSX.Element} Wrapped Stripe payment form with configured Elements provider
  */
-export const StripePaymentProvider: React.FC<StripePaymentProviderProps> = ({
+export const StripePaymentProvider: React.FC<PaymobProps> = ({
   clientSecret,
-  appearance,
+  commonStyle ,
   onSuccess,
   onError,
-  formProps,
-  ActionButtonsContainerProps,
-  cancelButtonProps,
-  submitButtonProps,
   return_url,
 }) => {
-  // Map component theme to Stripe-specific theme values
-  const stripeTheme: 'flat' | 'stripe' | 'night' = appearance?.theme === 'light' 
-    ? 'stripe' 
-    : appearance?.theme === 'dark' 
-      ? 'night' 
-      : 'flat';
-
-  // Configure Stripe Elements options
   const options = {
     clientSecret,
-    appearance: {
-      ...appearance,
-      theme: stripeTheme,
-    },
+    appearance: convertCommonStyleToStripeAppearance(commonStyle),
   };
 
   return (
@@ -74,11 +121,8 @@ export const StripePaymentProvider: React.FC<StripePaymentProviderProps> = ({
       <StripePaymentForm
         onSuccess={onSuccess}
         onError={onError}
-        formProps={formProps}
-        ActionButtonsContainerProps={ActionButtonsContainerProps}
-        cancelButtonProps={cancelButtonProps}
-        submitButtonProps={submitButtonProps}
         return_url={return_url}
+        commonStyle={commonStyle}
       />
     </Elements>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-//sfs
+import { CommonStyle } from '../droplinked-payment-intent';
+
 /**
  * Props interface for the StripePaymentForm component
  * @typedef {Object} StripePaymentFormProps
@@ -10,16 +11,10 @@ type StripePaymentFormProps = {
   onSuccess?: (result: any) => void;
   /** Callback function called when an error occurs */
   onError?: (error: any) => void;
-  /** Additional props for the form element */
-  formProps?: React.HTMLAttributes<HTMLFormElement>;
-  /** Props for the container of action buttons */
-  ActionButtonsContainerProps?: React.HTMLAttributes<HTMLDivElement>;
-  /** Props for the cancel button */
-  cancelButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
-  /** Props for the submit button */
-  submitButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   /** URL to redirect after payment completion */
   return_url?: string;
+  /** Common style for the component */
+  commonStyle?: CommonStyle;
 };
 
 /**
@@ -39,11 +34,8 @@ type StripePaymentFormProps = {
 export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   onSuccess,
   onError,
-  formProps,
-  ActionButtonsContainerProps,
-  cancelButtonProps,
-  submitButtonProps,  
-  return_url
+  return_url,
+  commonStyle
 }) => {
   // Initialize Stripe hooks
   const stripe = useStripe();
@@ -55,18 +47,14 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
    */
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    // Validate Stripe initialization
-    if (!stripe || !elements) {
-      return;
-    }
+    if (!stripe || !elements) return;
 
     try {
       // Attempt to confirm payment with Stripe
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: return_url || window.location.href, 
+          return_url: return_url || window.location.href,
         },
       });
 
@@ -81,21 +69,57 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
     }
   };
 
+  const containerStyle: React.CSSProperties = {
+    width: commonStyle?.containerWidth || '100%',
+    padding: commonStyle?.containerPadding || '16px',
+    backgroundColor: commonStyle?.colorContainer || '#ffffff',
+  };
+
+  const buttonContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    gap: '12px',
+    marginTop: commonStyle?.verticalSpacing || '16px',
+  };
+
+  const submitButtonStyle: React.CSSProperties = {
+    backgroundColor: commonStyle?.submitButton.backgroundColor || '#4F46E5',
+    color: commonStyle?.submitButton.textColor || '#ffffff',
+    fontSize: commonStyle?.submitButton.fontSize || '14px',
+    fontWeight: commonStyle?.submitButton.fontWeight || 500,
+    borderRadius: commonStyle?.submitButton.borderRadius || '4px',
+    padding: '10px 20px',
+    border: 'none',
+    cursor: 'pointer',
+  };
+
+  const cancelButtonStyle: React.CSSProperties = {
+    backgroundColor: commonStyle?.cancelButton.backgroundColor || '#F3F4F6',
+    color: commonStyle?.cancelButton.textColor || '#4B5563',
+    fontSize: commonStyle?.cancelButton.fontSize || '14px',
+    fontWeight: commonStyle?.cancelButton.fontWeight || 500,
+    borderRadius: commonStyle?.cancelButton.borderRadius || '4px',
+    padding: '10px 20px',
+    border: 'none',
+    cursor: 'pointer',
+  };
+
   return (
-    <div className="stripe-payment-container">
-      <form {...formProps} onSubmit={handleSubmit}>
-        {/* Container for Stripe's PaymentElement */}
-        <div className="stripe-element-container">
+    <div style={containerStyle}>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: commonStyle?.verticalSpacing || '16px' }}>
           <PaymentElement />
         </div>
-        {/* Action buttons container */}
-        <div {...ActionButtonsContainerProps}>
-          <button type="button" disabled={!stripe} {...cancelButtonProps}>
+        <div style={buttonContainerStyle}>
+          <button
+            type="button"
+            style={cancelButtonStyle}
+            disabled={!stripe}
+          >
             Cancel
           </button>
           <button
             type="submit"
-            {...submitButtonProps}
+            style={submitButtonStyle}
             disabled={!stripe}
           >
             Pay
