@@ -1,11 +1,39 @@
 import React, { useEffect, useRef } from 'react';
-import { PaymentElementProps } from '../droplinked-payment-intent';
+import { PaymentElementProps, CommonStyle } from '../droplinked-payment-intent';
 
-type PaymobPaymentProps = Omit<PaymentElementProps, 'type' | 'theme'> & {
-  /**
-   * تنظیمات ظاهری کامپوننت
-   */
-  appearance?: any;
+type PaymobPaymentProps = Omit<PaymentElementProps, 'type'>;
+
+/**
+ * تبدیل CommonStyle به customStyle مورد نیاز Paymob
+ * @param commonStyle - استایل مشترک
+ * @returns customStyle برای Paymob
+ */
+export const convertCommonStyleToPaymobStyle = (commonStyle: CommonStyle): Record<string, any> => {
+  return {
+    Font_Family: commonStyle.fontFamily,
+    Font_Size_Label: commonStyle.fontSizeLabel.replace('px', ''),
+    Font_Size_Input_Fields: commonStyle.fontSizeInput.replace('px', ''),
+    Font_Size_Payment_Button: commonStyle.fontSizePaymentButton.replace('px', ''),
+    Font_Weight_Label: commonStyle.fontWeightLabel,
+    Font_Weight_Input_Fields: commonStyle.fontWeightInput,
+    Font_Weight_Payment_Button: commonStyle.fontWeightPaymentButton,
+    Color_Container: commonStyle.colorContainer,
+    Color_Border_Input_Fields: commonStyle.colorBorderInput,
+    Color_Border_Payment_Button: commonStyle.colorBorderPaymentButton,
+    Radius_Border: commonStyle.borderRadius.replace('px', ''),
+    Color_Disabled: commonStyle.colorDisabled,
+    Color_Error: commonStyle.colorError,
+    Color_Primary: commonStyle.colorPrimary,
+    Color_Input_Fields: commonStyle.colorInput,
+    Text_Color_For_Label: commonStyle.textColorLabel,
+    Text_Color_For_Payment_Button: commonStyle.textColorPaymentButton,
+    Text_Color_For_Input_Fields: commonStyle.textColorInput,
+    Color_For_Text_Placeholder: commonStyle.placeholderColor,
+    Width_of_Container: commonStyle.containerWidth,
+    Vertical_Padding: commonStyle.verticalPadding.replace('px', ''),
+    Vertical_Spacing_between_components: commonStyle.verticalSpacing.replace('px', ''),
+    Container_Padding: commonStyle.containerPadding.replace('px', '')
+  };
 };
 
 /**
@@ -17,8 +45,8 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   clientSecret,
   onSuccess,
   onError,
-  submitButtonProps,
-  appearance,
+  return_url,
+  commonStyle
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const elementId = 'paymob-elements';
@@ -93,6 +121,7 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
         showSaveCard,
         forceSaveCard,
         publicKey,
+        returnUrl: return_url,
         
         // تابع قبل از تکمیل پرداخت
         beforePaymentComplete: async (paymentMethod: any) => {
@@ -122,10 +151,9 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
         }
       };
 
-      // تبدیل appearance به customStyle
-      if (appearance) {
-        const convertedCustomStyle = convertAppearanceToCustomStyle(appearance);
-        pixelConfig.customStyle = convertedCustomStyle;
+      // تبدیل commonStyle به customStyle
+      if (commonStyle) {
+        pixelConfig.customStyle = convertCommonStyleToPaymobStyle(commonStyle);
       }
 
       // ایجاد نمونه جدید Pixel
@@ -138,72 +166,6 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
           onError(error instanceof Error ? error : new Error('خطا در راه‌اندازی پرداخت پی‌ماب'));
         }
       }
-
-      // رویداد پرداخت از خارج (اگر دکمه پرداخت خارجی وجود داشته باشد)
-      const handlePayFromOutside = () => {
-        const event = new Event('payFromOutside');
-        window.dispatchEvent(event);
-      };
-
-      // اضافه کردن دکمه پرداخت از خارج اگر درخواست شده باشد
-      if (submitButtonProps?.onClick) {
-        const originalOnClick = submitButtonProps.onClick;
-        submitButtonProps.onClick = (e) => {
-          originalOnClick(e);
-          handlePayFromOutside();
-        };
-      }
-    };
-
-    // تابع تبدیل appearance به customStyle
-    const convertAppearanceToCustomStyle = (appearance: any): Record<string, any> => {
-      const customStyle: Record<string, any> = {
-        Font_Family: 'Gotham',
-        Font_Size_Label: '16',
-        Font_Size_Input_Fields: '16',
-        Font_Size_Payment_Button: '14',
-        Font_Weight_Label: 400,
-        Font_Weight_Input_Fields: 200,
-        Font_Weight_Payment_Button: 600,
-        Color_Container: '#FFF',
-        Color_Border_Input_Fields: '#D0D5DD',
-        Color_Border_Payment_Button: 'white',
-        Radius_Border: '8',
-        Color_Disabled: '#A1B8FF',
-        Color_Error: '#CC1142',
-        Color_Primary: '#144DFF',
-        Color_Input_Fields: '#FFF',
-        Text_Color_For_Label: '#000',
-        Text_Color_For_Payment_Button: 'red',
-        Text_Color_For_Input_Fields: '#000',
-        Color_For_Text_Placeholder: '#667085',
-        Width_of_Container: '100%',
-        Vertical_Padding: '40',
-        Vertical_Spacing_between_components: '18',
-        Container_Padding: '0'
-      };
-
-      // اعمال تنظیمات از appearance
-      if (appearance.variables) {
-        const vars = appearance.variables;
-        
-        if (vars.colorBackground) customStyle.Color_Container = vars.colorBackground;
-        if (vars.colorText) {
-          customStyle.Text_Color_For_Label = vars.colorText;
-          customStyle.Text_Color_For_Input_Fields = vars.colorText;
-        }
-        if (vars.borderRadius) customStyle.Radius_Border = vars.borderRadius.replace('px', '');
-        if (vars.colorSuccess) customStyle.Color_Primary = vars.colorSuccess;
-        if (vars.colorDanger) customStyle.Color_Error = vars.colorDanger;
-      }
-
-      // اعمال قوانین سفارشی
-      if (appearance.rules) {
-        // پیاده‌سازی منطق تبدیل قوانین سفارشی
-        // این بخش می‌تواند پیچیده باشد و به نیازهای خاص بستگی دارد
-      }
-
-      return customStyle;
     };
 
     initializePixel();
@@ -212,7 +174,7 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
     return () => {
       pixelInitialized.current = false;
     };
-  }, [clientSecret, onSuccess, onError, appearance, submitButtonProps]);
+  }, [clientSecret, onSuccess, onError, return_url, commonStyle]);
 
   return (
     <div className="paymob-payment-container" ref={containerRef}>
