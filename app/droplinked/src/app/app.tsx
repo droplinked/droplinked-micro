@@ -56,33 +56,33 @@ function app() {
       return_url="https://droplinked.com/"
       onSuccess={() => console.log('پرداخت با موفقیت انجام شد')}
       onError={(error) => console.error('خطا در پرداخت:', error)}
-      ActionButtonsContainerProps={{
-        style: {
-          display: 'flex',
-          gap: '12px',
-          marginTop: '20px'
-        }
-      }}
-      submitButtonProps={{
-        style: {
-          ...buttonBaseStyle,
-          ...(true ? disabledStyle : {}),
-          backgroundColor: '#2BCFA1',
-          color: '#000000',
-          border: 'none',
-        },
-        disabled: true
-      }}
-      cancelButtonProps={{
-        style: {
-          ...buttonBaseStyle,
-          ...(true ? disabledStyle : {}),
-          backgroundColor: '#292929',
-          color: '#ffffff',
-          border: '1px solid #3C3C3C',
-        },
-        disabled: true
-      }}
+      // ActionButtonsContainerProps={{
+      //   style: {
+      //     display: 'flex',
+      //     gap: '12px',
+      //     marginTop: '20px'
+      //   }
+      // }}
+      // submitButtonProps={{
+      //   style: {
+      //     ...buttonBaseStyle,
+      //     ...(true ? disabledStyle : {}),
+      //     backgroundColor: '#2BCFA1',
+      //     color: '#000000',
+      //     border: 'none',
+      //   },
+      //   disabled: true
+      // }}
+      // cancelButtonProps={{
+      //   style: {
+      //     ...buttonBaseStyle,
+      //     ...(true ? disabledStyle : {}),
+      //     backgroundColor: '#292929',
+      //     color: '#ffffff',
+      //     border: '1px solid #3C3C3C',
+      //   },
+      //   disabled: true
+      // }}
     />
   );
 }
