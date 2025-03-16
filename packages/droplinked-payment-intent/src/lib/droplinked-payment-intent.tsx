@@ -68,6 +68,7 @@ export type PaymentType = 'stripe' | 'paymob';
  * @param onSuccess - Callback function on successful payment
  * @param onError - Callback function on payment error
  * @param return_url - URL to redirect after payment completion (optional with default)
+ * @param isTestnet - Indicates whether the payment is in testnet mode
  */
 export interface PaymentElementProps {
   clientSecret: string;
@@ -76,6 +77,7 @@ export interface PaymentElementProps {
   onSuccess?: () => void;
   onError?: (error: unknown) => void;
   return_url: string;
+  isTestnet?: boolean;
 }
 
 /**
@@ -152,6 +154,7 @@ export const defaultCommonStyle: CommonStyle = {
  * @param {CommonStyle} [props.commonStyle] - Common styling options for the payment component
  * @param {() => void} [props.onSuccess] - Callback function called on successful payment
  * @param {(error: unknown) => void} [props.onError] - Callback function called on payment error
+ * @param {boolean} [props.isTestnet] - Indicates whether the payment is in testnet mode
  * 
  * @throws {Error} Throws error if clientSecret is not provided
  * @throws {Error} Throws error if payment type is invalid
@@ -163,6 +166,7 @@ export function DroplinkedPaymentIntent({
   type,
   commonStyle = defaultCommonStyle,
   return_url = window.location.href,
+  isTestnet = false,
   ...rest
 }: PaymentElementProps) {
   // Validate required client secret
@@ -185,6 +189,7 @@ export function DroplinkedPaymentIntent({
           clientSecret={clientSecret}
           commonStyle={commonStyle}
           return_url={return_url}
+          isTestnet={isTestnet}
           {...rest}
         />
       );
@@ -194,6 +199,7 @@ export function DroplinkedPaymentIntent({
           clientSecret={clientSecret} 
           commonStyle={commonStyle} 
           return_url={return_url}
+          isTestnet={isTestnet}
         />
       );
     default:

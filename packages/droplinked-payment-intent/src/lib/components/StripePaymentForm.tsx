@@ -15,6 +15,8 @@ type StripePaymentFormProps = {
   return_url?: string;
   /** Common style for the component */
   commonStyle?: CommonStyle;
+  /** Indicates if the payment is for a testnet */
+  isTestnet?: boolean;
 };
 
 /**
@@ -35,7 +37,8 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   onSuccess,
   onError,
   return_url,
-  commonStyle
+  commonStyle,
+  isTestnet
 }) => {
   // Initialize Stripe hooks
   const stripe = useStripe();

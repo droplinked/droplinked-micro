@@ -4,11 +4,6 @@ import { loadStripe, Appearance as StripeAppearance } from '@stripe/stripe-js';
 import { StripePaymentForm } from './StripePaymentForm';
 import { PaymentElementProps, CommonStyle ,PaymentType } from '../droplinked-payment-intent';
 
-// Initialize Stripe instance outside of component for better performance
-const stripePromise = loadStripe(
-  'pk_test_51Odtp1JYpy7bkFtuwoI9JX5KEjpK66XQ1KO2nzmJ7d0aUM2g2alhMhsA6kELz2VvJO64RpgL82vqoBpAx4WsCjOc00mW98oWYW'
-);
-//sfs
 /**
  * Props type for StripePaymentProvider, excluding the 'type' field from PaymentElementProps
  */
@@ -20,6 +15,7 @@ interface PaymobProps {
   onSuccess?: () => void;
   onError?: (error: unknown) => void;
   return_url: string;
+  isTestnet?: boolean;
 }
 
 /**
@@ -106,15 +102,22 @@ const convertCommonStyleToStripeAppearance = (commonStyle: CommonStyle): StripeA
  */
 export const StripePaymentProvider: React.FC<PaymobProps> = ({
   clientSecret,
-  commonStyle ,
+  commonStyle,
   onSuccess,
   onError,
   return_url,
+  isTestnet = false
 }) => {
   const options = {
     clientSecret,
     appearance: convertCommonStyleToStripeAppearance(commonStyle),
   };
+
+  const stripePromise = loadStripe(
+    isTestnet 
+      ? 'pk_test_51Odtp1JYpy7bkFtuwoI9JX5KEjpK66XQ1KO2nzmJ7d0aUM2g2alhMhsA6kELz2VvJO64RpgL82vqoBpAx4WsCjOc00mW98oWYW'
+      : 'pk_live_XXXXX' // کلید لایو استرایپ باید جایگزین شود
+  );
 
   return (
     <Elements stripe={stripePromise} options={options}>

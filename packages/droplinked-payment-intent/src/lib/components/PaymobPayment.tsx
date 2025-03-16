@@ -46,14 +46,18 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   onSuccess,
   onError,
   return_url,
-  commonStyle
+  commonStyle,
+  isTestnet = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const elementId = 'paymob-elements';
   const pixelInitialized = useRef(false);
 
-  // مقادیر پیش‌فرض
-  const publicKey = 'are_pk_test_87EatMLhbhUCdDjBeSLuGpm5uIyuEmnB';
+  // تعیین public key بر اساس محیط تست یا اصلی
+  const publicKey = isTestnet 
+    ? 'are_pk_test_87EatMLhbhUCdDjBeSLuGpm5uIyuEmnB'  // کلید تست
+    : 'are_pk_live_XXXXX';  // کلید اصلی - باید جایگزین شود
+    
   const paymentMethods = ['card', 'google-pay', 'apple-pay'];
   const disablePay = false;
   const showSaveCard = false;
