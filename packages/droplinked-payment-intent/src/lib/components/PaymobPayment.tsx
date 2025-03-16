@@ -4,9 +4,9 @@ import { PaymentElementProps, CommonStyle } from '../droplinked-payment-intent';
 type PaymobPaymentProps = Omit<PaymentElementProps, 'type'>;
 
 /**
- * تبدیل CommonStyle به customStyle مورد نیاز Paymob
- * @param commonStyle - استایل مشترک
- * @returns customStyle برای Paymob
+ * Convert CommonStyle to Paymob's required customStyle
+ * @param commonStyle - Common style object
+ * @returns customStyle for Paymob
  */
 export const convertCommonStyleToPaymobStyle = (commonStyle: CommonStyle): Record<string, any> => {
   return {
@@ -37,9 +37,9 @@ export const convertCommonStyleToPaymobStyle = (commonStyle: CommonStyle): Recor
 };
 
 /**
- * کامپوننت پرداخت پی‌ماب
+ * Paymob Payment Component
  * 
- * این کامپوننت یک رابط پرداخت پی‌ماب را با استفاده از Pixel SDK نمایش می‌دهد
+ * This component displays a Paymob payment interface using the Pixel SDK
  */
 export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   clientSecret,
@@ -53,10 +53,10 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   const elementId = 'paymob-elements';
   const pixelInitialized = useRef(false);
 
-  // تعیین public key بر اساس محیط تست یا اصلی
+
   const publicKey = isTestnet 
-    ? 'are_pk_test_87EatMLhbhUCdDjBeSLuGpm5uIyuEmnB'  // کلید تست
-    : 'are_pk_live_XXXXX';  // کلید اصلی - باید جایگزین شود
+    ? 'are_pk_test_87EatMLhbhUCdDjBeSLuGpm5uIyuEmnB'  
+    : 'are_pk_live_XXXXX';  
     
   const paymentMethods = ['card', 'google-pay', 'apple-pay'];
   const disablePay = false;
@@ -64,7 +64,7 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   const forceSaveCard = false;
 
   useEffect(() => {
-    // اضافه کردن استایل‌های مورد نیاز
+    // Add required stylesheets
     const addStylesheet = (href: string) => {
       if (!document.querySelector(`link[href="${href}"]`)) {
         const link = document.createElement('link');
@@ -74,7 +74,7 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
       }
     };
 
-    // اضافه کردن اسکریپت مورد نیاز
+    // Add required script
     const addScript = (src: string): Promise<void> => {
       return new Promise((resolve) => {
         if (!document.querySelector(`script[src="${src}"]`)) {
@@ -97,10 +97,10 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
       
       await addScript('https://cdn.jsdelivr.net/npm/paymob-pixel@latest/main.js');
       
-      // اضافه کردن اسکریپت Google Pay (اگر لازم است)
+  
       await addScript('https://pay.google.com/gp/p/js/pay.js');
 
-      // منتظر بمانید تا Pixel موجود باشد
+     
       if (typeof window.Pixel === 'undefined') {
         const checkPixel = setInterval(() => {
           if (typeof window.Pixel !== 'undefined') {
@@ -116,7 +116,7 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
     const initializePayment = () => {
       if (!clientSecret || !containerRef.current || pixelInitialized.current) return;
 
-      // پیکربندی Pixel
+      // Pixel Configuration
       const pixelConfig: any = {
         clientSecret,
         elementId,
@@ -127,54 +127,53 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
         publicKey,
         returnUrl: return_url,
         
-        // تابع قبل از تکمیل پرداخت
+        // Before payment completion function
         beforePaymentComplete: async (paymentMethod: any) => {
-          console.log('قبل از تکمیل پرداخت:', paymentMethod);
+          console.log('Before payment completion:', paymentMethod);
           return true;
         },
         
-        // تابع بعد از تکمیل پرداخت
+        // After payment completion function
         afterPaymentComplete: async (response: any) => {
-          console.log('پرداخت کامل شد:', response);
+          console.log('Payment completed:', response);
           if (onSuccess) {
             onSuccess();
           }
         },
         
-        // تابع لغو پرداخت
+        // Payment cancellation function
         onPaymentCancel: () => {
-          console.log('پرداخت لغو شد');
+          console.log('Payment cancelled');
           if (onError) {
-            onError(new Error('پرداخت لغو شد'));
+            onError(new Error('Payment was cancelled'));
           }
         },
         
-        // تابع تغییر اعتبارسنجی کارت
+        // Card validation change function
         cardValidationChanged: (isValid: boolean) => {
-          console.log('اعتبار کارت:', isValid);
+          console.log('Card validation:', isValid);
         }
       };
 
-      // تبدیل commonStyle به customStyle
+      // Convert commonStyle to customStyle
       if (commonStyle) {
         pixelConfig.customStyle = convertCommonStyleToPaymobStyle(commonStyle);
       }
 
-      // ایجاد نمونه جدید Pixel
+      // Create new Pixel instance
       try {
         new window.Pixel(pixelConfig);
         pixelInitialized.current = true;
       } catch (error) {
-        console.error('خطا در راه‌اندازی پیکسل پی‌ماب:', error);
+        console.error('Error initializing Paymob Pixel:', error);
         if (onError) {
-          onError(error instanceof Error ? error : new Error('خطا در راه‌اندازی پرداخت پی‌ماب'));
+          onError(error instanceof Error ? error : new Error('Error initializing Paymob payment'));
         }
       }
     };
 
     initializePixel();
 
-    // پاکسازی در هنگام unmount
     return () => {
       pixelInitialized.current = false;
     };
@@ -187,7 +186,6 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   );
 };
 
-// اضافه کردن تایپ برای پنجره جهانی
 declare global {
   interface Window {
     Pixel: any;
