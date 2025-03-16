@@ -11,23 +11,48 @@ import { PaymobPayment } from './components/PaymobPayment';
 import styles from './styles.module.css';
 
 /**
- * Interface for customizing the appearance of payment elements
- * Supports theming, label positioning, and custom CSS variables
+ * Interface for button styling
  */
-export interface Appearance {
-  theme: 'light' | 'dark' | 'flat';
-  labels?: 'above' | 'floating';
-  variables?: {
-    colorBackground?: string;
-    colorBackgroundText?: string;
-    colorText?: string;
-    borderRadius?: string;
-    colorSuccess?: string;
-    colorDanger?: string;
-    focusOutline?: string;
-    focusBoxShadow?: string;
-  };
-  rules?: { [selector: string]: { [cssPropertyName: string]: string } };
+export interface ButtonStyle {
+  backgroundColor: string;
+  textColor: string;
+  fontSize: string;
+  fontWeight: number;
+  borderRadius?: string;
+}
+
+/**
+ * Interface for common styling across the payment component
+ */
+export interface CommonStyle {
+  fontFamily: string;
+  fontSizeLabel: string;
+  fontSizeInput: string;
+  fontSizePaymentButton: string;
+  fontWeightLabel: number;
+  fontWeightInput: number;
+  fontWeightPaymentButton: number;
+  colorContainer: string;
+  colorBorderInput: string;
+  colorBorderPaymentButton: string;
+  borderRadius: string;
+  colorDisabled: string;
+  colorError: string;
+  colorPrimary: string;
+  colorInput: string;
+  textColorLabel: string;
+  textColorPaymentButton: string;
+  textColorInput: string;
+  placeholderColor: string;
+  containerWidth: string;
+  verticalPadding: string;
+  verticalSpacing: string;
+  containerPadding: string;
+  backgroundBody?: string;         // برای استرایپ یا سایر موارد
+  textColorParagraphs?: string;      // برای استرایپ یا سایر موارد
+  submitButton: ButtonStyle;
+  cancelButton: ButtonStyle;
+  theme?: "light" | "dark";          // ویژگی تم
 }
 
 /**
@@ -39,27 +64,72 @@ export type PaymentType = 'stripe' | 'paymob';
  * Props interface for the DroplinkedPaymentIntent component
  * @param clientSecret - Secret key for payment authentication
  * @param type - Payment provider type ('stripe' or 'paymob')
- * @param appearance - Custom styling options
+ * @param commonStyle - Common styling options for the payment component
  * @param onSuccess - Callback function on successful payment
  * @param onError - Callback function on payment error
- * @param formProps - Additional form element props
- * @param ActionButtonsContainerProps - Props for action buttons container
- * @param cancelButtonProps - Props for cancel button
- * @param submitButtonProps - Props for submit button
  * @param return_url - URL to redirect after payment completion
  */
 export interface PaymentElementProps {
   clientSecret: string;
   type: PaymentType;
-  appearance?: Appearance;
+  commonStyle?: CommonStyle;
   onSuccess?: () => void;
   onError?: (error: unknown) => void;
-  formProps?: ComponentProps<'form'>;
-  ActionButtonsContainerProps?: ComponentProps<'div'>;
-  cancelButtonProps?: ComponentProps<'button'>;
-  submitButtonProps?: ComponentProps<'button'>;
   return_url: string;
 }
+
+/**
+ * Default button style
+ */
+export const defaultButtonStyle: ButtonStyle = {
+  backgroundColor: '#4F46E5',
+  textColor: '#FFFFFF',
+  fontSize: '14px',
+  fontWeight: 500,
+  borderRadius: '4px'
+};
+
+/**
+ * Default common style for payment components
+ */
+export const defaultCommonStyle: CommonStyle = {
+  fontFamily: 'system-ui, -apple-system, sans-serif',
+  fontSizeLabel: '14px',
+  fontSizeInput: '16px',
+  fontSizePaymentButton: '16px',
+  fontWeightLabel: 500,
+  fontWeightInput: 400,
+  fontWeightPaymentButton: 600,
+  colorContainer: '#FFFFFF',
+  colorBorderInput: '#E5E7EB',
+  colorBorderPaymentButton: 'transparent',
+  borderRadius: '8px',
+  colorDisabled: '#9CA3AF',
+  colorError: '#EF4444',
+  colorPrimary: '#4F46E5',
+  colorInput: '#FFFFFF',
+  textColorLabel: '#374151',
+  textColorPaymentButton: '#FFFFFF',
+  textColorInput: '#1F2937',
+  placeholderColor: '#9CA3AF',
+  containerWidth: '100%',
+  verticalPadding: '12px',
+  verticalSpacing: '16px',
+  containerPadding: '16px',
+  backgroundBody: '#F9FAFB',
+  textColorParagraphs: '#4B5563',
+  submitButton: {
+    ...defaultButtonStyle
+  },
+  cancelButton: {
+    backgroundColor: '#F3F4F6',
+    textColor: '#4B5563',
+    fontSize: '14px',
+    fontWeight: 500,
+    borderRadius: '4px'
+  },
+  theme: 'light'
+};
 
 /**
  * A unified payment component that handles different payment providers
@@ -71,6 +141,7 @@ export interface PaymentElementProps {
  *   clientSecret="your_client_secret"
  *   type="stripe"
  *   return_url="https://your-return-url.com"
+ *   commonStyle={yourCommonStyleObject}
  *   onSuccess={() => console.log('Payment successful')}
  *   onError={(error) => console.error('Payment failed', error)}
  * />
@@ -80,13 +151,9 @@ export interface PaymentElementProps {
  * @param {string} props.clientSecret - Secret key required for payment authentication
  * @param {PaymentType} props.type - Payment provider type ('stripe' or 'paymob')
  * @param {string} props.return_url - URL to redirect after payment completion
- * @param {Appearance} [props.appearance] - Custom styling options for payment elements
+ * @param {CommonStyle} [props.commonStyle] - Common styling options for the payment component
  * @param {() => void} [props.onSuccess] - Callback function called on successful payment
  * @param {(error: unknown) => void} [props.onError] - Callback function called on payment error
- * @param {ComponentProps<'form'>} [props.formProps] - Additional props for the form element
- * @param {ComponentProps<'div'>} [props.ActionButtonsContainerProps] - Props for the action buttons container
- * @param {ComponentProps<'button'>} [props.cancelButtonProps] - Props for the cancel button
- * @param {ComponentProps<'button'>} [props.submitButtonProps] - Props for the submit button
  * 
  * @throws {Error} Throws error if clientSecret is not provided
  * @throws {Error} Throws error if payment type is invalid
@@ -96,6 +163,7 @@ export interface PaymentElementProps {
 export function DroplinkedPaymentIntent({
   clientSecret,
   type,
+  commonStyle = defaultCommonStyle,
   ...rest
 }: PaymentElementProps) {
   // Validate required client secret
@@ -116,11 +184,12 @@ export function DroplinkedPaymentIntent({
       return (
         <StripePaymentProvider
           clientSecret={clientSecret}
+          commonStyle={commonStyle}
           {...rest}
         />
       );
     case 'paymob':
-      return <PaymobPayment clientSecret={clientSecret} {...rest} />;
+      return <PaymobPayment clientSecret={clientSecret} commonStyle={commonStyle} {...rest} />;
     default:
       return (
         <div className={styles.error}>Unsupported payment type: {type}</div>
