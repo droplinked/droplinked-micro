@@ -48,11 +48,11 @@ export interface CommonStyle {
   verticalPadding: string;
   verticalSpacing: string;
   containerPadding: string;
-  backgroundBody?: string;         // برای استرایپ یا سایر موارد
-  textColorParagraphs?: string;      // برای استرایپ یا سایر موارد
+  backgroundBody?: string;         // For Stripe or other providers
+  textColorParagraphs?: string;    // For Stripe or other providers
   submitButton: ButtonStyle;
   cancelButton: ButtonStyle;
-  theme?: "light" | "dark";          // ویژگی تم
+  theme?: "light" | "dark";        // Theme property
 }
 
 /**
