@@ -67,7 +67,7 @@ export type PaymentType = 'stripe' | 'paymob';
  * @param commonStyle - Common styling options for the payment component
  * @param onSuccess - Callback function on successful payment
  * @param onError - Callback function on payment error
- * @param return_url - URL to redirect after payment completion
+ * @param return_url - URL to redirect after payment completion (optional with default)
  */
 export interface PaymentElementProps {
   clientSecret: string;
@@ -140,8 +140,6 @@ export const defaultCommonStyle: CommonStyle = {
  * <DroplinkedPaymentIntent
  *   clientSecret="your_client_secret"
  *   type="stripe"
- *   return_url="https://your-return-url.com"
- *   commonStyle={yourCommonStyleObject}
  *   onSuccess={() => console.log('Payment successful')}
  *   onError={(error) => console.error('Payment failed', error)}
  * />
@@ -150,7 +148,7 @@ export const defaultCommonStyle: CommonStyle = {
  * @param {Object} props - Component props
  * @param {string} props.clientSecret - Secret key required for payment authentication
  * @param {PaymentType} props.type - Payment provider type ('stripe' or 'paymob')
- * @param {string} props.return_url - URL to redirect after payment completion
+ * @param {string} [props.return_url] - URL to redirect after payment completion (defaults to current URL)
  * @param {CommonStyle} [props.commonStyle] - Common styling options for the payment component
  * @param {() => void} [props.onSuccess] - Callback function called on successful payment
  * @param {(error: unknown) => void} [props.onError] - Callback function called on payment error
@@ -164,6 +162,7 @@ export function DroplinkedPaymentIntent({
   clientSecret,
   type,
   commonStyle = defaultCommonStyle,
+  return_url = window.location.href,
   ...rest
 }: PaymentElementProps) {
   // Validate required client secret
@@ -185,11 +184,18 @@ export function DroplinkedPaymentIntent({
         <StripePaymentProvider
           clientSecret={clientSecret}
           commonStyle={commonStyle}
+          return_url={return_url}
           {...rest}
         />
       );
     case 'paymob':
-      return <PaymobPayment clientSecret={clientSecret} commonStyle={commonStyle} {...rest} />;
+      return (
+        <PaymobPayment 
+          clientSecret={clientSecret} 
+          commonStyle={commonStyle} 
+          return_url={return_url}
+        />
+      );
     default:
       return (
         <div className={styles.error}>Unsupported payment type: {type}</div>
