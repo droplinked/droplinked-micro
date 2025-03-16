@@ -113,7 +113,7 @@ export const StripePaymentProvider: React.FC<PaymobProps> = ({
   const stripePromise = loadStripe(
     isTestnet 
       ? 'pk_test_51Odtp1JYpy7bkFtuwoI9JX5KEjpK66XQ1KO2nzmJ7d0aUM2g2alhMhsA6kELz2VvJO64RpgL82vqoBpAx4WsCjOc00mW98oWYW'
-      : 'pk_live_XXXXX'
+      : 'pk_live_51Odtp1JYpy7bkFturM9ERf1yy1izpUMSIDK10yIigTwhHvzzJjDLzH8bJAk18IGTvnyRBfJg9o6BDGugmJs9ltYS00EL6TSa5T'
   );
 
   return (

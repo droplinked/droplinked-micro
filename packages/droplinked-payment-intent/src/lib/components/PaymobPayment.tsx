@@ -56,7 +56,7 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
 
   const publicKey = isTestnet 
     ? 'are_pk_test_87EatMLhbhUCdDjBeSLuGpm5uIyuEmnB'  
-    : 'are_pk_live_XXXXX';  
+    : 'are_pk_live_WkbOfpeYn23KggFR6gIaXAbmjZf0QjKP';  
     
   const paymentMethods = ['card', 'google-pay', 'apple-pay'];
   const disablePay = false;
