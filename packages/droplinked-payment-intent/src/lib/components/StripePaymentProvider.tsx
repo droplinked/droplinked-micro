@@ -18,9 +18,7 @@ interface PaymobProps {
   isTestnet?: boolean;
 }
 
-/**
- * تبدیل CommonStyle به Appearance مورد نیاز Stripe
- */
+
 const convertCommonStyleToStripeAppearance = (commonStyle: CommonStyle): StripeAppearance => {
   return {
     theme: commonStyle.theme === 'dark' ? 'night' : 'stripe',
@@ -38,7 +36,6 @@ const convertCommonStyleToStripeAppearance = (commonStyle: CommonStyle): StripeA
       fontSizeBase: commonStyle.fontSizeInput,
       fontWeightNormal: commonStyle.fontWeightInput.toString(),
       fontLineHeight: '1.5',
-      // اضافه کردن متغیرهای خاص Stripe
       focusOutline: 'unset',
       focusBoxShadow: 'none',
       colorSuccess: commonStyle.colorPrimary,
@@ -116,7 +113,7 @@ export const StripePaymentProvider: React.FC<PaymobProps> = ({
   const stripePromise = loadStripe(
     isTestnet 
       ? 'pk_test_51Odtp1JYpy7bkFtuwoI9JX5KEjpK66XQ1KO2nzmJ7d0aUM2g2alhMhsA6kELz2VvJO64RpgL82vqoBpAx4WsCjOc00mW98oWYW'
-      : 'pk_live_XXXXX' // کلید لایو استرایپ باید جایگزین شود
+      : 'pk_live_XXXXX'
   );
 
   return (
