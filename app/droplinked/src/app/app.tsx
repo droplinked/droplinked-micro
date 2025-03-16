@@ -3,48 +3,48 @@ import { DroplinkedPaymentIntent, CommonStyle, ButtonStyle } from 'droplinked-pa
 function app() {
   // تعریف استایل دکمه‌ها
   const submitButtonStyle: ButtonStyle = {
-    backgroundColor: '#2BCFA1',
-    textColor: '#000000',
-    fontSize: '14px',
-    fontWeight: 500,
+    backgroundColor: '#3B82F6',
+    textColor: '#FFFFFF',
+    fontSize: '16px',
+    fontWeight: 600,
     borderRadius: '8px'
   };
 
   const cancelButtonStyle: ButtonStyle = {
-    backgroundColor: '#292929',
-    textColor: '#ffffff',
-    fontSize: '14px',
-    fontWeight: 500,
+    backgroundColor: '#374151',
+    textColor: '#FFFFFF',
+    fontSize: '16px',
+    fontWeight: 600,
     borderRadius: '8px'
   };
 
   // تعریف استایل مشترک
   const commonStyle: CommonStyle = {
-    fontFamily: 'avenir',
-    fontSizeLabel: '30px',
-    fontSizeInput: '30px',
-    fontSizePaymentButton: '30px',
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSizeLabel: '16px',
+    fontSizeInput: '16px',
+    fontSizePaymentButton: '16px',
     fontWeightLabel: 500,
     fontWeightInput: 400,
     fontWeightPaymentButton: 600,
-    colorContainer: 'red',
-    colorBorderInput: 'green',
+    colorContainer: '#1F2937',
+    colorBorderInput: '#4B5563',
     colorBorderPaymentButton: 'transparent',
-    borderRadius: '15px',
-    colorDisabled: '#9CA3AF',
-    colorError: '#blue',
-    colorPrimary: '#2BCFA1',
-    colorInput: '#1a1a1a',
-    textColorLabel: '#ffffff',
-    textColorPaymentButton: '#ffffff',
-    textColorInput: '#ffffff',
-    placeholderColor: '#7B7B7B',
+    borderRadius: '12px',
+    colorDisabled: '#6B7280',
+    colorError: '#EF4444',
+    colorPrimary: '#3B82F6',
+    colorInput: '#374151',
+    textColorLabel: '#F3F4F6',
+    textColorPaymentButton: '#FFFFFF',
+    textColorInput: '#F3F4F6',
+    placeholderColor: '#9CA3AF',
     containerWidth: '100%',
-    verticalPadding: '12px',
-    verticalSpacing: '16px',
-    containerPadding: '16px',
-    backgroundBody: 'gray',
-    textColorParagraphs: '#ffffff',
+    verticalPadding: '16px',
+    verticalSpacing: '20px',
+    containerPadding: '24px',
+    backgroundBody: '#111827',
+    textColorParagraphs: '#F3F4F6',
     submitButton: submitButtonStyle,
     cancelButton: cancelButtonStyle,
     theme: 'dark'
@@ -52,7 +52,7 @@ function app() {
 
   return (
     <DroplinkedPaymentIntent
-      clientSecret="are_csk_test_392a791b452032532032f7c17679cf08"
+      clientSecret="are_csk_test_fa95ff3698576131c8113b9b95a541af"
       type='paymob'
       commonStyle={commonStyle}
       return_url="https://droplinked.com/"
