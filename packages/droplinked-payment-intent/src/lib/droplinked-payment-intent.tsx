@@ -14,10 +14,10 @@ import styles from './styles.module.css';
  * Interface for button styling
  */
 export interface ButtonStyle {
-  backgroundColor: string;
-  textColor: string;
-  fontSize: string;
-  fontWeight: number;
+  backgroundColor?: string;
+  textColor?: string;
+  fontSize?: string;
+  fontWeight?: number;
   borderRadius?: string;
 }
 
@@ -25,33 +25,33 @@ export interface ButtonStyle {
  * Interface for common styling across the payment component
  */
 export interface CommonStyle {
-  fontFamily: string;
-  fontSizeLabel: string;
-  fontSizeInput: string;
-  fontSizePaymentButton: string;
-  fontWeightLabel: number;
-  fontWeightInput: number;
-  fontWeightPaymentButton: number;
-  colorContainer: string;
-  colorBorderInput: string;
-  colorBorderPaymentButton: string;
-  borderRadius: string;
-  colorDisabled: string;
-  colorError: string;
-  colorPrimary: string;
-  colorInput: string;
-  textColorLabel: string;
-  textColorPaymentButton: string;
-  textColorInput: string;
-  placeholderColor: string;
-  containerWidth: string;
-  verticalPadding: string;
-  verticalSpacing: string;
-  containerPadding: string;
+  fontFamily?: string;
+  fontSizeLabel?: string;
+  fontSizeInput?: string;
+  fontSizePaymentButton?: string;
+  fontWeightLabel?: number;
+  fontWeightInput?: number;
+  fontWeightPaymentButton?: number;
+  colorContainer?: string;
+  colorBorderInput?: string;
+  colorBorderPaymentButton?: string;
+  borderRadius?: string;
+  colorDisabled?: string;
+  colorError?: string;
+  colorPrimary?: string;
+  colorInput?: string;
+  textColorLabel?: string;
+  textColorPaymentButton?: string;
+  textColorInput?: string;
+  placeholderColor?: string;
+  containerWidth?: string;
+  verticalPadding?: string;
+  verticalSpacing?: string;
+  containerPadding?: string;
   backgroundBody?: string;         // For Stripe or other providers
   textColorParagraphs?: string;    // For Stripe or other providers
-  submitButton: ButtonStyle;
-  cancelButton: ButtonStyle;
+  submitButton?: ButtonStyle;
+  cancelButton?: ButtonStyle;
   theme?: "light" | "dark";        // Theme property
 }
 
