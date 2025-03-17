@@ -85,22 +85,22 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   };
 
   const submitButtonStyle: React.CSSProperties = {
-    backgroundColor: commonStyle?.submitButton.backgroundColor || '#4F46E5',
-    color: commonStyle?.submitButton.textColor || '#ffffff',
-    fontSize: commonStyle?.submitButton.fontSize || '14px',
-    fontWeight: commonStyle?.submitButton.fontWeight || 500,
-    borderRadius: commonStyle?.submitButton.borderRadius || '4px',
+    backgroundColor: commonStyle?.submitButton?.backgroundColor ?? '#4F46E5',
+    color: commonStyle?.submitButton?.textColor ?? '#FFFFFF',
+    fontSize: commonStyle?.submitButton?.fontSize ?? '14px',
+    fontWeight: commonStyle?.submitButton?.fontWeight ?? 500,
+    borderRadius: commonStyle?.submitButton?.borderRadius ?? '4px',
     padding: '10px 20px',
     border: 'none',
     cursor: 'pointer',
   };
 
   const cancelButtonStyle: React.CSSProperties = {
-    backgroundColor: commonStyle?.cancelButton.backgroundColor || '#F3F4F6',
-    color: commonStyle?.cancelButton.textColor || '#4B5563',
-    fontSize: commonStyle?.cancelButton.fontSize || '14px',
-    fontWeight: commonStyle?.cancelButton.fontWeight || 500,
-    borderRadius: commonStyle?.cancelButton.borderRadius || '4px',
+    backgroundColor: commonStyle?.cancelButton?.backgroundColor ?? '#F3F4F6',
+    color: commonStyle?.cancelButton?.textColor ?? '#4B5563',
+    fontSize: commonStyle?.cancelButton?.fontSize ?? '14px',
+    fontWeight: commonStyle?.cancelButton?.fontWeight ?? 500,
+    borderRadius: commonStyle?.cancelButton?.borderRadius ?? '4px',
     padding: '10px 20px',
     border: 'none',
     cursor: 'pointer',

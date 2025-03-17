@@ -2,7 +2,7 @@ import React from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe, Appearance as StripeAppearance } from '@stripe/stripe-js';
 import { StripePaymentForm } from './StripePaymentForm';
-import { PaymentElementProps, CommonStyle ,PaymentType } from '../droplinked-payment-intent';
+import { PaymentElementProps, CommonStyle  } from '../droplinked-payment-intent';
 
 /**
  * Props type for StripePaymentProvider, excluding the 'type' field from PaymentElementProps
@@ -34,7 +34,7 @@ const convertCommonStyleToStripeAppearance = (commonStyle: CommonStyle): StripeA
       borderRadius: commonStyle.borderRadius,
       fontFamily: commonStyle.fontFamily,
       fontSizeBase: commonStyle.fontSizeInput,
-      fontWeightNormal: commonStyle.fontWeightInput.toString(),
+      fontWeightNormal: (commonStyle.fontWeightInput ?? 400).toString(),
       fontLineHeight: '1.5',
       focusOutline: 'unset',
       focusBoxShadow: 'none',
@@ -42,28 +42,28 @@ const convertCommonStyleToStripeAppearance = (commonStyle: CommonStyle): StripeA
     },
     rules: {
       '.Input': {
-        border: `1px solid ${commonStyle.colorBorderInput}`,
-        backgroundColor: commonStyle.colorInput,
-        color: commonStyle.textColorInput,
+        border: `1px solid ${commonStyle.colorBorderInput ?? '#E5E7EB'}`,
+        backgroundColor: commonStyle.colorInput ?? '#FFFFFF',
+        color: commonStyle.textColorInput ?? '#1F2937',
       },
       '.Input:focus': {
-        borderColor: commonStyle.colorPrimary,
+        borderColor: commonStyle.colorPrimary ?? '#4F46E5',
       },
       '.Input:hover': {
-        borderColor: commonStyle.colorBorderInput,
+        borderColor: commonStyle.colorBorderInput ?? '#E5E7EB',
       },
       '.Label': {
-        color: commonStyle.textColorLabel,
-        fontSize: commonStyle.fontSizeLabel,
-        fontWeight: commonStyle.fontWeightLabel.toString(),
+        color: commonStyle.textColorLabel ?? '#374151',
+        fontSize: commonStyle.fontSizeLabel ?? '14px',
+        fontWeight: (commonStyle.fontWeightLabel ?? 500).toString(),
       },
       '.Tab': {
-        backgroundColor: commonStyle.colorContainer,
-        borderColor: commonStyle.colorBorderInput,
+        backgroundColor: commonStyle.colorContainer ?? '#FFFFFF',
+        borderColor: commonStyle.colorBorderInput ?? '#E5E7EB',
       },
       '.Tab--selected': {
-        backgroundColor: commonStyle.colorPrimary,
-        color: commonStyle.textColorPaymentButton,
+        backgroundColor: commonStyle.colorPrimary ?? '#4F46E5',
+        color: commonStyle.textColorPaymentButton ?? '#FFFFFF',
       },
     },
   };
