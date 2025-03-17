@@ -67,10 +67,18 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
     // Add required stylesheets
     const addStylesheet = (href: string) => {
       if (!document.querySelector(`link[href="${href}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        document.head.appendChild(link);
+        fetch(href)
+          .then(response => response.text())
+          .then(cssText => {
+            const style = document.createElement('style');
+            const scopedCss = cssText.replace(
+              /([^\r\n,{}]+)(,(?=[^}]*{)|\s*{)/g, 
+              `.paymob-payment-container $1$2`
+            );
+            style.textContent = scopedCss;
+            containerRef.current?.appendChild(style);
+          })
+          .catch(err => console.error('Error loading stylesheet:', err));
       }
     };
 
@@ -186,8 +194,8 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   );
 };
 
-declare global {
-  interface Window {
-    Pixel: any;
-  }
-} 
+ declare global {
+   interface Window {
+     Pixel: any;
+   }
+ } 
