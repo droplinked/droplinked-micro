@@ -343,6 +343,8 @@ export class SolanaProvider implements IChainProvider {
         provider
       );
 
+      const decimals = (await mintToken.getMintInfo()).decimals;
+
       // Convert receiver addresses to PublicKeys
       const recipientPublicKeys = tbdReceivers.map(
         (recipient) => new PublicKey(recipient)
@@ -414,7 +416,7 @@ export class SolanaProvider implements IChainProvider {
       // Add transfer instructions for each recipient
       for (let i = 0; i < associatedDestinationTokenAddrs.length; i++) {
         const transferAmount = ethers.BigNumber.from(tbdValues[i])
-          .div(ethers.BigNumber.from(10).pow(13))
+          .div(ethers.BigNumber.from(10).pow(18-decimals))
           .toNumber();
           
         instructions.push(
@@ -492,6 +494,8 @@ export class SolanaProvider implements IChainProvider {
         TOKEN_PROGRAM_ID,
         provider
       );
+
+      const decimals = (await mintToken.getMintInfo()).decimals;
 
       // Get associated token accounts
       const associatedDestinationTokenAddr = await Token.getAssociatedTokenAddress(
