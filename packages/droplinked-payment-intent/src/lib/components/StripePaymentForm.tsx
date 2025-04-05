@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { CommonStyle } from '../droplinked-payment-intent';
 
@@ -43,6 +43,9 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   // Initialize Stripe hooks
   const stripe = useStripe();
   const elements = useElements();
+  
+  // New state for loading
+  const [loading, setLoading] = useState(false);
 
   /**
    * Handles form submission and payment confirmation
@@ -52,6 +55,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
     event.preventDefault();
     if (!stripe || !elements) return;
 
+    setLoading(true);
     try {
       // Attempt to confirm payment with Stripe
       const result = await stripe.confirmPayment({
@@ -69,6 +73,8 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
       }
     } catch (error) {
       onError?.(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,6 +99,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
     padding: '10px 20px',
     border: 'none',
     cursor: 'pointer',
+    opacity: loading ? 0.5 : 1,
   };
 
   const cancelButtonStyle: React.CSSProperties = {
@@ -104,6 +111,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
     padding: '10px 20px',
     border: 'none',
     cursor: 'pointer',
+    opacity: loading ? 0.5 : 1,
   };
 
   return (
@@ -115,15 +123,15 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
         <div style={buttonContainerStyle}>
           <button
             type="button"
-            style={cancelButtonStyle}
-            disabled={!stripe}
+            style={{ ...cancelButtonStyle, cursor: loading ? 'not-allowed' : 'pointer' }}
+            disabled={!stripe || loading}
           >
             Cancel
           </button>
           <button
             type="submit"
-            style={submitButtonStyle}
-            disabled={!stripe}
+            style={{ ...submitButtonStyle, cursor: loading ? 'not-allowed' : 'pointer' }}
+            disabled={!stripe || loading}
           >
             Pay
           </button>

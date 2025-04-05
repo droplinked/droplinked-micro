@@ -133,7 +133,7 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
         showSaveCard,
         forceSaveCard,
         publicKey,
-        returnUrl: return_url,
+     //   returnUrl: return_url,
         
         // Before payment completion function
         beforePaymentComplete: async (paymentMethod: any) => {

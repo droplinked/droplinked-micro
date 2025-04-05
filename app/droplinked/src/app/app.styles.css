@@ -1,0 +1,30 @@
+.app-container {
+  padding: 20px;
+  font-family: 'IRANSans', system-ui, -apple-system, sans-serif;
+}
+
+.test-heading {
+  color: #2563eb;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.test-card {
+  background-color: #f3f4f6;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.test-button {
+  background-color: #10b981;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.payment-section {
+  margin-top: 30px;
+} 
