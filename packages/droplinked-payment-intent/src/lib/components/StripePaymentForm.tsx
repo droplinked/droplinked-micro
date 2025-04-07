@@ -86,9 +86,10 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
 
   const buttonContainerStyle: React.CSSProperties = {
     display: 'flex',
-    gap: '12px',
+    justifyContent: 'space-between',
     marginTop: commonStyle?.verticalSpacing || '16px',
   };
+  
 
   const submitButtonStyle: React.CSSProperties = {
     backgroundColor: commonStyle?.submitButton?.backgroundColor ?? '#4F46E5',
