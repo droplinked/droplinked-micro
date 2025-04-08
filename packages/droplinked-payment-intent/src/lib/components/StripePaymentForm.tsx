@@ -11,6 +11,7 @@ type StripePaymentFormProps = {
   onSuccess?: (result: any) => void;
   /** Callback function called when an error occurs */
   onError?: (error: any) => void;
+  onCancel?: () => void;
   /** URL to redirect after payment completion */
   return_url?: string;
   /** Common style for the component */
@@ -36,6 +37,7 @@ type StripePaymentFormProps = {
 export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   onSuccess,
   onError,
+  onCancel,
   return_url,
   commonStyle,
   isTestnet
@@ -126,6 +128,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
             type="button"
             style={{ ...cancelButtonStyle, cursor: loading ? 'not-allowed' : 'pointer' }}
             disabled={!stripe || loading}
+            onClick={onCancel}
           >
             Cancel
           </button>

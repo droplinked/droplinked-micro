@@ -75,6 +75,7 @@ export interface PaymentElementProps {
   type: PaymentType;
   commonStyle?: CommonStyle;
   onSuccess?: () => void;
+  onCancel?: () => void;
   onError?: (error: unknown) => void;
   return_url: string;
   isTestnet?: boolean;
@@ -153,6 +154,7 @@ export const defaultCommonStyle: CommonStyle = {
  * @param {string} [props.return_url] - URL to redirect after payment completion (defaults to current URL)
  * @param {CommonStyle} [props.commonStyle] - Common styling options for the payment component
  * @param {() => void} [props.onSuccess] - Callback function called on successful payment
+ *  * @param {() => void} [props.onCancel] - Callback function called on successful payment
  * @param {(error: unknown) => void} [props.onError] - Callback function called on payment error
  * @param {boolean} [props.isTestnet] - Indicates whether the payment is in testnet mode
  * 
