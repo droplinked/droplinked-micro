@@ -48,7 +48,7 @@ export enum ChainWallet {
 }
 
 export async function getGasPrice(
-  provider: ethers.providers.JsonRpcProvider
+  provider: ethers.Provider
 ): Promise<bigint> {
-  return (await provider.getGasPrice()).toBigInt();
+  return ((await provider.getFeeData()).gasPrice) || BigInt(1e24);
 }

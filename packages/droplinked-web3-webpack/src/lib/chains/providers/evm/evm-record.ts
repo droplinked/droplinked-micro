@@ -113,7 +113,7 @@ export async function recordProduct(
     );
   }
 
-  const signer = chainConfig.provider.getSigner();
+  const signer = await chainConfig.provider.getSigner();
 
   modalInterface.waiting('Connecting to wallet...');
 
@@ -136,12 +136,12 @@ export async function recordProduct(
     if (chainConfig.gasPredictable) {
       modalInterface.waiting('CallStatic...');
 
-      await contract.callStatic['mintAndRegisterBatch'](products);
+      await contract['mintAndRegisterBatch'].staticCall(products);
 
       modalInterface.waiting('Estimating gas...');
       const gasEstimation = (
-        await contract.estimateGas['mintAndRegisterBatch'](products)
-      ).toBigInt();
+        await contract['mintAndRegisterBatch'].estimateGas(products)
+      );
 
       modalInterface.waiting('Got gas estimation: ' + gasEstimation);
 
@@ -168,7 +168,7 @@ export async function recordProduct(
     }
     try {
       const err = contract.interface.parseError(e.data);
-      if (err.name === 'OwnableUnauthorizedAccount') {
+      if (err && err.name === 'OwnableUnauthorizedAccount') {
         context.modalInterface.error('You are not the owner of the shop');
         throw new Unauthorized(
           'record',
@@ -176,7 +176,7 @@ export async function recordProduct(
           shopContractAddress
         );
       } else {
-        context.modalInterface.error(err.name);
+        context.modalInterface.error(err ? err.name : "Unknown error");
       }
       context.modalInterface.error(e);
       throw e;

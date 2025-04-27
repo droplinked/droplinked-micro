@@ -19,6 +19,54 @@ import { ethers } from 'ethers';
 import ky, { KyInstance } from 'ky';
 import { SolanaProvider } from './providers/solana/solana-provider';
 import { UnstoppableProvider } from './providers/unstoppable/unstoppable-provider';
+import { EthersAdapter } from '@reown/appkit-adapter-ethers';
+import { createAppKit } from '@reown/appkit';
+import { base, baseSepolia, bitlayer, bitlayerTestnet, bsc, bscTestnet, linea, lineaSepolia, mainnet, near, nearTestnet, polygon, polygonAmoy, redbellyMainnet, redbellyTestnet, sepolia, skaleCalypso, skaleCalypsoTestnet, solana, xrplevmTestnet } from '@reown/appkit/networks';
+
+const projectId = "061b5aabb8e1b036137cd69b90fb6758";
+const metadata = {
+  name: "Droplinked",
+  description: "Droplinked Storefront",
+  url: "http://localhost:5173",
+  icons: ["https://droplinked.com/favicon-32x32.png"],
+};
+const networks = [
+  mainnet,  
+  polygon, 
+  polygonAmoy, 
+  bsc, 
+  bscTestnet, 
+  skaleCalypso, 
+  skaleCalypsoTestnet, 
+  sepolia, 
+  base, 
+  baseSepolia, 
+  solana,
+  bitlayer,
+  bitlayerTestnet,
+  redbellyMainnet,
+  redbellyTestnet,
+  linea,
+  lineaSepolia,
+  xrplevmTestnet,
+  xrplevmTestnet,
+  near,
+  nearTestnet
+];
+const adapter = new EthersAdapter();
+const modal = createAppKit({
+  adapters: [adapter],
+  metadata: metadata,
+  networks: networks as any,
+  projectId,
+  features: {
+    analytics: true,
+    email: false,
+    socials: false,
+    allWallets: false
+  },
+});
+
 export class DropWeb3 {
   private axiosInstance: KyInstance;
   private network: Network;
@@ -28,8 +76,8 @@ export class DropWeb3 {
         workingNetwork === Network.TESTNET
           ? 'https://apiv3dev.droplinked.com'
           : workingNetwork === Network.MAINNET
-          ? 'https://apiv3.droplinked.com'
-          : 'http://127.0.0.1',
+            ? 'https://apiv3.droplinked.com'
+            : 'http://127.0.0.1',
     });
     this.network = workingNetwork;
   }
@@ -169,9 +217,11 @@ export class DropWeb3 {
       .setWallet(preferredWallet)
       .setAxiosInstance(this.axiosInstance)
       .setNFTContractAddress(nftContractAddress || '')
-      .setShopContractAddress(shopContractAddress || '');
+      .setShopContractAddress(shopContractAddress || '')
+      .setWalletModal(modal);
   }
 
+  // PANIC: TODO: change this later
   async getWalletInfo() {
     try {
       const ethereum = (window as any).ethereum;
@@ -227,8 +277,8 @@ export class DropWeb3 {
       // Request the user to sign the message
       let signature;
       try {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
+        const provider = new ethers.BrowserProvider(ethereum);
+        const signer = await provider.getSigner();
         signature = await signer.signMessage(message);
       } catch (error: any) {
         console.error(error);

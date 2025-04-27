@@ -23,6 +23,7 @@ import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { ILoginResult } from '../../dto/interfaces/login-result.interface';
 import { IPaymentInputs } from '../../dto/interfaces/payment-interface';
 import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
+import { AppKit } from '@reown/appkit';
 
 export class UnstoppableProvider implements IChainProvider {
   axiosInstance: KyInstance;
@@ -46,6 +47,9 @@ export class UnstoppableProvider implements IChainProvider {
     this.address = '';
     this.clientID = '';
     this.redirectUri = '';
+  }
+  setWalletModal(modal: AppKit) {
+    return this;
   }
   executeAirdrop(airdropId: string): Promise<{ transactionHashes: string[] }> {
     throw new Error('Method not implemented.');
@@ -150,5 +154,30 @@ export class UnstoppableProvider implements IChainProvider {
   }
   getPaymentData(cartID: string, paymentType: string, token: string) {
     throw new Error('Method not implemented.');
+  }
+
+  async disconnect(): Promise<boolean> {
+    try {
+      // For Unstoppable Domains, create a UAuth instance with the same parameters
+      if (this.clientID === '' || this.redirectUri === '') {
+        this.modalInterface.error('No client ID or redirect URI set for Unstoppable Domains');
+        return false;
+      }
+
+      const uauth = new UAuth({
+        clientID: this.clientID,
+        redirectUri: this.redirectUri,
+      });
+      
+      this.modalInterface.waiting('Disconnecting Unstoppable Domains...');
+      await uauth.logout();
+      this.address = '';
+      this.modalInterface.success('Wallet disconnected successfully');
+      return true;
+    } catch (err) {
+      console.error('Error disconnecting Unstoppable Domains:', err);
+      this.modalInterface.error('Failed to disconnect wallet');
+      return false;
+    }
   }
 }

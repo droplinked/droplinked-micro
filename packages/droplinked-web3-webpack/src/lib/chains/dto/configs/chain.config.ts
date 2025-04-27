@@ -4,7 +4,7 @@ import { Chain, Network } from '../chains';
 import { EthAddress } from '../constants/chain-structs';
 
 export type DroplinkedChainConfig = {
-  provider: ethers.providers.Web3Provider | any;
+  provider: ethers.BrowserProvider;
   chain: Chain;
   network: Network;
   address: EthAddress;

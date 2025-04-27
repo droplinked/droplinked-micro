@@ -14,7 +14,7 @@ import { IPaymentInputs } from './payment-interface';
 import { KyInstance } from 'ky';
 import { ClaimNFTInputs } from './claim-nft-inputs';
 import { IChainPayment } from './chain-payment.interface';
-import { ITokenDetails } from './airdrop-token.interface';
+import { AppKit } from '@reown/appkit';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IChainProvider {
@@ -55,4 +55,6 @@ export interface IChainProvider {
   setShopContractAddress(address: string): IChainProvider;
   getPaymentData(cartID: string, paymentType: string, token: string): any;
   executeAirdrop(airdropId: string): Promise<{ transactionHashes: string[] }>;
+  setWalletModal(modal: AppKit): IChainProvider;
+  disconnect(): Promise<boolean>;
 }

@@ -49,7 +49,7 @@ export async function deployEVMShop(
 
   const { modalInterface } = web3Context;
   const { address, chain, network, provider } = chainConfig;
-  const signer = provider.getSigner();
+  const signer = await provider.getSigner();
 
   modalInterface.waiting('got the signer: ' + (await signer.getAddress()));
 
@@ -87,7 +87,7 @@ export async function deployEVMShop(
   modalInterface.waiting('created constructor args');
   console.log(constructorArgs);
 
-  const bytecodeWithArgs = ethers.utils.defaultAbiCoder.encode(
+  const bytecodeWithArgs = ethers.AbiCoder.defaultAbiCoder().encode(
     [
       'string',
       'string',
@@ -108,7 +108,7 @@ export async function deployEVMShop(
     console.log({ fullBytecode });
     if (chainConfig.gasPredictable) {
       modalInterface.waiting('CallStatic to estimate gas');
-      await contract.callStatic['deployShop'](fullBytecode, salt);
+      await contract['deployShop'].staticCall(fullBytecode, salt);
       modalInterface.waiting('Sending transaction');
       tx = await contract['deployShop'](fullBytecode, salt, {});
     } else {

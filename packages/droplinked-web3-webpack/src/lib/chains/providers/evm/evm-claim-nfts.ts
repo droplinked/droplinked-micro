@@ -16,7 +16,7 @@ export async function claimNFT(
 ) {
   console.log({ data, chainConfig, context });
   const { modalInterface } = context;
-  const signer = chainConfig.provider.getSigner();
+  const signer = await chainConfig.provider.getSigner();
   const shopABI = getShopABI();
   modalInterface.waiting('Claiming NFTs...');
   const contract = new ethers.Contract(
@@ -44,8 +44,8 @@ export async function claimNFT(
     const cart: PurchasedItem[] = data.signature.purchaseData.map((item) => {
       return {
         amount: item.amount,
-        productId: ethers.BigNumber.from(item.productId),
-        nullifier: ethers.BigNumber.from(item.nullifier),
+        productId: BigInt(item.productId),
+        nullifier: BigInt(item.nullifier),
       };
     });
     const tx = await contract['claimPurchase'](
@@ -70,7 +70,7 @@ export async function claimNFT(
     }
     try {
       const err = contract.interface.parseError(e.data);
-      if (err.name === 'OwnableUnauthorizedAccount')
+      if (err !== null && err.name === 'OwnableUnauthorizedAccount')
         context.modalInterface.error(err.name);
       context.modalInterface.error(e);
       throw e;

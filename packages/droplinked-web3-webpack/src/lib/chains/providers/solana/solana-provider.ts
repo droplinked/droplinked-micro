@@ -29,10 +29,11 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { base58 } from 'ethers/lib/utils';
-import { BigNumber, ethers } from 'ethers';
+import { encodeBase58, decodeBase58 } from 'ethers';
+import { ethers } from 'ethers';
 import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
 import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
+import { AppKit } from '@reown/appkit';
 
 /**
  * SolanaProvider implements the IChainProvider interface for Solana blockchain
@@ -42,22 +43,22 @@ import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
 export class SolanaProvider implements IChainProvider {
   /** HTTP client instance for API calls */
   axiosInstance: KyInstance;
-  
+
   /** Network type (MAINNET or TESTNET) */
   network: Network;
-  
+
   /** Connected wallet address */
   address: string;
-  
+
   /** Interface for modal dialogues and user interactions */
   modalInterface: ModalInterface = new defaultModal();
-  
+
   /** Type of wallet to use, defaults to Phantom */
   wallet: ChainWallet = ChainWallet.Phantom;
-  
+
   /** Optional NFT contract address */
   nftContractAddress?: EthAddress;
-  
+
   /** Optional shop contract address */
   shopContractAddress?: EthAddress;
 
@@ -75,6 +76,9 @@ export class SolanaProvider implements IChainProvider {
           : 'https://apiv3dev.droplinked.com',
     });
     this.address = '';
+  }
+  setWalletModal(modal: AppKit) {
+    return this;
   }
 
   /**
@@ -153,7 +157,7 @@ export class SolanaProvider implements IChainProvider {
     const currentDate = new Date().toLocaleString();
     const message = `Welcome to Droplinked! Please sign this message to verify your ownership over your wallet and log in. - Nonce: ${nonce} - Date: ${currentDate}`;
     const encodedMessage = new TextEncoder().encode(message);
-    const signedMessage = base58.encode(
+    const signedMessage = encodeBase58(
       (await provider.signMessage(encodedMessage, 'utf8')).signature
     );
     return {
@@ -231,7 +235,7 @@ export class SolanaProvider implements IChainProvider {
   ): Promise<string> {
     throw new Error('Method not implemented.');
   }
-  
+
   /**
    * Helper function to create a delay (sleep) for a specified time
    * @param ms - Time in milliseconds to delay execution
@@ -275,7 +279,7 @@ export class SolanaProvider implements IChainProvider {
     transactionSignature: string
   ): Promise<void> {
     const latestBlockHash = await connection.getLatestBlockhash();
-    
+
     try {
       await connection.confirmTransaction({
         blockhash: latestBlockHash.blockhash,
@@ -298,7 +302,7 @@ export class SolanaProvider implements IChainProvider {
         console.warn('Error checking transaction status:', error);
       }
     }
-    
+
     // Additional delay to ensure transaction is fully processed
     await this.delay(1000);
   }
@@ -333,7 +337,7 @@ export class SolanaProvider implements IChainProvider {
       await provider.connect();
       const senderPublicKey = provider.publicKey;
       const connection = this.getConnection();
-      
+
       // Initialize token instance
       const mintPublicKey = new PublicKey(tokenAddress as string);
       const mintToken = new Token(
@@ -352,7 +356,7 @@ export class SolanaProvider implements IChainProvider {
 
       // Get associated token accounts for all recipients
       const associatedDestinationTokenAddrs = await Promise.all(
-        recipientPublicKeys.map(async (recipientPublicKey) => 
+        recipientPublicKeys.map(async (recipientPublicKey) =>
           Token.getAssociatedTokenAddress(
             mintToken.associatedProgramId,
             mintToken.programId,
@@ -413,12 +417,19 @@ export class SolanaProvider implements IChainProvider {
         );
       }
 
+      function bigPow(base: bigint, exp: number): bigint {
+        let result = BigInt(1);
+        for (let i = 0; i < exp; i++) {
+          result *= base;
+        }
+        return result;
+      }
+
       // Add transfer instructions for each recipient
       for (let i = 0; i < associatedDestinationTokenAddrs.length; i++) {
-        const transferAmount = ethers.BigNumber.from(tbdValues[i])
-          .div(ethers.BigNumber.from(10).pow(18-decimals))
-          .toNumber();
-          
+        const divisor = bigPow(BigInt(10), 18 - decimals);
+        const transferAmount = Number(BigInt(tbdValues[i]) / divisor);
+
         instructions.push(
           Token.createTransferInstruction(
             TOKEN_PROGRAM_ID,
@@ -435,15 +446,15 @@ export class SolanaProvider implements IChainProvider {
       const transaction = new Transaction().add(...instructions);
       transaction.feePayer = senderPublicKey;
       transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-      
+
       const signedTransaction = await provider.signTransaction(transaction);
-      
+
       // Send transaction and wait for confirmation
       const transactionSignature = await connection.sendRawTransaction(
         signedTransaction.serialize(),
         { skipPreflight: true }
       );
-      
+
       await this.waitForTransactionConfirmation(connection, transactionSignature);
 
       return {
@@ -484,7 +495,7 @@ export class SolanaProvider implements IChainProvider {
       await provider.connect();
       const senderPublicKey = provider.publicKey;
       const connection = this.getConnection();
-      
+
       // Initialize token details
       const mintPublicKey = new PublicKey(tokenAddress);
       const recipientPublicKey = new PublicKey(receiver);
@@ -504,7 +515,7 @@ export class SolanaProvider implements IChainProvider {
         mintPublicKey,
         recipientPublicKey
       );
-      
+
       const associatedFromTokenAddr = await Token.getAssociatedTokenAddress(
         mintToken.associatedProgramId,
         mintToken.programId,
@@ -515,7 +526,7 @@ export class SolanaProvider implements IChainProvider {
       // Check if accounts exist
       const fromTokenAccount = await connection.getAccountInfo(associatedFromTokenAddr);
       const receiverAccount = await connection.getAccountInfo(associatedDestinationTokenAddr);
-      
+
       const instructions: TransactionInstruction[] = [];
 
       // Create recipient account if it doesn't exist
@@ -548,7 +559,7 @@ export class SolanaProvider implements IChainProvider {
 
       // Calculate transfer amount (with proper decimal handling)
       const transferAmount = Math.floor(amount * 1e9);
-      
+
       // Add transfer instruction
       instructions.push(
         Token.createTransferInstruction(
@@ -565,15 +576,15 @@ export class SolanaProvider implements IChainProvider {
       const transaction = new Transaction().add(...instructions);
       transaction.feePayer = senderPublicKey;
       transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-      
+
       const signedTransaction = await provider.signTransaction(transaction);
-      
+
       // Send transaction and wait for confirmation
       const transactionSignature = await connection.sendRawTransaction(
         signedTransaction.serialize(),
         { skipPreflight: true }
       );
-      
+
       await this.waitForTransactionConfirmation(connection, transactionSignature);
 
       return transactionSignature;
@@ -652,5 +663,29 @@ export class SolanaProvider implements IChainProvider {
    */
   getPaymentData(cartID: string, paymentType: string, token: string) {
     throw new Error('Method not implemented.');
+  }
+
+  /**
+   * Disconnects the currently connected wallet
+   * 
+   * @returns Promise resolving to true if disconnection was successful, false otherwise
+   */
+  async disconnect(): Promise<boolean> {
+    try {
+      if ((window as any).solana && (window as any).solana.isPhantom) {
+        this.modalInterface.waiting('Disconnecting Phantom wallet...');
+        await (window as any).solana.disconnect();
+        this.address = '';
+        this.modalInterface.success('Wallet disconnected successfully');
+        return true;
+      } else {
+        this.modalInterface.success('No wallet connection to disconnect');
+        return true;
+      }
+    } catch (err) {
+      console.error('Error disconnecting wallet:', err);
+      this.modalInterface.error('Failed to disconnect wallet');
+      return false;
+    }
   }
 }
