@@ -138,6 +138,15 @@ export class WalletNotFoundException extends WalletError {
 }
 
 /**
+ * Error thrown when the modal is not found.
+ */
+export class ModalNotFoundException extends WalletError {
+  constructor() {
+    super('Modal not found');
+  }
+}
+
+/**
  * Error thrown when MetaMask is not installed.
  */
 export class MetaMaskNotFoundException extends WalletError {

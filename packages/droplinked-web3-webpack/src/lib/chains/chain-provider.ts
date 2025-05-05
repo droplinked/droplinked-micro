@@ -6,6 +6,7 @@ import {
   ChainNotImplementedException,
   defaultModal,
   MetaMaskNotFoundException,
+  ModalNotFoundException,
   NoAccountsFoundException,
   SignatureRequestDeniedException,
   toEthAddress,
@@ -19,53 +20,9 @@ import { ethers } from 'ethers';
 import ky, { KyInstance } from 'ky';
 import { SolanaProvider } from './providers/solana/solana-provider';
 import { UnstoppableProvider } from './providers/unstoppable/unstoppable-provider';
-import { EthersAdapter } from '@reown/appkit-adapter-ethers';
-import { createAppKit } from '@reown/appkit';
-import { base, baseSepolia, bitlayer, bitlayerTestnet, bsc, bscTestnet, linea, lineaSepolia, mainnet, near, nearTestnet, polygon, polygonAmoy, redbellyMainnet, redbellyTestnet, sepolia, skaleCalypso, skaleCalypsoTestnet, solana, xrplevmTestnet } from '@reown/appkit/networks';
+import { AppKitProvider } from '../wallet-providers/appkit';
 
-const projectId = "061b5aabb8e1b036137cd69b90fb6758";
-const metadata = {
-  name: "Droplinked",
-  description: "Droplinked Storefront",
-  url: "http://localhost:5173",
-  icons: ["https://droplinked.com/favicon-32x32.png"],
-};
-const networks = [
-  mainnet,  
-  polygon, 
-  polygonAmoy, 
-  bsc, 
-  bscTestnet, 
-  skaleCalypso, 
-  skaleCalypsoTestnet, 
-  sepolia, 
-  base, 
-  baseSepolia, 
-  solana,
-  bitlayer,
-  bitlayerTestnet,
-  redbellyMainnet,
-  redbellyTestnet,
-  linea,
-  lineaSepolia,
-  xrplevmTestnet,
-  xrplevmTestnet,
-  near,
-  nearTestnet
-];
-const adapter = new EthersAdapter();
-const modal = createAppKit({
-  adapters: [adapter],
-  metadata: metadata,
-  networks: networks as any,
-  projectId,
-  features: {
-    analytics: true,
-    email: false,
-    socials: false,
-    allWallets: false
-  },
-});
+
 
 export class DropWeb3 {
   private axiosInstance: KyInstance;
@@ -211,14 +168,29 @@ export class DropWeb3 {
       );
     }
 
-    return (this.chainMapping[chain][network] as IChainProvider)
+    const {modal} = AppKitProvider.getInstance()
+                    .getModal()
+                    .setWallets(preferredWallet instanceof Array ? preferredWallet : undefined)
+                    .setFeatures(undefined)
+                    .build();
+
+
+    if (!modal) {
+      throw new ModalNotFoundException();
+    }
+
+
+
+    const provider = (this.chainMapping[chain][network] as IChainProvider)
       ?.setAddress(toEthAddress(userAddress) || toEthAddress(''))
       .setModal(modalInterface || new defaultModal())
-      .setWallet(preferredWallet)
+      .setWallet(preferredWallet instanceof Array ? ChainWallet.Metamask : preferredWallet as ChainWallet)
       .setAxiosInstance(this.axiosInstance)
       .setNFTContractAddress(nftContractAddress || '')
       .setShopContractAddress(shopContractAddress || '')
       .setWalletModal(modal);
+    
+    return provider;
   }
 
   // PANIC: TODO: change this later

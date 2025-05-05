@@ -228,6 +228,8 @@ export class EVMProvider implements IChainProvider {
         let isHandled = false;
         // Track if a provider has been detected (critical for avoiding race conditions)
         let providerDetected = false;
+        // Track whether the modal has been fully opened
+        let modalFullyOpened = false;
         
         // Store reject function for external cancellation
         this.activeWalletOperation.reject = (reason) => {
@@ -290,10 +292,15 @@ export class EVMProvider implements IChainProvider {
         const stateUnsubscribe = this.modal?.subscribeState?.((state) => {
           const isInitialized = state.initialized === true;
           
-          console.log({ state, isInitialized, isHandled, providerDetected });
+          // First detect when the modal is fully open
+          if (isInitialized && state.open === true && !modalFullyOpened) {
+            modalFullyOpened = true;
+            console.log("Modal is now fully open");
+          }
           
-          // Check if modal is closing
-          if (isInitialized && state.open === false && !isHandled) {
+          // Only treat closure as user cancellation if the modal was fully opened first
+          // This prevents false "user closed" detection during initial setup
+          if (isInitialized && state.open === false && modalFullyOpened && !isHandled) {
             // CRITICAL: Check directly if a provider exists right now
             // This is more reliable than waiting for the subscription
             const currentProvider = this.modal?.getProvider?.('eip155');
@@ -353,26 +360,30 @@ export class EVMProvider implements IChainProvider {
           }
         });
         
-        // Open the modal
-        if (this.modal && this.modal.open) {
-          this.modal.open({ namespace: 'eip155', view: 'Connect' })
-            .catch(err => {
-              if (!isHandled) {
-                // Clean up subscriptions
-                if (typeof providerUnsubscribe === 'function') {
-                  providerUnsubscribe();
+        // Add 250ms delay before opening the modal
+        // This helps avoid initialization race conditions
+        setTimeout(() => {
+          // Open the modal
+          if (this.modal && this.modal.open && !isHandled) {
+            this.modal.open({ namespace: 'eip155', view: 'AllWallets' })
+              .catch(err => {
+                if (!isHandled) {
+                  // Clean up subscriptions
+                  if (typeof providerUnsubscribe === 'function') {
+                    providerUnsubscribe();
+                  }
+                  if (typeof stateUnsubscribe === 'function') {
+                    stateUnsubscribe();
+                  }
+                  
+                  isHandled = true;
+                  this.activeWalletOperation = {};
+                  
+                  reject(new Error(`Failed to open wallet modal: ${err.message}`));
                 }
-                if (typeof stateUnsubscribe === 'function') {
-                  stateUnsubscribe();
-                }
-                
-                isHandled = true;
-                this.activeWalletOperation = {};
-                
-                reject(new Error(`Failed to open wallet modal: ${err.message}`));
-              }
-            });
-        }
+              });
+          }
+        }, 250);
       });
     } catch (error) {
       console.error("Wallet connection error:", error);

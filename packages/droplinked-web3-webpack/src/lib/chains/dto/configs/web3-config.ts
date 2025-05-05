@@ -1,4 +1,4 @@
-import { Chain, ChainWallet } from '../chains';
+import { Chain, Wallets } from '../chains';
 import { ModalInterface } from '../interfaces/modal-interface.interface';
 
 export enum Web3Actions {
@@ -13,20 +13,20 @@ export enum Web3Actions {
 export type Web3ChainConfig =
   | {
       method: Web3Actions.LOGIN;
-      preferredWallet: ChainWallet;
+      preferredWallet: Wallets;
       modalInterface?: ModalInterface;
     }
   | {
       method: Web3Actions.DEPLOY;
       chain: Chain;
-      preferredWallet: ChainWallet;
+      preferredWallet: Wallets;
       modalInterface?: ModalInterface;
       userAddress: string;
     }
   | {
       method: Web3Actions.RECORD_AFFILIATE;
       chain: Chain;
-      preferredWallet: ChainWallet;
+      preferredWallet: Wallets;
       modalInterface?: ModalInterface;
       userAddress: string;
       nftContractAddress: string;
@@ -36,14 +36,14 @@ export type Web3ChainConfig =
       method: Web3Actions.PAYMENT;
       chain: Chain;
       userAddress: string;
-      preferredWallet: ChainWallet;
+      preferredWallet: Wallets;
       modalInterface?: ModalInterface;
     }
   | {
       method: Web3Actions.CLAIM;
       chain: Chain;
       userAddress: string;
-      preferredWallet: ChainWallet;
+      preferredWallet: Wallets;
       shopContractAddress: string;
       modalInterface?: ModalInterface;
     }
@@ -51,6 +51,6 @@ export type Web3ChainConfig =
       method: Web3Actions.AIRDROP;
       chain: Chain;
       userAddress: string;
-      preferredWallet: ChainWallet;
+      preferredWallet: Wallets;
       modalInterface?: ModalInterface;
     };

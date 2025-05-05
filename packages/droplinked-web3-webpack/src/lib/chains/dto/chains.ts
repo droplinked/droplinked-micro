@@ -47,6 +47,8 @@ export enum ChainWallet {
   UnstoppableDomains = 'UnstoppableDomains',
 }
 
+export type Wallets = ChainWallet | string[];
+
 export async function getGasPrice(
   provider: ethers.Provider
 ): Promise<bigint> {
