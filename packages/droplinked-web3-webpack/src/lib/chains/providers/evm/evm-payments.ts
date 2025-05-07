@@ -55,7 +55,7 @@ async function handleCustomTokenApproval(
 
     console.log({ signerAddress, customTokenContract });
 
-    const userTokenBalance = await customTokenContract['balanceOf'](
+    const userTokenBalance: bigint = await customTokenContract['balanceOf'](
       signerAddress
     );
 
@@ -66,7 +66,7 @@ async function handleCustomTokenApproval(
     );
 
     modalInterface.waiting('Checking token balance...');
-    if (userTokenBalance.lt(totalSum)) {
+    if (userTokenBalance < (totalSum)) {
       throw new InsufficientTokenBalanceException();
     }
 

@@ -56,31 +56,31 @@ import { AppKit } from "@reown/appkit";
 export class EVMProvider implements IChainProvider {
   /** Target blockchain (e.g., Ethereum, Binance) */
   chain: Chain = Chain.BINANCE;
-  
+
   /** Network type (Mainnet or Testnet) */
   network: Network = Network.TESTNET;
-  
+
   /** Connected wallet address */
   address: EthAddress;
-  
+
   /** Interface for user interactions */
   modalInterface: ModalInterface = new defaultModal();
-  
+
   /** Wallet type to use */
   wallet: ChainWallet = ChainWallet.Metamask;
-  
+
   /** HTTP client for API calls */
   axiosInstance: KyInstance;
-  
+
   /** NFT contract address */
   nftContractAddress?: EthAddress;
-  
+
   /** Shop contract address */
   shopContractAddress?: EthAddress;
-  
+
   /** Whether gas is predictable on this chain */
   gasPredictable: boolean;
-  
+
   /** Modern wallet modal interface */
   modal?: AppKit;
 
@@ -216,13 +216,13 @@ export class EVMProvider implements IChainProvider {
         }
         provider = this.modal?.getProvider?.('eip155');
       }
-      
+
       if (!this.modal) {
         throw new Error('Wallet modal not initialized');
       }
-      
+
       console.log("Opening wallet connection modal...");
-      
+
       return new Promise<ethers.BrowserProvider>((resolve, reject) => {
         // Track if we've already handled this connection attempt
         let isHandled = false;
@@ -230,12 +230,12 @@ export class EVMProvider implements IChainProvider {
         let providerDetected = false;
         // Track whether the modal has been fully opened
         let modalFullyOpened = false;
-        
+
         // Store reject function for external cancellation
         this.activeWalletOperation.reject = (reason) => {
           if (!isHandled) {
             isHandled = true;
-            
+
             // Clean up subscriptions
             if (typeof providerUnsubscribe === 'function') {
               providerUnsubscribe();
@@ -243,29 +243,29 @@ export class EVMProvider implements IChainProvider {
             if (typeof stateUnsubscribe === 'function') {
               stateUnsubscribe();
             }
-            
+
             reject(reason instanceof Error ? reason : new Error(String(reason)));
           }
         };
-        
+
         // Track provider changes (most important for detecting successful connection)
         const providerUnsubscribe = this.modal?.subscribeProviders?.((state: any) => {
           const provider = state["eip155"];
-          
+
           if (provider && !isHandled) {
             // Mark that we detected a provider IMMEDIATELY
             // This prevents race conditions with modal closure
             providerDetected = true;
             console.log("Provider detected, checking accounts...");
-            
+
             (async () => {
               try {
                 // Verify provider is valid by checking accounts
                 const accounts = await (provider as any).request({ method: "eth_accounts" });
-                
+
                 if (accounts && accounts.length > 0) {
                   console.log("Provider connected successfully:", accounts);
-                  
+
                   // Clean up subscriptions
                   if (typeof providerUnsubscribe === 'function') {
                     providerUnsubscribe();
@@ -273,10 +273,10 @@ export class EVMProvider implements IChainProvider {
                   if (typeof stateUnsubscribe === 'function') {
                     stateUnsubscribe();
                   }
-                  
+
                   isHandled = true;
                   this.activeWalletOperation = {};
-                  
+
                   const ethersProvider = new ethers.BrowserProvider(provider as any);
                   resolve(ethersProvider);
                 }
@@ -287,17 +287,17 @@ export class EVMProvider implements IChainProvider {
             })();
           }
         });
-        
+
         // Track modal state to detect when it's closed by the user
         const stateUnsubscribe = this.modal?.subscribeState?.((state) => {
           const isInitialized = state.initialized === true;
-          
+
           // First detect when the modal is fully open
           if (isInitialized && state.open === true && !modalFullyOpened) {
             modalFullyOpened = true;
             console.log("Modal is now fully open");
           }
-          
+
           // Only treat closure as user cancellation if the modal was fully opened first
           // This prevents false "user closed" detection during initial setup
           if (isInitialized && state.open === false && modalFullyOpened && !isHandled) {
@@ -305,11 +305,11 @@ export class EVMProvider implements IChainProvider {
             // This is more reliable than waiting for the subscription
             const currentProvider = this.modal?.getProvider?.('eip155');
             console.log("Modal closing, checking for provider:", !!currentProvider);
-            
+
             // Only treat as cancellation if no provider exists
             if (!currentProvider && !providerDetected) {
               console.log("Modal was closed without connecting");
-              
+
               // Clean up subscriptions
               if (typeof providerUnsubscribe === 'function') {
                 providerUnsubscribe();
@@ -317,25 +317,25 @@ export class EVMProvider implements IChainProvider {
               if (typeof stateUnsubscribe === 'function') {
                 stateUnsubscribe();
               }
-              
+
               isHandled = true;
               this.activeWalletOperation = {};
-              
+
               reject(new Error("Wallet connection canceled by user"));
             } else if (currentProvider && !isHandled) {
               // We have a provider but haven't processed it via subscription yet
               // Let's handle it directly to avoid race conditions
               console.log("Provider found during modal close, handling directly");
-              
+
               (async () => {
                 try {
                   const provider = currentProvider;
                   // Verify provider is valid by checking accounts
                   const accounts = await (provider as any).request({ method: "eth_accounts" });
-                  
+
                   if (accounts && accounts.length > 0) {
                     console.log("Provider connected successfully (direct check):", accounts);
-                    
+
                     // Clean up subscriptions
                     if (typeof providerUnsubscribe === 'function') {
                       providerUnsubscribe();
@@ -343,10 +343,10 @@ export class EVMProvider implements IChainProvider {
                     if (typeof stateUnsubscribe === 'function') {
                       stateUnsubscribe();
                     }
-                    
+
                     isHandled = true;
                     this.activeWalletOperation = {};
-                    
+
                     const ethersProvider = new ethers.BrowserProvider(provider as any);
                     resolve(ethersProvider);
                   }
@@ -359,7 +359,7 @@ export class EVMProvider implements IChainProvider {
             }
           }
         });
-        
+
         // Add 250ms delay before opening the modal
         // This helps avoid initialization race conditions
         setTimeout(() => {
@@ -375,10 +375,10 @@ export class EVMProvider implements IChainProvider {
                   if (typeof stateUnsubscribe === 'function') {
                     stateUnsubscribe();
                   }
-                  
+
                   isHandled = true;
                   this.activeWalletOperation = {};
-                  
+
                   reject(new Error(`Failed to open wallet modal: ${err.message}`));
                 }
               });
@@ -388,11 +388,11 @@ export class EVMProvider implements IChainProvider {
     } catch (error) {
       console.error("Wallet connection error:", error);
       this.activeWalletOperation = {};
-      
+
       throw error instanceof Error ? error : new Error(String(error));
     }
   }
-  
+
   /**
    * Handle wallet connection and verification
    * @param _address - Expected address to connect with
@@ -403,18 +403,18 @@ export class EVMProvider implements IChainProvider {
       this.modalInterface.error('Wallet is not installed');
       throw new WalletNotFoundException();
     }
-    
+
     this.modalInterface.waiting('Getting accounts...');
     const provider = await this.getEthersProvider();
     const ethereum = provider.provider;
-    
+
     const accounts = await getAccounts(ethereum);
-    
+
     // If no connection or no accounts, initiate login
     if (!isWalletConnected(ethereum) || accounts.length === 0) {
       this.modalInterface.waiting('Please connect your wallet');
       const { address } = await this.walletLogin();
-      
+
       if (_address.toLowerCase() !== address.toLowerCase()) {
         // Try to switch to the expected address
         const switched = await this.switchToAddress(_address);
@@ -426,13 +426,13 @@ export class EVMProvider implements IChainProvider {
         }
       }
     }
-    
+
     // Verify account matches expected address
     if (accounts[0]?.toLowerCase() !== _address.toLowerCase()) {
       this.modalInterface.waiting(
         'Account mismatch detected. Attempting to switch...'
       );
-      
+
       // Try to switch to the expected address
       const switched = await this.switchToAddress(_address);
       if (!switched) {
@@ -442,7 +442,7 @@ export class EVMProvider implements IChainProvider {
         throw new Error('Address mismatch. Please reconnect with the correct account.');
       }
     }
-    
+
     // Handle special case for SKALE chain (sFuel distribution)
     await this.handleSKALEFuelDistribution();
 
@@ -456,15 +456,15 @@ export class EVMProvider implements IChainProvider {
   private async handleSKALEFuelDistribution(): Promise<void> {
     if (this.chain === Chain.SKALE) {
       try {
-      const distributionRequest = await ((
-        await this.axiosInstance.post(`shop/sFuelDistribution`, {
-          json: {
-            wallet: this.address,
-            isTestnet: this.network === Network.TESTNET,
-          },
-        })
-      ).json() as any);
-      console.log(distributionRequest);
+        const distributionRequest = await ((
+          await this.axiosInstance.post(`shop/sFuelDistribution`, {
+            json: {
+              wallet: this.address,
+              isTestnet: this.network === Network.TESTNET,
+            },
+          })
+        ).json() as any);
+        console.log(distributionRequest);
       } catch (error) {
         console.warn("Failed to distribute sFuel:", error);
       }
@@ -478,10 +478,10 @@ export class EVMProvider implements IChainProvider {
   async handleChain(): Promise<void> {
     try {
       const provider = await this.getEthersProvider();
-      
+
       // Add chain to wallet if needed
       await addChain(provider, this.chain, this.network, this.modalInterface);
-      
+
       // Change to correct chain if needed
       if (!(await isChainCorrect(provider.provider, this.chain, this.network))) {
         console.log(`Changing chain to ${this.chain} ${this.network}`);
@@ -545,12 +545,12 @@ export class EVMProvider implements IChainProvider {
     if (requiresContractAddresses) {
       this.checkDeployment();
     }
-    
+
     // Use cancellation tracking for wallet operations
     return this.executeWithCancellation(async () => {
       await this.handleWallet(this.address);
       await this.handleChain();
-      
+
       return operation();
     });
   }
@@ -642,11 +642,11 @@ export class EVMProvider implements IChainProvider {
   ): Promise<RecordResponse> {
     return this.executeOperation(
       async () => {
-    return await recordProduct(
-      await this.getChainConfig(),
-      this.getContext(),
-      productData,
-      skuData
+        return await recordProduct(
+          await this.getChainConfig(),
+          this.getContext(),
+          productData,
+          skuData
         );
       },
       true
@@ -664,13 +664,13 @@ export class EVMProvider implements IChainProvider {
     shopAddress: EthAddress
   ): Promise<AffiliateRequestData> {
     return this.executeOperation(async () => {
-    return await EVMPublishRequest({
+      return await EVMPublishRequest({
         provider: await this.getEthersProvider(),
-      chain: this.chain,
-      address: this.address,
-      productId,
-      shopAddress,
-      modalInterface: this.modalInterface,
+        chain: this.chain,
+        address: this.address,
+        productId,
+        shopAddress,
+        modalInterface: this.modalInterface,
       });
     });
   }
@@ -687,13 +687,13 @@ export class EVMProvider implements IChainProvider {
   ): Promise<string> {
     return this.executeOperation(
       async () => {
-    return await EVMApproveRequest(
+        return await EVMApproveRequest(
           await this.getEthersProvider(),
-      this.chain,
-      this.address,
-      requestId,
-      shopAddress,
-      this.modalInterface
+          this.chain,
+          this.address,
+          requestId,
+          shopAddress,
+          this.modalInterface
         );
       },
       true
@@ -712,13 +712,13 @@ export class EVMProvider implements IChainProvider {
   ): Promise<string> {
     return this.executeOperation(
       async () => {
-    return await EVMDisapproveRequest(
+        return await EVMDisapproveRequest(
           await this.getEthersProvider(),
-      this.chain,
-      this.address,
-      requestId,
-      shopAddress,
-      this.modalInterface
+          this.chain,
+          this.address,
+          requestId,
+          shopAddress,
+          this.modalInterface
         );
       },
       true
@@ -738,24 +738,24 @@ export class EVMProvider implements IChainProvider {
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
     return this.executeOperation(async () => {
-    const { cartID, paymentToken, paymentType } = data;
-    const paymentDetails = await getCartData(
-      cartID,
-      paymentToken,
-      paymentType,
-      this.address,
-      this.axiosInstance
-    );
-      
-    const paymentData: IChainPayment = paymentDetails.paymentData;
-      
-    const result = await droplinked_payment(
-      await this.getChainConfig(),
-      this.getContext(),
-      paymentData
-    );
-      
-    return { ...result, orderID: paymentDetails.orderID };
+      const { cartID, paymentToken, paymentType } = data;
+      const paymentDetails = await getCartData(
+        cartID,
+        paymentToken,
+        paymentType,
+        this.address,
+        this.axiosInstance
+      );
+
+      const paymentData: IChainPayment = paymentDetails.paymentData;
+
+      const result = await droplinked_payment(
+        await this.getChainConfig(),
+        this.getContext(),
+        paymentData
+      );
+
+      return { ...result, orderID: paymentDetails.orderID };
     });
   }
 
@@ -805,32 +805,32 @@ export class EVMProvider implements IChainProvider {
     tokenAddress: string
   ): Promise<string> {
     return this.executeOperation(async () => {
-    const abi = getERC20TokenTransferABI();
+      const abi = getERC20TokenTransferABI();
       const provider = await (await this.getEthersProvider()).getSigner();
-    const contract = new ethers.Contract(tokenAddress, abi, provider);
-      
+      const contract = new ethers.Contract(tokenAddress, abi, provider);
+
       // Calculate token amount with proper decimals
       const tokenAmount = BigInt(Math.floor(amount * 1e6)) * BigInt(1e12);
-      
+
       try {
         // Pre-flight check
         await contract['transfer'].staticCall(receiver, tokenAmount);
-        
+
         // Gas estimation
-      const estimation = (
+        const estimation = (
           await contract['transfer'].estimateGas(receiver, tokenAmount)
         ).valueOf();
-        
+
         const gasPrice = (await getGasPrice(await this.getEthersProvider())).valueOf();
-        
+
         // Execute transfer with 5% gas buffer
         const tx = await contract['transfer'](receiver, tokenAmount, {
           gasPrice: (gasPrice * BigInt(105)) / BigInt(100),
           gasLimit: (estimation * BigInt(105)) / BigInt(100),
         });
-        
-      return tx.hash;
-    } catch (e: any) {
+
+        return tx.hash;
+      } catch (e: any) {
         this.handleTokenTransferError(e);
       }
     });
@@ -843,23 +843,23 @@ export class EVMProvider implements IChainProvider {
    * @throws Reformatted error with clear message
    */
   private handleTokenTransferError(e: any): never {
-      if (e.reason) {
-        if (e.reason === 'ERC20: transfer amount exceeds balance') {
-          throw new Error('Insufficient token balance');
-        } else if (e.reason === 'insufficient funds for gas * price + value') {
+    if (e.reason) {
+      if (e.reason === 'ERC20: transfer amount exceeds balance') {
+        throw new Error('Insufficient token balance');
+      } else if (e.reason === 'insufficient funds for gas * price + value') {
         throw new Error('Insufficient ETH balance for gas');
       } else if (e.reason === 'bad result from backend') {
         throw new Error('Transaction failed, check your ETH and token balance');
-        }
-        throw new Error(e.reason);
       }
-    
+      throw new Error(e.reason);
+    }
+
     if (e.code?.toString() === 'ACTION_REJECTED') {
       throw new TransactionRejectedError('User rejected the transaction');
     }
-    
-      throw e;
-    }
+
+    throw e;
+  }
 
   // ==============================
   // NFT OPERATIONS
@@ -891,7 +891,7 @@ export class EVMProvider implements IChainProvider {
   ): Promise<{ transactionHashes: string[] }> {
     return this.executeOperation(async () => {
       const airdropData = await getAirdropData(airdropId, this.axiosInstance);
-      
+
       return await airdrop(await this.getChainConfig(), this.getContext(), {
         type: TokenStandard.ERC1155,
         airdropId: airdropId,
@@ -914,28 +914,28 @@ export class EVMProvider implements IChainProvider {
       const provider = await this.getEthersProvider();
       const signer = await provider.getSigner();
       const currentAddress = await signer.getAddress();
-      
+
       if (currentAddress.toLowerCase() === targetAddress.toLowerCase()) {
         return true; // Already using the right address
       }
-      
+
       // With AppKit we can't directly switch accounts
       // We need to disconnect and then prompt for reconnection
       this.modalInterface.waiting('Disconnecting current wallet...');
-      
+
       // Disconnect current wallet
       await this.disconnect();
-      
+
       // Prompt user to connect with the right account
       this.modalInterface.waiting(
         `Please connect wallet with account ${targetAddress}`
       );
-      
+
       // Verify if the correct account is now connected
       const newProvider = await this.getEthersProvider();
       const newSigner = await newProvider.getSigner();
       const newAddress = await newSigner.getAddress();
-      
+
       if (newAddress.toLowerCase() === targetAddress.toLowerCase()) {
         this.modalInterface.success(`Successfully connected with the correct account`);
         this.address = toEthAddress(targetAddress);
@@ -959,13 +959,13 @@ export class EVMProvider implements IChainProvider {
   private cancelActiveWalletOperation(reason: string): void {
     if (this.activeWalletOperation.reject) {
       console.log(`Canceling wallet operation: ${reason}`);
-      
+
       // Create a copy of the reject function
       const rejectFn = this.activeWalletOperation.reject;
-      
+
       // Clear the active operation immediately to prevent multiple calls
       this.activeWalletOperation = {};
-      
+
       // Then call the reject function
       rejectFn(new Error(`Operation canceled: ${reason}`));
     }
@@ -993,11 +993,11 @@ export class EVMProvider implements IChainProvider {
   private executeWithCancellation<T>(operation: () => Promise<T>): Promise<T> {
     // Clear any previous operation
     this.activeWalletOperation = {};
-    
+
     return new Promise((resolve, reject) => {
       // Store the reject function for possible cancellation
       this.activeWalletOperation.reject = reject;
-      
+
       // Execute the operation
       operation()
         .then((result) => {

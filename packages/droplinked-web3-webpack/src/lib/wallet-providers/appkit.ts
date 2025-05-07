@@ -9,12 +9,12 @@ import { mainnet, polygon, polygonAmoy } from "@reown/appkit/networks";
 import { lineaSepolia, linea } from "@reown/appkit/networks";
 
 const defaultFeatures: Features = {
-                    analytics: true,
-                    email: false,
-                    socials: false,
-                    allWallets: true,
-                    swaps: false,
-                };
+    analytics: true,
+    email: false,
+    socials: false,
+    allWallets: true,
+    swaps: false,
+};
 
 export class AppKitProvider {
     adapter: EthersAdapter | undefined;
@@ -22,10 +22,10 @@ export class AppKitProvider {
     static instance: AppKitProvider | undefined;
     private projectId = "061b5aabb8e1b036137cd69b90fb6758";
     private metadata = {
-        name: "Droplinked",
-        description: "Droplinked Storefront",
-        url: "http://localhost:5173",
-        icons: ["https://droplinked.com/favicon-32x32.png"],
+        name: "droplinked",
+        description: "Droplinked Store-front",
+        url: "https://dev.droplinked.io",
+        icons: ["https://pbs.twimg.com/profile_images/1649131803817439240/0LiaLAEN_400x400.jpg"],
     };
     private networks = [
         mainnet,
@@ -45,7 +45,7 @@ export class AppKitProvider {
         linea,
         lineaSepolia,
     ];
-    
+
     static getInstance() {
         if (!this.instance) {
             this.instance = new AppKitProvider();
@@ -56,7 +56,7 @@ export class AppKitProvider {
     getModal() {
         if (!this.modal) {
             this.adapter = new EthersAdapter();
-            
+
             // Create the modal only once
             this.modal = createAppKit({
                 adapters: [this.adapter],
@@ -89,7 +89,7 @@ export class AppKitProvider {
         } else {
             this.setAllWallets();
         }
-        
+
         return this;
     }
 
@@ -109,7 +109,7 @@ export class AppKitProvider {
         this.modal?.updateOptions({
             allWallets: "SHOW"
         });
-        
+
         return this;
     }
 
