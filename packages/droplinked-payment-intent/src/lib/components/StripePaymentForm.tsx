@@ -59,13 +59,22 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
 
     setLoading(true);
     try {
-      // Attempt to confirm payment with Stripe
-      const result = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: return_url || window.location.href,
-        },
-      });
+      let result;
+      if (return_url) {
+        // اگر return_url پاس داده شده بود
+        result = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            return_url,
+          },
+        });
+      } else {
+        // اگر return_url پاس داده نشده بود
+        result = await stripe.confirmPayment({
+          elements,
+          redirect: "if_required"
+        });
+      }
 
       // Handle payment result
       if (result.error) {

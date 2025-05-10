@@ -15,7 +15,7 @@ interface PaymobProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: unknown) => void;
-  return_url: string;
+  return_url?: string;
   isTestnet?: boolean;
 }
 
@@ -124,7 +124,7 @@ export const StripePaymentProvider: React.FC<PaymobProps> = ({
         onSuccess={onSuccess}
         onError={onError}
         onCancel={onCancel}
-        return_url={return_url}
+        {...(return_url ? { return_url } : {})}
         commonStyle={commonStyle}
       />
     </Elements>

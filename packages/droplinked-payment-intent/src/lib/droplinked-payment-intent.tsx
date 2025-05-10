@@ -77,7 +77,7 @@ export interface PaymentElementProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: unknown) => void;
-  return_url: string;
+  return_url?: string;
   isTestnet?: boolean;
 }
 
@@ -167,7 +167,7 @@ export function DroplinkedPaymentIntent({
   clientSecret,
   type,
   commonStyle = defaultCommonStyle,
-  return_url = window.location.href,
+  return_url,
   isTestnet = false,
   ...rest
 }: PaymentElementProps) {
@@ -190,7 +190,7 @@ export function DroplinkedPaymentIntent({
         <StripePaymentProvider
           clientSecret={clientSecret}
           commonStyle={commonStyle}
-          return_url={return_url}
+          {...(return_url ? { return_url } : {})}
           isTestnet={isTestnet}
           {...rest}
         />
@@ -200,7 +200,7 @@ export function DroplinkedPaymentIntent({
         <PaymobPayment 
           clientSecret={clientSecret} 
           commonStyle={commonStyle} 
-          return_url={return_url}
+          {...(return_url ? { return_url } : {})}
           isTestnet={isTestnet}
         />
       );
