@@ -1,6 +1,6 @@
 import { AppKit, createAppKit, Features } from "@reown/appkit";
 import { EthersAdapter } from "@reown/appkit-adapter-ethers";
-import { AppKitNetwork, bitlayerTestnet, redbellyMainnet, redbellyTestnet } from "@reown/appkit/networks";
+import { AppKitNetwork, bitlayerTestnet, redbellyMainnet, redbellyTestnet, solana } from "@reown/appkit/networks";
 import { bitlayer } from "@reown/appkit/networks";
 import { baseSepolia, base } from "@reown/appkit/networks";
 import { bscTestnet, sepolia, skaleCalypso, skaleCalypsoTestnet } from "@reown/appkit/networks";
@@ -18,6 +18,7 @@ const defaultFeatures: Features = {
 
 export class AppKitProvider {
     adapter: EthersAdapter | undefined;
+    adapterSolana: SolanaAdapter | undefined;
     modal: AppKit | undefined;
     static instance: AppKitProvider | undefined;
     private projectId = "061b5aabb8e1b036137cd69b90fb6758";
@@ -44,6 +45,7 @@ export class AppKitProvider {
         redbellyTestnet,
         linea,
         lineaSepolia,
+        solana
     ];
 
     static getInstance() {
