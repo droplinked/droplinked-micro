@@ -7,7 +7,7 @@ function app() {
   return (
     <div className="app-container">
       <DroplinkedPaymentIntent
-  clientSecret="pi_3RBbZNJYpy7bkFtu0MYKLm9n_secret_HxiSfXRaujQqBUzEZB2rzjrx1"
+  clientSecret="seti_1RYQFZJYpy7bkFtuAHFai1k9_secret_STMzhQJ8uUXBQQ7qWOwuctfPYuvvRSB"
   type='stripe'
   return_url="https://droplinked.com/"
   onSuccess={() => console.log('confirmtion success')}

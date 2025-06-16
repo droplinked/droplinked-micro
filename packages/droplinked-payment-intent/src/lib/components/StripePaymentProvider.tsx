@@ -17,6 +17,7 @@ interface PaymobProps {
   onError?: (error: unknown) => void;
   return_url?: string;
   isTestnet?: boolean;
+  intentType?: 'payment' | 'setup';
 }
 
 
@@ -72,31 +73,29 @@ const convertCommonStyleToStripeAppearance = (commonStyle: CommonStyle): StripeA
 
 /**
  * Provider component for Stripe payment integration
- * Wraps Stripe Elements and handles theme configuration
+ * Wraps Stripe Elements and handles theme configuration for both payment and setup intents
  * 
  * @component
  * @example
  * ```tsx
+ * // For payment intent
  * <StripePaymentProvider
  *   clientSecret="your_client_secret"
  *   appearance={{ theme: 'light' }}
  *   return_url="https://your-return-url.com"
  *   onSuccess={() => console.log('Success')}
+ *   intentType="payment"
+ * />
+ * 
+ * // For setup intent
+ * <StripePaymentProvider
+ *   clientSecret="your_setup_intent_secret"
+ *   appearance={{ theme: 'light' }}
+ *   return_url="https://your-return-url.com"
+ *   onSuccess={() => console.log('Setup Success')}
+ *   intentType="setup"
  * />
  * ```
- * 
- * @param {Object} props
- * @param {string} props.clientSecret - Stripe client secret for payment session
- * @param {Appearance} [props.appearance] - Custom appearance configuration
- * @param {() => void} [props.onSuccess] - Success callback
- * @param {(error: unknown) => void} [props.onError] - Error callback
- * @param {Object} [props.formProps] - Additional form element props
- * @param {Object} [props.ActionButtonsContainerProps] - Props for action buttons container
- * @param {Object} [props.cancelButtonProps] - Props for cancel button
- * @param {Object} [props.submitButtonProps] - Props for submit button
- * @param {string} props.return_url - URL to redirect after payment
- * 
- * @returns {JSX.Element} Wrapped Stripe payment form with configured Elements provider
  */
 export const StripePaymentProvider: React.FC<PaymobProps> = ({
   clientSecret,
@@ -105,7 +104,8 @@ export const StripePaymentProvider: React.FC<PaymobProps> = ({
   onError,
   onCancel,
   return_url,
-  isTestnet = false
+  isTestnet = false,
+  intentType = 'setup'
 }) => {
   const options = {
     clientSecret,
@@ -126,6 +126,8 @@ export const StripePaymentProvider: React.FC<PaymobProps> = ({
         onCancel={onCancel}
         {...(return_url ? { return_url } : {})}
         commonStyle={commonStyle}
+        isTestnet={isTestnet}
+        intentType={intentType}
       />
     </Elements>
   );

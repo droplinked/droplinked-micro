@@ -79,6 +79,7 @@ export interface PaymentElementProps {
   onError?: (error: unknown) => void;
   return_url?: string;
   isTestnet?: boolean;
+  intentType?: 'payment' | 'setup';
 }
 
 /**
@@ -157,6 +158,7 @@ export const defaultCommonStyle: CommonStyle = {
  *  * @param {() => void} [props.onCancel] - Callback function called on successful payment
  * @param {(error: unknown) => void} [props.onError] - Callback function called on payment error
  * @param {boolean} [props.isTestnet] - Indicates whether the payment is in testnet mode
+ * @param {string} [props.intentType] - Indicates the type of payment intent ('payment' or 'setup')
  * 
  * @throws {Error} Throws error if clientSecret is not provided
  * @throws {Error} Throws error if payment type is invalid
@@ -169,6 +171,7 @@ export function DroplinkedPaymentIntent({
   commonStyle = defaultCommonStyle,
   return_url,
   isTestnet = false,
+  intentType,
   ...rest
 }: PaymentElementProps) {
   // Validate required client secret
@@ -192,6 +195,7 @@ export function DroplinkedPaymentIntent({
           commonStyle={commonStyle}
           {...(return_url ? { return_url } : {})}
           isTestnet={isTestnet}
+          intentType={intentType}
           {...rest}
         />
       );

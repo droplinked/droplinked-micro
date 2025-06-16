@@ -7,7 +7,7 @@ import { CommonStyle } from '../droplinked-payment-intent';
  * @typedef {Object} StripePaymentFormProps
  */
 type StripePaymentFormProps = {
-  /** Callback function called after successful payment */
+  /** Callback function called after successful payment or setup */
   onSuccess?: (result: any) => void;
   /** Callback function called when an error occurs */
   onError?: (error: any) => void;
@@ -18,11 +18,13 @@ type StripePaymentFormProps = {
   commonStyle?: CommonStyle;
   /** Indicates if the payment is for a testnet */
   isTestnet?: boolean;
+  /** Type of intent - payment or setup */
+  intentType?: 'payment' | 'setup';
 };
 
 /**
  * Stripe Payment Form Component
- * Renders a form with Stripe's PaymentElement and handles payment submission
+ * Renders a form with Stripe's PaymentElement and handles payment or setup submission
  * 
  * @component
  * @example
@@ -31,6 +33,7 @@ type StripePaymentFormProps = {
  *   onSuccess={(result) => console.log('Payment successful', result)}
  *   onError={(error) => console.error('Payment failed', error)}
  *   return_url="https://your-return-url.com"
+ *   intentType="payment"
  * />
  * ```
  */
@@ -40,7 +43,8 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   onCancel,
   return_url,
   commonStyle,
-  isTestnet
+  isTestnet,
+  intentType = 'payment'
 }) => {
   // Initialize Stripe hooks
   const stripe = useStripe();
@@ -50,7 +54,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   const [loading, setLoading] = useState(false);
 
   /**
-   * Handles form submission and payment confirmation
+   * Handles form submission and payment/setup confirmation
    * @param {React.FormEvent} event - Form submission event
    */
   const handleSubmit = async (event: React.FormEvent) => {
@@ -60,23 +64,38 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
     setLoading(true);
     try {
       let result;
-      if (return_url) {
-        // اگر return_url پاس داده شده بود
-        result = await stripe.confirmPayment({
-          elements,
-          confirmParams: {
-            return_url,
-          },
-        });
+      
+      if (intentType === 'setup') {
+        if (return_url) {
+          result = await stripe.confirmSetup({
+            elements,
+            confirmParams: {
+              return_url,
+            },
+          });
+        } else {
+          result = await stripe.confirmSetup({
+            elements,
+            redirect: "if_required"
+          });
+        }
       } else {
-        // اگر return_url پاس داده نشده بود
-        result = await stripe.confirmPayment({
-          elements,
-          redirect: "if_required"
-        });
+        if (return_url) {
+          result = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+              return_url,
+            },
+          });
+        } else {
+          result = await stripe.confirmPayment({
+            elements,
+            redirect: "if_required"
+          });
+        }
       }
 
-      // Handle payment result
+      // Handle result
       if (result.error) {
         onError?.(result.error);
       } else {
