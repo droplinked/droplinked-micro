@@ -44,6 +44,7 @@ function PaymentPage() {
         onSuccess={() => console.log('Payment successful')}
         onError={(error) => console.error('Payment failed', error)}
         isTestnet={true} // Set to false for production
+        intentType="payment" // or "setup"
       />
     </div>
   );
@@ -69,6 +70,7 @@ The main component that renders a payment form based on the specified provider.
 | `onSuccess` | () => void | No | - | Callback function on successful payment |
 | `onError` | (error: unknown) => void | No | - | Callback function on payment error |
 | `isTestnet` | boolean | No | false | Indicates whether the payment is in testnet mode |
+| `intentType` | 'payment' \| 'setup' | No | 'payment' | Indicates the type of payment intent ('payment' or 'setup') |
 
 ### Styling Options
 
