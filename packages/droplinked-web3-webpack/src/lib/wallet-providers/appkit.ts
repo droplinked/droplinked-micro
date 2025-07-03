@@ -7,6 +7,7 @@ import { bscTestnet, sepolia, skaleCalypso, skaleCalypsoTestnet } from "@reown/a
 import { bsc } from "@reown/appkit/networks";
 import { mainnet, polygon, polygonAmoy } from "@reown/appkit/networks";
 import { lineaSepolia, linea } from "@reown/appkit/networks";
+import { SolanaAdapter } from "@reown/appkit-adapter-solana";
 
 const defaultFeatures: Features = {
     analytics: true,
@@ -17,7 +18,7 @@ const defaultFeatures: Features = {
 };
 
 export class AppKitProvider {
-    adapter: EthersAdapter | undefined;
+    adapterEVM: EthersAdapter | undefined;
     adapterSolana: SolanaAdapter | undefined;
     modal: AppKit | undefined;
     static instance: AppKitProvider | undefined;
@@ -57,11 +58,12 @@ export class AppKitProvider {
 
     getModal() {
         if (!this.modal) {
-            this.adapter = new EthersAdapter();
+            this.adapterEVM = new EthersAdapter();
+            this.adapterSolana = new SolanaAdapter();
 
             // Create the modal only once
             this.modal = createAppKit({
-                adapters: [this.adapter],
+                adapters: [this.adapterEVM, this.adapterSolana],
                 metadata: this.metadata,
                 networks: this.networks as unknown as [AppKitNetwork, ...AppKitNetwork[]],
                 projectId: this.projectId,
@@ -132,7 +134,8 @@ export class AppKitProvider {
     build() {
         return {
             modal: this.modal,
-            adapter: this.adapter
+            adapterEVM: this.adapterEVM,
+            adapterSolana: this.adapterSolana
         }
     }
 }
