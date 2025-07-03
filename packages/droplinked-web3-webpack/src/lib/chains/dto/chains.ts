@@ -47,10 +47,8 @@ export enum ChainWallet {
   UnstoppableDomains = 'UnstoppableDomains',
 }
 
-export type Wallets = ChainWallet | string[];
-
 export async function getGasPrice(
-  provider: ethers.Provider
+  provider: ethers.providers.JsonRpcProvider
 ): Promise<bigint> {
-  return ((await provider.getFeeData()).gasPrice) || BigInt(1e24);
+  return (await provider.getGasPrice()).toBigInt();
 }

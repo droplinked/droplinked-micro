@@ -21,7 +21,7 @@ async function sendTransaction(
   modalInterface: ModalInterface
 ) {
   try {
-    await contract[method].staticCall(...params);
+    await contract.callStatic[method](...params);
     const tx = await contract[method](...params);
     return tx;
   } catch (e: any) {
@@ -36,7 +36,7 @@ async function approveTokenForAirdrop(
   airdropContractAddress: string,
   tokenAddress: string,
   tokenStandard: TokenStandard,
-  signer: ethers.Signer,
+  signer: ethers.providers.JsonRpcSigner,
   modalInterface: ModalInterface
 ) {
   if (tokenStandard !== TokenStandard.ERC1155) {
@@ -57,7 +57,7 @@ async function airdrop(
   token: ITokenDetails
 ) {
   const modalInterface = context.modalInterface;
-  const signer = await chainConfig.provider.getSigner();
+  const signer = chainConfig.provider.getSigner();
   modalInterface.waiting('Connecting to wallet...');
   await checkWallet(signer, chainConfig.address);
   modalInterface.waiting('Getting airdrop contract address...');
@@ -157,7 +157,7 @@ async function airdrop(
     }
     try {
       const err = contract.interface.parseError(e.data);
-      context.modalInterface.error(err ? err.name : "Unknown error");
+      context.modalInterface.error(err.name);
       context.modalInterface.error(e);
       throw e;
     } catch (error) {

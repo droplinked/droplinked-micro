@@ -138,15 +138,6 @@ export class WalletNotFoundException extends WalletError {
 }
 
 /**
- * Error thrown when the modal is not found.
- */
-export class ModalNotFoundException extends WalletError {
-  constructor() {
-    super('Modal not found');
-  }
-}
-
-/**
  * Error thrown when MetaMask is not installed.
  */
 export class MetaMaskNotFoundException extends WalletError {
@@ -224,28 +215,5 @@ export class InsufficientTokenBalanceException extends WalletError {
 export class InvalidParametersException extends ChainError {
   constructor(message: string) {
     super(`Invalid parameters: ${message}`);
-  }
-}
-
-/**
- * Error when a transaction is rejected by the user
- */
-export class TransactionRejectedError extends Error {
-  constructor(message = 'Transaction was rejected') {
-    super(message);
-    this.name = 'TransactionRejectedError';
-  }
-}
-
-/**
- * Error when connecting to a blockchain
- */
-export class ChainConnectionError extends Error {
-  chain: string | number;
-  
-  constructor(chain: string | number, message = 'Failed to connect to chain') {
-    super(`Failed to connect to chain ${chain}: ${message}`);
-    this.name = 'ChainConnectionError';
-    this.chain = chain;
   }
 }

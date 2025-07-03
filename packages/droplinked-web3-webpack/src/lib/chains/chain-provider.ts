@@ -6,7 +6,6 @@ import {
   ChainNotImplementedException,
   defaultModal,
   MetaMaskNotFoundException,
-  ModalNotFoundException,
   NoAccountsFoundException,
   SignatureRequestDeniedException,
   toEthAddress,
@@ -20,10 +19,6 @@ import { ethers } from 'ethers';
 import ky, { KyInstance } from 'ky';
 import { SolanaProvider } from './providers/solana/solana-provider';
 import { UnstoppableProvider } from './providers/unstoppable/unstoppable-provider';
-import { AppKitProvider } from '../wallet-providers/appkit';
-
-
-
 export class DropWeb3 {
   private axiosInstance: KyInstance;
   private network: Network;
@@ -33,8 +28,8 @@ export class DropWeb3 {
         workingNetwork === Network.TESTNET
           ? 'https://apiv3dev.droplinked.com'
           : workingNetwork === Network.MAINNET
-            ? 'https://apiv3.droplinked.com'
-            : 'http://127.0.0.1',
+          ? 'https://apiv3.droplinked.com'
+          : 'http://127.0.0.1',
     });
     this.network = workingNetwork;
   }
@@ -147,7 +142,7 @@ export class DropWeb3 {
       shopContractAddress = config.shopContractAddress;
       chain = config.chain;
     } else if (config.method === Web3Actions.LOGIN) {
-      if (preferredWallet === ChainWallet.Phantom || preferredWallet.includes('a797aa35c0fadbfc1a53e7f675162ed5226968b44a19ee3d24385c64d1d3c393')) {
+      if (preferredWallet === ChainWallet.Phantom) {
         chain = Chain.SOLANA;
       } else if (preferredWallet === ChainWallet.UnstoppableDomains) {
         chain = Chain.UNSTOPPABLE;
@@ -168,32 +163,15 @@ export class DropWeb3 {
       );
     }
 
-    const {modal} = AppKitProvider.getInstance()
-                    .getModal()
-                    .setWallets(preferredWallet instanceof Array ? preferredWallet : undefined)
-                    .setFeatures(undefined)
-                    .build();
-
-
-    if (!modal) {
-      throw new ModalNotFoundException();
-    }
-
-
-
-    const provider = (this.chainMapping[chain][network] as IChainProvider)
+    return (this.chainMapping[chain][network] as IChainProvider)
       ?.setAddress(toEthAddress(userAddress) || toEthAddress(''))
       .setModal(modalInterface || new defaultModal())
-      .setWallet(preferredWallet instanceof Array ? ChainWallet.Metamask : preferredWallet as ChainWallet)
+      .setWallet(preferredWallet)
       .setAxiosInstance(this.axiosInstance)
       .setNFTContractAddress(nftContractAddress || '')
-      .setShopContractAddress(shopContractAddress || '')
-      .setWalletModal(modal);
-    
-    return provider;
+      .setShopContractAddress(shopContractAddress || '');
   }
 
-  // PANIC: TODO: change this later
   async getWalletInfo() {
     try {
       const ethereum = (window as any).ethereum;
@@ -249,8 +227,8 @@ export class DropWeb3 {
       // Request the user to sign the message
       let signature;
       try {
-        const provider = new ethers.BrowserProvider(ethereum);
-        const signer = await provider.getSigner();
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
         signature = await signer.signMessage(message);
       } catch (error: any) {
         console.error(error);

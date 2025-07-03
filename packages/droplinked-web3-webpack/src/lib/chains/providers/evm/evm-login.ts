@@ -10,7 +10,6 @@ import {
 import { getNonce } from './evm.helpers';
 import { ILoginResult } from '../../dto/interfaces/login-result.interface';
 import { KyInstance } from 'ky';
-import { BrowserProvider } from 'ethers';
 
 const chainNames = {
   [Chain.BINANCE]: {
@@ -193,20 +192,18 @@ export const isCoinBaseInstalled = (): boolean => {
   const { ethereum } = window as any;
   return Boolean(
     ethereum &&
-    ethereum.providers?.some((provider: any) => provider.isCoinbaseWallet)
+      ethereum.providers?.some((provider: any) => provider.isCoinbaseWallet)
   );
 };
 
 // Utility: Get connected accounts
-export async function getAccounts(ethereum: BrowserProvider): Promise<string[]> {
+export async function getAccounts(ethereum: any): Promise<string[]> {
   try {
-    // console.log({ ethereum });
-    // const accounts = await ethereum.request({ method: 'eth_accounts' });
-    // if (!accounts || accounts.length === 0) {
-    //   return [];
-    // }
-    // return accounts;
-    return (await ethereum.listAccounts()).map((item) => { return item.address });
+    const accounts = await ethereum.request({ method: 'eth_accounts' });
+    if (!accounts || accounts.length === 0) {
+      return [];
+    }
+    return accounts;
   } catch (error: any) {
     throw new WalletError(`Failed to retrieve accounts: ${error}`);
   }
@@ -250,12 +247,12 @@ export async function isWalletConnected(ethereum: any): Promise<boolean> {
 
 // Check if the chain is correct
 export async function isChainCorrect(
-  ethereum: BrowserProvider,
+  ethereum: any,
   chain: Chain,
   network: Network
 ): Promise<boolean> {
   try {
-    const chainId = await ethereum.send('eth_chainId', []);
+    const chainId = await ethereum.request({ method: 'eth_chainId' });
     return (
       String(chainId).toLowerCase() ===
       (chainNames as any)[chain][network].chainId.toLowerCase()
@@ -268,15 +265,15 @@ export async function isChainCorrect(
 
 // Switch to the correct chain
 export async function changeChain(
-  ethereum: BrowserProvider,
+  ethereum: any,
   chain: Chain,
   network: Network
 ) {
   try {
-    await ethereum.send(
-      'wallet_switchEthereumChain',
-      [{ chainId: (chainNames as any)[chain][network].chainId }],
-    );
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: (chainNames as any)[chain][network].chainId }],
+    });
   } catch (error: any) {
     console.error(`Failed to switch chain: ${error.message}`);
     throw new ChainSwitchException();
@@ -284,29 +281,29 @@ export async function changeChain(
 }
 
 // Request account access
-// async function requestAccounts(ethereum: any) {
-//   try {
-//     return await ethereum.request({ method: 'eth_requestAccounts' });
-//   } catch (e) {
-//     console.error(e);
-//     throw new UserDeniedException();
-//   }
-// }
+async function requestAccounts(ethereum: any) {
+  try {
+    return await ethereum.request({ method: 'eth_requestAccounts' });
+  } catch (e) {
+    console.error(e);
+    throw new UserDeniedException();
+  }
+}
 
 export async function getBalance(
-  provider: BrowserProvider,
+  provider: any,
   address: string
 ): Promise<number> {
   return Number(
-    await provider.provider.send(
-      'eth_getBalance',
-      [address, 'latest'],
-    )
+    await provider.provider.request({
+      method: 'eth_getBalance',
+      params: [address, 'latest'],
+    })
   );
 }
 
 export async function addChain(
-  provider: BrowserProvider,
+  provider: any,
   chain: Chain,
   network: Network,
   modalInterface: ModalInterface
@@ -318,16 +315,16 @@ export async function addChain(
       throw new WalletNotFoundException();
     }
 
-    // if (!(await isWalletConnected(ethereum))) {
-    //   modalInterface.waiting('Requesting account access...');
-    //   await requestAccounts(ethereum);
-    // }
+    if (!(await isWalletConnected(ethereum))) {
+      modalInterface.waiting('Requesting account access...');
+      await requestAccounts(ethereum);
+    }
 
     // Optionally add the chain
     const chainDetails = (chainNames as any)[chain][network];
-    await ethereum.send(
-      'wallet_addEthereumChain',
-      [
+    await ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [
         {
           chainName: chainDetails.chainName,
           chainId: chainDetails.chainId,
@@ -335,7 +332,7 @@ export async function addChain(
           rpcUrls: chainDetails.rpcUrls,
         },
       ],
-    );
+    });
   } catch (err) {
     console.warn(
       'Chain already added or error occurred while adding chain:',
@@ -345,7 +342,7 @@ export async function addChain(
 }
 
 export async function evmLogin(
-  provider: BrowserProvider,
+  provider: any,
   chain: Chain,
   network: Network,
   modalInterface: ModalInterface,
@@ -360,34 +357,34 @@ export async function evmLogin(
       throw new WalletNotFoundException();
     }
 
-    // if (!(await isWalletConnected(ethereum))) {
-    //   modalInterface.waiting('Requesting account access...');
-    //   await requestAccounts(ethereum);
-    // }
+    if (!(await isWalletConnected(ethereum))) {
+      modalInterface.waiting('Requesting account access...');
+      await requestAccounts(ethereum);
+    }
 
     const address = (await getAccounts(ethereum))[0];
 
     // Optionally add the chain
-    // const chainDetails = (chainNames as any)[chain][network];
-    // try {
-    //   modalInterface.waiting('Adding chain...');
-    //   await ethereum.send(
-    //     'wallet_addEthereumChain',
-    //     [
-    //       {
-    //         chainName: chainDetails.chainName,
-    //         chainId: chainDetails.chainId,
-    //         nativeCurrency: chainDetails.nativeCurrency,
-    //         rpcUrls: chainDetails.rpcUrls,
-    //       },
-    //     ],
-    //   );
-    // } catch (err) {
-    //   console.warn(
-    //     'Chain already added or error occurred while adding chain:',
-    //     err
-    //   );
-    // }
+    const chainDetails = (chainNames as any)[chain][network];
+    try {
+      modalInterface.waiting('Adding chain...');
+      await ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [
+          {
+            chainName: chainDetails.chainName,
+            chainId: chainDetails.chainId,
+            nativeCurrency: chainDetails.nativeCurrency,
+            rpcUrls: chainDetails.rpcUrls,
+          },
+        ],
+      });
+    } catch (err) {
+      console.warn(
+        'Chain already added or error occurred while adding chain:',
+        err
+      );
+    }
 
     // Switch to the correct chain
     // modalInterface.waiting('Switching to the correct chain...');
@@ -414,7 +411,7 @@ export async function evmLogin(
     // Get the current date and time for transparency
     const currentDate = new Date().toLocaleString();
     const message = `Welcome to Droplinked! Please sign this message to verify your ownership over your wallet and log in. - Nonce: ${nonce} - Date: ${currentDate}`;
-    const signer = await provider.getSigner();
+    const signer = provider.getSigner();
 
     const signature = await signer.signMessage(message);
 

@@ -9,14 +9,13 @@ import {
 } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
-import { isAddress } from 'ethers';
+import { isAddress } from 'ethers/lib/utils';
 
 import {
   InsufficientBalanceException,
   InsufficientTokenBalanceException,
   InvalidParametersException,
   ModalInterface,
-  toEthAddress,
   Unauthorized,
   UserDeniedException,
 } from '../../../web3';
@@ -55,25 +54,26 @@ async function handleCustomTokenApproval(
 
     console.log({ signerAddress, customTokenContract });
 
-    const userTokenBalance: bigint = await customTokenContract['balanceOf'](
+    const userTokenBalance = await customTokenContract['balanceOf'](
       signerAddress
     );
 
     modalInterface.waiting('Calculating total sum...');
-    const totalSum = data.tbdValues.reduce<bigint>(
-      (total, value) => total + BigInt(value),
-      BigInt(0)
+    const totalSum = data.tbdValues.reduce(
+      (total, value) =>
+        (total as ethers.BigNumber).add(ethers.BigNumber.from(value)),
+      ethers.BigNumber.from(0)
     );
 
     modalInterface.waiting('Checking token balance...');
-    if (userTokenBalance < (totalSum)) {
+    if (userTokenBalance.lt(totalSum)) {
       throw new InsufficientTokenBalanceException();
     }
 
     modalInterface.waiting('Approving tokens...');
     const approveTx = await customTokenContract['approve'](
       contractAddress,
-      ethers.MaxUint256
+      ethers.constants.MaxUint256
     );
     modalInterface.waiting('Waiting for approval confirmation...');
     await approveTx.wait();
@@ -102,17 +102,13 @@ export const droplinked_payment = async function (
     throw new InvalidParametersException('Invalid receiver address found');
   }
 
-  if (
-    !data.tbdValues.every(value => BigInt(value) > BigInt(0))
-  ) {
-    throw new InvalidParametersException(
-      'tbdValues must be positive numbers'
-    );
+  if (!data.tbdValues.every((value) => ethers.BigNumber.from(value).gt(0))) {
+    throw new InvalidParametersException('tbdValues must be positive numbers');
   }
 
   data.chainLinkRoundId = data.chainLinkRoundId || '0';
 
-  const signer = await provider.getSigner();
+  const signer = provider.getSigner();
 
   modalInterface.waiting('Got signer...');
 
@@ -142,7 +138,7 @@ export const droplinked_payment = async function (
 
   const signerAddress = (await signer.getAddress()).toLowerCase();
   if (signerAddress !== address.toLowerCase()) {
-    throw new Unauthorized('droplinked_payment', toEthAddress(signerAddress), address);
+    throw new Unauthorized('droplinked_payment', signerAddress, address);
   }
 
   modalInterface.waiting('Initial checks done...');
@@ -211,14 +207,14 @@ export const droplinked_payment = async function (
     modalInterface.waiting('Performing static call...');
 
     try {
-      await contract['droplinkedPurchase'].staticCall(
+      await contract.callStatic['droplinkedPurchase'](
         data.tbdValues,
         data.tbdReceivers,
         data.tokenAddress,
         data.chainLinkRoundId,
         data.memo,
         {
-          value: isCustom ? BigInt(0) : data.totalPrice,
+          value: isCustom ? ethers.BigNumber.from(0) : data.totalPrice,
         }
       );
     } catch (error: any) {
@@ -237,16 +233,16 @@ export const droplinked_payment = async function (
 
     modalInterface.waiting('Calling estimate gas...');
 
-    let gasEstimation: bigint;
+    let gasEstimation: ethers.BigNumber;
     try {
-      gasEstimation = await contract['droplinkedPurchase'].estimateGas(
+      gasEstimation = await contract.estimateGas['droplinkedPurchase'](
         data.tbdValues,
         data.tbdReceivers,
         data.tokenAddress,
         data.chainLinkRoundId,
         data.memo,
         {
-          value: isCustom ? BigInt(0) : data.totalPrice,
+          value: isCustom ? ethers.BigNumber.from(0) : data.totalPrice,
         }
       );
     } catch (error: any) {
@@ -256,17 +252,17 @@ export const droplinked_payment = async function (
     }
 
     modalInterface.waiting(`gas estimation done: ${gasEstimation.toString()}`);
-    const gasLimit = (gasEstimation * BigInt(105)) / (BigInt(100));
+    const gasLimit = gasEstimation.mul(105).div(100);
 
     const baseValue = isCustom
-      ? BigInt(0)
-      : BigInt(data.totalPrice);
+      ? ethers.BigNumber.from(0)
+      : ethers.BigNumber.from(data.totalPrice);
 
     modalInterface.waiting(
       `Gas limit: ${gasLimit.toString()}, gas price: ${gasPrice.toString()}, base: ${baseValue.toString()}`
     );
 
-    let userBalance: bigint;
+    let userBalance: ethers.BigNumber;
     try {
       userBalance = await provider.getBalance(address);
     } catch (error: any) {
@@ -275,9 +271,9 @@ export const droplinked_payment = async function (
 
     modalInterface.waiting(`User balance: ${userBalance}`);
 
-    const totalCost = baseValue + (gasLimit * (gasPrice));
+    const totalCost = baseValue.add(gasLimit.mul(gasPrice));
 
-    if (userBalance < (totalCost)) {
+    if (userBalance.lt(totalCost)) {
       throw new InsufficientBalanceException();
     }
 
@@ -290,7 +286,7 @@ export const droplinked_payment = async function (
       data.memo,
       {
         gasLimit: gasLimit,
-        value: isCustom ? BigInt(0) : data.totalPrice,
+        value: isCustom ? ethers.BigNumber.from(0) : data.totalPrice,
       }
     );
 

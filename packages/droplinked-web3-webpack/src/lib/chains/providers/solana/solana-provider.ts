@@ -29,26 +29,10 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { encodeBase58, decodeBase58 } from 'ethers';
-import { ethers } from 'ethers';
+import { base58 } from 'ethers/lib/utils';
+import { BigNumber, ethers } from 'ethers';
 import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
 import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
-import { AppKit } from '@reown/appkit';
-
-/**
- * Interface defining the shape of a Solana wallet provider
- * Extends to include both wallet provider methods and properties needed by the Signer interface
- */
-interface SolanaWalletProvider {
-  isPhantom?: boolean;
-  publicKey: PublicKey;
-  connect: () => Promise<{ publicKey: PublicKey }>;
-  disconnect: () => Promise<void>;
-  signTransaction: (transaction: Transaction) => Promise<Transaction>;
-  signMessage: (message: Uint8Array, encoding: string) => Promise<{ signature: Uint8Array }>;
-  // The following are needed to satisfy the Signer interface requirements
-  secretKey?: Uint8Array;
-}
 
 /**
  * SolanaProvider implements the IChainProvider interface for Solana blockchain
@@ -58,29 +42,24 @@ interface SolanaWalletProvider {
 export class SolanaProvider implements IChainProvider {
   /** HTTP client instance for API calls */
   axiosInstance: KyInstance;
-
+  
   /** Network type (MAINNET or TESTNET) */
   network: Network;
-
+  
   /** Connected wallet address */
   address: string;
-
+  
   /** Interface for modal dialogues and user interactions */
   modalInterface: ModalInterface = new defaultModal();
-
+  
   /** Type of wallet to use, defaults to Phantom */
   wallet: ChainWallet = ChainWallet.Phantom;
-
+  
   /** Optional NFT contract address */
   nftContractAddress?: EthAddress;
-
+  
   /** Optional shop contract address */
   shopContractAddress?: EthAddress;
-
-  modal?: AppKit;
-
-  private activeWalletOperation: { reject?: (reason: Error) => void } = {};
-
 
   /**
    * Creates a new SolanaProvider instance
@@ -96,10 +75,6 @@ export class SolanaProvider implements IChainProvider {
           : 'https://apiv3dev.droplinked.com',
     });
     this.address = '';
-  }
-  setWalletModal(modal: AppKit) {
-    this.modal = modal;
-    return this;
   }
 
   /**
@@ -168,30 +143,21 @@ export class SolanaProvider implements IChainProvider {
    * @throws {WalletNotFoundException} If Phantom wallet is not installed
    */
   async walletLogin(): Promise<ILoginResult> {
-    // Get Solana provider using our new method
-    const provider = await this.getSolanaProvider();
-    
-    // Connect to the provider
+    if (!(window as any).solana || !(window as any).solana.isPhantom) {
+      window.open('https://phantom.app/', '_blank');
+      throw new WalletNotFoundException();
+    }
+    const provider = (window as any).solana;
     const resp = await provider.connect();
-    const publicKey = resp.publicKey.toString();
-    
-    // Get nonce for signing
-    const nonce = await getNonce(publicKey, this.axiosInstance);
+    const nonce = await getNonce(resp.publicKey.toString(), this.axiosInstance);
     const currentDate = new Date().toLocaleString();
-    
-    // Create message to sign
     const message = `Welcome to Droplinked! Please sign this message to verify your ownership over your wallet and log in. - Nonce: ${nonce} - Date: ${currentDate}`;
     const encodedMessage = new TextEncoder().encode(message);
-    
-    // Sign the message
-    const signedMessage = encodeBase58(
+    const signedMessage = base58.encode(
       (await provider.signMessage(encodedMessage, 'utf8')).signature
     );
-    
-    // Set address and return login result
-    this.address = publicKey;
     return {
-      address: publicKey,
+      address: resp.publicKey.toString(),
       signature: signedMessage,
       nonce: nonce,
       date: currentDate,
@@ -265,7 +231,7 @@ export class SolanaProvider implements IChainProvider {
   ): Promise<string> {
     throw new Error('Method not implemented.');
   }
-
+  
   /**
    * Helper function to create a delay (sleep) for a specified time
    * @param ms - Time in milliseconds to delay execution
@@ -309,7 +275,7 @@ export class SolanaProvider implements IChainProvider {
     transactionSignature: string
   ): Promise<void> {
     const latestBlockHash = await connection.getLatestBlockhash();
-
+    
     try {
       await connection.confirmTransaction({
         blockhash: latestBlockHash.blockhash,
@@ -332,7 +298,7 @@ export class SolanaProvider implements IChainProvider {
         console.warn('Error checking transaction status:', error);
       }
     }
-
+    
     // Additional delay to ensure transaction is fully processed
     await this.delay(1000);
   }
@@ -359,21 +325,22 @@ export class SolanaProvider implements IChainProvider {
       );
       const { tbdReceivers, tbdValues, totalPrice, tokenAddress } = paymentData;
 
-      // Get Solana provider using our new method
-      const provider = await this.getSolanaProvider();
-      
-      // Connect to provider and establish Solana connection
-      const resp = await provider.connect();
-      const senderPublicKey = resp.publicKey;
-      const connection = this.getConnection();
+      // Verify Phantom wallet is available
+      this.checkPhantomWallet();
 
-      // Initialize token instance - use as-any assertion for the provider since Token expects a specific type
+      // Connect to Phantom and establish Solana connection
+      const provider = (window as any).solana;
+      await provider.connect();
+      const senderPublicKey = provider.publicKey;
+      const connection = this.getConnection();
+      
+      // Initialize token instance
       const mintPublicKey = new PublicKey(tokenAddress as string);
       const mintToken = new Token(
         connection,
         mintPublicKey,
         TOKEN_PROGRAM_ID,
-        provider as any
+        provider
       );
 
       const decimals = (await mintToken.getMintInfo()).decimals;
@@ -385,7 +352,7 @@ export class SolanaProvider implements IChainProvider {
 
       // Get associated token accounts for all recipients
       const associatedDestinationTokenAddrs = await Promise.all(
-        recipientPublicKeys.map(async (recipientPublicKey) =>
+        recipientPublicKeys.map(async (recipientPublicKey) => 
           Token.getAssociatedTokenAddress(
             mintToken.associatedProgramId,
             mintToken.programId,
@@ -446,19 +413,12 @@ export class SolanaProvider implements IChainProvider {
         );
       }
 
-      function bigPow(base: bigint, exp: number): bigint {
-        let result = BigInt(1);
-        for (let i = 0; i < exp; i++) {
-          result *= base;
-        }
-        return result;
-      }
-
       // Add transfer instructions for each recipient
       for (let i = 0; i < associatedDestinationTokenAddrs.length; i++) {
-        const divisor = bigPow(BigInt(10), 18 - decimals);
-        const transferAmount = Number(BigInt(tbdValues[i]) / divisor);
-
+        const transferAmount = ethers.BigNumber.from(tbdValues[i])
+          .div(ethers.BigNumber.from(10).pow(18-decimals))
+          .toNumber();
+          
         instructions.push(
           Token.createTransferInstruction(
             TOKEN_PROGRAM_ID,
@@ -475,15 +435,15 @@ export class SolanaProvider implements IChainProvider {
       const transaction = new Transaction().add(...instructions);
       transaction.feePayer = senderPublicKey;
       transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
+      
       const signedTransaction = await provider.signTransaction(transaction);
-
+      
       // Send transaction and wait for confirmation
       const transactionSignature = await connection.sendRawTransaction(
         signedTransaction.serialize(),
         { skipPreflight: true }
       );
-
+      
       await this.waitForTransactionConfirmation(connection, transactionSignature);
 
       return {
@@ -516,22 +476,23 @@ export class SolanaProvider implements IChainProvider {
     tokenAddress: string
   ): Promise<string> {
     try {
-      // Get Solana provider using our new method
-      const provider = await this.getSolanaProvider();
-      
-      // Connect to provider and establish Solana connection
-      const resp = await provider.connect();
-      const senderPublicKey = resp.publicKey;
-      const connection = this.getConnection();
+      // Verify Phantom wallet is available
+      this.checkPhantomWallet();
 
-      // Initialize token details - use as-any assertion for the provider
+      // Connect to Phantom and establish Solana connection
+      const provider = (window as any).solana;
+      await provider.connect();
+      const senderPublicKey = provider.publicKey;
+      const connection = this.getConnection();
+      
+      // Initialize token details
       const mintPublicKey = new PublicKey(tokenAddress);
       const recipientPublicKey = new PublicKey(receiver);
       const mintToken = new Token(
         connection,
         mintPublicKey,
         TOKEN_PROGRAM_ID,
-        provider as any
+        provider
       );
 
       const decimals = (await mintToken.getMintInfo()).decimals;
@@ -543,7 +504,7 @@ export class SolanaProvider implements IChainProvider {
         mintPublicKey,
         recipientPublicKey
       );
-
+      
       const associatedFromTokenAddr = await Token.getAssociatedTokenAddress(
         mintToken.associatedProgramId,
         mintToken.programId,
@@ -554,7 +515,7 @@ export class SolanaProvider implements IChainProvider {
       // Check if accounts exist
       const fromTokenAccount = await connection.getAccountInfo(associatedFromTokenAddr);
       const receiverAccount = await connection.getAccountInfo(associatedDestinationTokenAddr);
-
+      
       const instructions: TransactionInstruction[] = [];
 
       // Create recipient account if it doesn't exist
@@ -587,7 +548,7 @@ export class SolanaProvider implements IChainProvider {
 
       // Calculate transfer amount (with proper decimal handling)
       const transferAmount = Math.floor(amount * 1e9);
-
+      
       // Add transfer instruction
       instructions.push(
         Token.createTransferInstruction(
@@ -604,15 +565,15 @@ export class SolanaProvider implements IChainProvider {
       const transaction = new Transaction().add(...instructions);
       transaction.feePayer = senderPublicKey;
       transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
+      
       const signedTransaction = await provider.signTransaction(transaction);
-
+      
       // Send transaction and wait for confirmation
       const transactionSignature = await connection.sendRawTransaction(
         signedTransaction.serialize(),
         { skipPreflight: true }
       );
-
+      
       await this.waitForTransactionConfirmation(connection, transactionSignature);
 
       return transactionSignature;
@@ -691,264 +652,5 @@ export class SolanaProvider implements IChainProvider {
    */
   getPaymentData(cartID: string, paymentType: string, token: string) {
     throw new Error('Method not implemented.');
-  }
-
-  /**
-   * Disconnects the currently connected wallet
-   * 
-   * @returns Promise resolving to true if disconnection was successful, false otherwise
-   */
-  async disconnect(): Promise<boolean> {
-    try {
-      if (this.modal) {
-        // Use AppKit to disconnect
-        const existing = this.modal?.getProvider?.('solana');
-        if (existing) {
-          this.modalInterface.waiting('Disconnecting Solana wallet...');
-          await this.modal?.disconnect('solana');
-          this.address = '';
-          this.modalInterface.success('Wallet disconnected successfully');
-          return true;
-        } else {
-          this.modalInterface.success('No wallet connection to disconnect');
-          return true;
-        }
-      } else if ((window as any).solana && (window as any).solana.isPhantom) {
-        // Fall back to direct Phantom disconnect if AppKit not available
-        this.modalInterface.waiting('Disconnecting Phantom wallet...');
-        await (window as any).solana.disconnect();
-        this.address = '';
-        this.modalInterface.success('Wallet disconnected successfully');
-        return true;
-      } else {
-        this.modalInterface.success('No wallet connection to disconnect');
-        return true;
-      }
-    } catch (err) {
-      console.error('Error disconnecting wallet:', err);
-      this.modalInterface.error('Failed to disconnect wallet');
-      return false;
-    }
-  }
-
-  /**
-   * Gets or establishes a connection with a Solana wallet
-   * Uses official AppKit methods to track state and handle cancellation when available,
-   * or falls back to window.solana (Phantom) when not
-   * 
-   * @returns Promise that resolves to a Solana wallet provider
-   * @throws Error if wallet connection fails
-   */
-  async getSolanaProvider(): Promise<SolanaWalletProvider> {
-    try {
-      // Check for existing provider first
-      const existing = this.modal?.getProvider?.('solana');
-      if (existing && typeof existing === 'object' && existing !== null) {
-        try {
-          if ('isPhantom' in existing || 'connect' in existing) {
-            // Type assertion to tell TypeScript this object has a connect method
-            const phantomProvider = existing as { connect: () => Promise<{ publicKey: any }> };
-            const accounts = await phantomProvider.connect();
-            if (accounts && accounts.publicKey) {
-              return existing as unknown as SolanaWalletProvider;
-            }
-          }
-        } catch (err) {
-          console.log("Error with existing provider, will reconnect:", err);
-        }
-      }
-
-      // Disconnect any existing connection
-      let provider = this.modal?.getProvider?.('solana');
-      while (provider) {
-        try {
-          await this.modal?.disconnect('solana');
-        } catch (err) {
-          console.log("Error disconnecting:", err);
-        }
-        provider = this.modal?.getProvider?.('solana');
-      }
-
-      // If modal is not available, fall back to window.solana
-      if (!this.modal) {
-        // Check if Phantom is available in the browser
-        if (!(window as any).solana || !(window as any).solana.isPhantom) {
-          window.open('https://phantom.app/', '_blank');
-          throw new WalletNotFoundException();
-        }
-        return (window as any).solana as SolanaWalletProvider;
-      }
-
-      console.log("Opening wallet connection modal...");
-
-      return new Promise<SolanaWalletProvider>((resolve, reject) => {
-        // Track if we've already handled this connection attempt
-        let isHandled = false;
-        // Track if a provider has been detected (critical for avoiding race conditions)
-        let providerDetected = false;
-        // Track whether the modal has been fully opened
-        let modalFullyOpened = false;
-
-        // Store reject function for external cancellation
-        this.activeWalletOperation.reject = (reason) => {
-          if (!isHandled) {
-            isHandled = true;
-
-            // Clean up subscriptions
-            if (typeof providerUnsubscribe === 'function') {
-              providerUnsubscribe();
-            }
-            if (typeof stateUnsubscribe === 'function') {
-              stateUnsubscribe();
-            }
-
-            reject(reason instanceof Error ? reason : new Error(String(reason)));
-          }
-        };
-
-        // Track provider changes (most important for detecting successful connection)
-        const providerUnsubscribe = this.modal?.subscribeProviders?.((state: any) => {
-          const provider = state["solana"];
-
-          if (provider && !isHandled) {
-            // Mark that we detected a provider IMMEDIATELY
-            // This prevents race conditions with modal closure
-            providerDetected = true;
-            console.log("Provider detected, checking connection...");
-
-            (async () => {
-              try {
-                // Verify provider is valid by checking connection
-                // Type assertion for the Solana provider
-                const phantomProvider = provider as { connect: () => Promise<{ publicKey: any }> };
-                const resp = await phantomProvider.connect();
-
-                if (resp && resp.publicKey) {
-                  console.log("Provider connected successfully:", resp.publicKey.toString());
-
-                  // Clean up subscriptions
-                  if (typeof providerUnsubscribe === 'function') {
-                    providerUnsubscribe();
-                  }
-                  if (typeof stateUnsubscribe === 'function') {
-                    stateUnsubscribe();
-                  }
-
-                  isHandled = true;
-                  this.activeWalletOperation = {};
-
-                  resolve(provider as unknown as SolanaWalletProvider);
-                }
-              } catch (err) {
-                console.warn("Error validating provider:", err);
-                providerDetected = false; // Reset if validation fails
-              }
-            })();
-          }
-        });
-
-        // Track modal state to detect when it's closed by the user
-        const stateUnsubscribe = this.modal?.subscribeState?.((state) => {
-          const isInitialized = state.initialized === true;
-
-          // First detect when the modal is fully open
-          if (isInitialized && state.open === true && !modalFullyOpened) {
-            modalFullyOpened = true;
-            console.log("Modal is now fully open");
-          }
-
-          // Only treat closure as user cancellation if the modal was fully opened first
-          // This prevents false "user closed" detection during initial setup
-          if (isInitialized && state.open === false && modalFullyOpened && !isHandled) {
-            // CRITICAL: Check directly if a provider exists right now
-            // This is more reliable than waiting for the subscription
-            const currentProvider = this.modal?.getProvider?.('solana');
-            console.log("Modal closing, checking for provider:", !!currentProvider);
-
-            // Only treat as cancellation if no provider exists
-            if (!currentProvider && !providerDetected) {
-              console.log("Modal was closed without connecting");
-
-              // Clean up subscriptions
-              if (typeof providerUnsubscribe === 'function') {
-                providerUnsubscribe();
-              }
-              if (typeof stateUnsubscribe === 'function') {
-                stateUnsubscribe();
-              }
-
-              isHandled = true;
-              this.activeWalletOperation = {};
-
-              reject(new Error("Wallet connection canceled by user"));
-            } else if (currentProvider && !isHandled) {
-              // We have a provider but haven't processed it via subscription yet
-              // Let's handle it directly to avoid race conditions
-              console.log("Provider found during modal close, handling directly");
-
-              (async () => {
-                try {
-                  // Type assertion for the Solana provider
-                  const phantomProvider = currentProvider as { connect: () => Promise<{ publicKey: any }> };
-                  // Verify provider is valid by checking connection
-                  const resp = await phantomProvider.connect();
-
-                  if (resp && resp.publicKey) {
-                    console.log("Provider connected successfully (direct check):", resp.publicKey.toString());
-
-                    // Clean up subscriptions
-                    if (typeof providerUnsubscribe === 'function') {
-                      providerUnsubscribe();
-                    }
-                    if (typeof stateUnsubscribe === 'function') {
-                      stateUnsubscribe();
-                    }
-
-                    isHandled = true;
-                    this.activeWalletOperation = {};
-
-                    resolve(currentProvider as unknown as SolanaWalletProvider);
-                  }
-                } catch (err) {
-                  console.warn("Error validating provider during modal close:", err);
-                  // If validation fails, let the operation continue
-                  // The provider subscription might still handle it
-                }
-              })();
-            }
-          }
-        });
-
-        // Add 250ms delay before opening the modal
-        // This helps avoid initialization race conditions
-        setTimeout(() => {
-          // Open the modal
-          if (this.modal && this.modal.open && !isHandled) {
-            this.modal.open({ namespace: 'solana', view: 'AllWallets' })
-              .catch(err => {
-                if (!isHandled) {
-                  // Clean up subscriptions
-                  if (typeof providerUnsubscribe === 'function') {
-                    providerUnsubscribe();
-                  }
-                  if (typeof stateUnsubscribe === 'function') {
-                    stateUnsubscribe();
-                  }
-
-                  isHandled = true;
-                  this.activeWalletOperation = {};
-
-                  reject(new Error(`Failed to open wallet modal: ${err.message}`));
-                }
-              });
-          }
-        }, 250);
-      });
-    } catch (error) {
-      console.error("Wallet connection error:", error);
-      this.activeWalletOperation = {};
-
-      throw error instanceof Error ? error : new Error(String(error));
-    }
   }
 }

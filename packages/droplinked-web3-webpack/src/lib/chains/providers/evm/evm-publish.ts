@@ -12,7 +12,7 @@ import { getGasPrice } from '../../dto/constants/chain-constants';
 import { ModalInterface } from '../../dto/interfaces/modal-interface.interface';
 import { Chain } from '../../dto/chains';
 
-export const EVMPublishRequest = async function ({
+export const EVMPublishRequest = async function({
   provider,
   chain,
   address,
@@ -41,10 +41,11 @@ export const EVMPublishRequest = async function ({
     signer
   );
   try {
-    await contract['requestAffiliate'].staticCall(productId);
+    await contract.callStatic['requestAffiliate'](productId);
     const gasEstimation = (
-      await contract['requestAffiliate'].estimateGas(productId)
+      await contract.estimateGas['requestAffiliate'](productId)
     )
+      .toBigInt()
       .valueOf();
     modalInterface.waiting('Sending request...');
     const tx = await contract['requestAffiliate'](productId, {
@@ -79,7 +80,7 @@ export const EVMPublishRequest = async function ({
       throw new Error('Transaction Rejected');
     }
     const err = contract.interface.parseError(e.data);
-    if (err !== null && err.name === 'AlreadyRequested') {
+    if (err.name === 'AlreadyRequested') {
       modalInterface.error('Request Already Sent!');
       throw new AlreadyRequested(productId, toEthAddress(address));
     }

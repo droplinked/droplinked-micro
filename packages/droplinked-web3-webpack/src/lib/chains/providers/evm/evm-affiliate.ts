@@ -12,15 +12,15 @@ import {
 import { ModalInterface } from '../../dto/interfaces/modal-interface.interface';
 import { Chain } from '../../dto/chains';
 
-export const EVMApproveRequest = async function (
-  provider: ethers.BrowserProvider,
+export const EVMApproveRequest = async function(
+  provider: any,
   chain: Chain,
   address: EthAddress,
   requestId: Uint256,
   shopAddress: EthAddress,
   modalInterface: ModalInterface,
 ): Promise<string> {
-  const signer = await provider.getSigner();
+  const signer = provider.getSigner();
   if (
     (await signer.getAddress()).toLocaleLowerCase() !==
     address.toLocaleLowerCase()
@@ -34,10 +34,11 @@ export const EVMApproveRequest = async function (
     signer
   );
   try {
-    await contract['approveRequest'].staticCall(requestId);
+    await contract.callStatic['approveRequest'](requestId);
     const gasEstimation = (
-      await contract['approveRequest'].estimateGas(requestId)
+      await contract.estimateGas['approveRequest'](requestId)
     )
+      .toBigInt()
       .valueOf();
     modalInterface.waiting('Approving...');
     const tx = await contract['approveRequest'](requestId, {
@@ -51,11 +52,11 @@ export const EVMApproveRequest = async function (
       throw new Error('Transaction Rejected');
     }
     const err = contract.interface.parseError(e.data);
-    if (err && err.name === 'RequestAlreadyConfirmed') {
+    if (err.name === 'RequestAlreadyConfirmed') {
       throw new RequestAlreadyConfirmed(requestId, shopAddress);
-    } else if (err && err.name === 'RequestDoesntExist') {
+    } else if (err.name === 'RequestDoesntExist') {
       throw new RequestDoesntExist(requestId, shopAddress);
-    } else if (err && err.name === 'OwnableUnauthorizedAccount') {
+    } else if (err.name === 'OwnableUnauthorizedAccount') {
       throw new Unauthorized('Approve', address, shopAddress);
     } else {
       throw e;
@@ -63,15 +64,15 @@ export const EVMApproveRequest = async function (
   }
 };
 
-export const EVMDisapproveRequest = async function (
-  provider: ethers.BrowserProvider,
+export const EVMDisapproveRequest = async function(
+  provider: any,
   chain: Chain,
   address: EthAddress,
   requestId: Uint256,
   shopAddress: EthAddress,
   modalInterface: ModalInterface,
 ) {
-  const signer = await provider.getSigner();
+  const signer = provider.getSigner();
   if (
     (await signer.getAddress()).toLocaleLowerCase() !==
     address.toLocaleLowerCase()
@@ -85,8 +86,9 @@ export const EVMDisapproveRequest = async function (
     signer
   );
   try {
-    await contract['disapprove'].staticCall(requestId);
-    const gasEstimation = (await contract['disapprove'].estimateGas(requestId))
+    await contract.callStatic['disapprove'](requestId);
+    const gasEstimation = (await contract.estimateGas['disapprove'](requestId))
+      .toBigInt()
       .valueOf();
     modalInterface.waiting('Disapproving...');
     const tx = await contract['disapprove'](requestId, {
@@ -100,11 +102,11 @@ export const EVMDisapproveRequest = async function (
       throw new Error('Transaction Rejected');
     }
     const err = contract.interface.parseError(e.data);
-    if (err && err.name === 'OwnableUnauthorizedAccount') {
+    if (err.name === 'OwnableUnauthorizedAccount') {
       throw new Unauthorized('Disapprove', address, shopAddress);
-    } else if (err && err.name === 'RequestDoesntExist') {
+    } else if (err.name === 'RequestDoesntExist') {
       throw new RequestDoesntExist(requestId, shopAddress);
-    } else if (err && err.name === 'RequestNotConfirmed') {
+    } else if (err.name === 'RequestNotConfirmed') {
       throw new RequestNotConfirmed(requestId, shopAddress);
     }
     throw e;

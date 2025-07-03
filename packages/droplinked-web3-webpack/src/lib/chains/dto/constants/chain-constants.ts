@@ -74,9 +74,9 @@ async function getShopByteCode(): Promise<string> {
 }
 
 async function getGasPrice(
-  provider: ethers.Provider
+  provider: ethers.providers.Web3Provider
 ): Promise<bigint> {
-  return ((await provider.getFeeData()).gasPrice) || BigInt(1e24);
+  return (await provider.getGasPrice()).toBigInt();
 }
 
 export { getShopByteCode, getGasPrice };

@@ -24,6 +24,4 @@ class defaultModal implements ModalInterface {
   }
 }
 
-
-
 export { ModalInterface, defaultModal };

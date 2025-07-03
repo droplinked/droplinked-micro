@@ -1,4 +1,4 @@
-import { ethers, toBigInt } from 'ethers';
+import { ethers } from 'ethers';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
 import { KyInstance } from 'ky';
 import { Chain, Network } from '../../../web3';
@@ -36,9 +36,6 @@ export async function getCartData(
       )
     ).json()) as any
   ).data;
-  const paymentData = result.paymentData as IChainPayment;
-  paymentData.tbdValues = paymentData.tbdValues.map(it => toBigInt((it as any).hex));
-  paymentData.totalPrice = toBigInt((paymentData.totalPrice as any).hex)
   return {
     paymentData: result.paymentData as IChainPayment,
     orderID: result.orderID,
@@ -78,24 +75,11 @@ export async function getNonce(
   ).data as number;
 }
 
-/**
- * Checks if the signer's address matches the expected address
- * If not, provides instructions for reconnecting with AppKit
- * 
- * @param signer - The ethers signer
- * @param address - The expected address
- * @throws Error if addresses don't match
- */
 export async function checkWallet(signer: ethers.Signer, address: string) {
-  const signerAddress = await signer.getAddress();
-
-  if (signerAddress.toLowerCase() !== address.toLowerCase()) {
-    console.log(`Address mismatch: Expected ${address}, found ${signerAddress}`);
-
-    // With AppKit, account switching should be handled through the wallet modal UI
-    throw new Error(
-      `Wrong account connected. You need to use account ${address} but you're connected with ${signerAddress}. ` +
-      `Please disconnect your wallet using the 'Disconnect' option and reconnect with the correct account.`
-    );
+  if (
+    (await signer.getAddress()).toLocaleLowerCase() !==
+    address.toLocaleLowerCase()
+  ) {
+    throw new Error('Address does not match signer address');
   }
 }
