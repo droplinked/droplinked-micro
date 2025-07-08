@@ -133,7 +133,7 @@ const chainNames = {
     },
     [Network.TESTNET]: {
       chainName: 'Linea',
-      chainId: '0xe704',
+      chainId: '0xe705',
       nativeCurrency: { name: 'ETH', decimals: 18, symbol: 'LineaETH' },
       rpcUrls: ['https://rpc.sepolia.linea.build'],
     },
@@ -192,7 +192,7 @@ export const isCoinBaseInstalled = (): boolean => {
   const { ethereum } = window as any;
   return Boolean(
     ethereum &&
-      ethereum.providers?.some((provider: any) => provider.isCoinbaseWallet)
+    ethereum.providers?.some((provider: any) => provider.isCoinbaseWallet)
   );
 };
 
