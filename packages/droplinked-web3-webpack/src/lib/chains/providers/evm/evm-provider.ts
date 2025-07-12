@@ -47,6 +47,7 @@ import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
 import { claimNFT } from './evm-claim-nfts';
 import { airdrop } from './evm-airdrop';
 import { TokenStandard } from '../../dto/interfaces/airdrop-token.interface';
+import { erc20ABI } from '../../dto/constants/chain-abis';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -407,22 +408,23 @@ export class EVMProvider implements IChainProvider {
   async paymentWithToken(
     receiver: string,
     amount: number,
-    tokenAddress: string
+    tokenAddress: string,
+    decimals = 18
   ): Promise<string> {
     await this.handleWallet(this.address);
     await this.handleChain();
-    const abi = getERC20TokenTransferABI();
+    const abi = erc20ABI;
     const provider = this.getWalletProvider().getSigner();
     const contract = new ethers.Contract(tokenAddress, abi, provider);
     try {
       await contract.callStatic['transfer'](
         receiver,
-        BigInt(Math.floor(amount * 1e6)) * BigInt(1e12)
+        BigInt(Math.floor(amount * 1e6)) * BigInt(10 ** (decimals - 6))
       );
       const estimation = (
         await contract.estimateGas['transfer'](
           receiver,
-          BigInt(Math.floor(amount * 1e6)) * BigInt(1e12)
+          BigInt(Math.floor(amount * 1e6)) * BigInt(10 ** (decimals - 6))
         )
       )
         .toBigInt()
@@ -430,7 +432,7 @@ export class EVMProvider implements IChainProvider {
       const gasPrice = (await getGasPrice(this.getWalletProvider())).valueOf();
       const tx = await contract['transfer'](
         receiver,
-        BigInt(Math.floor(amount * 1e6)) * BigInt(1e12),
+        BigInt(Math.floor(amount * 1e6)) * BigInt(10 ** (decimals - 6)),
         {
           gasPrice: (gasPrice * BigInt(105)) / BigInt(100),
           gasLimit: (estimation * BigInt(105)) / BigInt(100),
