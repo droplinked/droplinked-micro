@@ -1,26 +1,11 @@
 {
   "name": "droplinked-designer",
-  "private": false,
+  "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "dist/droplinked-designer.umd.js",
-  "module": "dist/droplinked-designer.es.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/droplinked-designer.es.js",
-      "require": "./dist/droplinked-designer.umd.js"
-    }
-  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc --project tsconfig.build.json --noEmitOnError false",
-    "build:lib": "vite build",
-    "build:types": "tsc --project tsconfig.build.json --noEmitOnError false",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "findDeadCodes": "ts-prune --ignore src/assets/icon"

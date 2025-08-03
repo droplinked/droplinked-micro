@@ -19,9 +19,7 @@ function FilterGroup({ title, children }: Props) {
                 <Text>{title}</Text>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col mt-4 gap-4 px-3 py-0">
-                <div>
-                    {children}
-                </div>
+                {children}
             </AccordionContent>
         </AccordionItem>
     )
