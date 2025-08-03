@@ -1,9 +1,0 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    {/* TODO: Remove the browser router when building */}
-  </StrictMode>,
-)

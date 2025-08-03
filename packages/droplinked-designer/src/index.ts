@@ -8,6 +8,7 @@ import { productsCategory, productsComponents } from "configured-components/prod
 import { textCategoryConfig, textComponents } from "configured-components/text";
 import { Config } from "puck-editor";
 
+export { default as Editor } from "./Editor";
 export * from "puck-editor";
 export type { Config } from "puck-editor";
 
@@ -38,4 +39,7 @@ export const EditorMainConfig: Config = {
         ...textComponents,
         ...layoutComponents,
         ...productsComponents,
- 
+        ...blogPostsComponents,
+        ...multiColumnComponents,
+    }
+};
