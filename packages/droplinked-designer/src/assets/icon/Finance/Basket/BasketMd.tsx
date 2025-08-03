@@ -1,0 +1,9 @@
+// Generated from SVG to React Component
+import React, { SVGProps } from "react";
+
+export const BasketMd = ({ color = "black", ...props }: SVGProps<SVGSVGElement>) => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <path d="M16.6667 8.33325L15.4287 14.5229C15.276 15.2865 15.1997 15.6683 15.0003 15.9539C14.8245 16.2058 14.5825 16.4041 14.3011 16.5271C13.9819 16.6666 13.5926 16.6666 12.8138 16.6666H7.18614C6.40742 16.6666 6.01805 16.6666 5.69891 16.5271C5.41747 16.4041 5.1755 16.2058 4.9997 15.9539C4.80034 15.6683 4.72398 15.2865 4.57126 14.5229L3.33333 8.33325M16.6667 8.33325H15M16.6667 8.33325H17.5M3.33333 8.33325H2.5M3.33333 8.33325H5M15 8.33325H5M15 8.33325L12.5 3.33325M5 8.33325L7.5 3.33325M7.5 10.8333V13.3333M10 10.8333V13.3333M12.5 10.8333V13.3333" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+
+);
