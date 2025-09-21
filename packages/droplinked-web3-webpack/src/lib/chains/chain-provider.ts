@@ -28,8 +28,8 @@ export class DropWeb3 {
         workingNetwork === Network.TESTNET
           ? 'https://apiv3dev.droplinked.com'
           : workingNetwork === Network.MAINNET
-          ? 'https://apiv3.droplinked.com'
-          : 'http://127.0.0.1',
+            ? 'https://apiv3.droplinked.com'
+            : 'http://127.0.0.1',
     });
     this.network = workingNetwork;
   }
@@ -126,7 +126,7 @@ export class DropWeb3 {
     let shopContractAddress = '';
     let chain: Chain = Chain.ETH;
 
-    if (config.method === Web3Actions.RECORD_AFFILIATE) {
+    if (config.method === Web3Actions.RECORD) {
       userAddress = config.userAddress;
       nftContractAddress = config.nftContractAddress;
       shopContractAddress = config.shopContractAddress;

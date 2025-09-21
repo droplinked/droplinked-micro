@@ -1,15 +1,16 @@
 {
   "name": "droplinked-web3",
-  "version": "4.0.2",
+  "version": "5.0.0",
   "dependencies": {
     "ethers": "^5.7.2",
     "ky": "^1.7.2",
-    "@solana/spl-token": "0.1.8",
+    "@solana/spl-token": "0.4.14",
     "@solana/web3.js": "1.88.0",
     "@coral-xyz/anchor": "0.27.0",
     "decimal.js": "10.3.1",
     "rpc-websockets": "7.11.0",
     "@uauth/js": "^3.0.1",
+    "@wallet-standard/core": "^1.1.1",
     "vite-plugin-node-polyfills": "^0.22.0"
   },
   "main": "./index.js",

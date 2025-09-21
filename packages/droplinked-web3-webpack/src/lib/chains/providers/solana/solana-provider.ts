@@ -15,6 +15,8 @@ import {
   defaultModal,
   toEthAddress,
   IChainPayment,
+  AccountAccessDeniedException,
+  WalletError,
 } from '../../../web3';
 import { ChainWallet, Network } from '../../dto/chains';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
@@ -24,15 +26,21 @@ import { getCartData, getNonce } from '../evm/evm.helpers';
 import {
   clusterApiUrl,
   Connection,
+  LAMPORTS_PER_SOL,
   PublicKey,
   Transaction,
   TransactionInstruction,
 } from '@solana/web3.js';
-import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { createAssociatedTokenAccountIdempotentInstruction, createTransferCheckedInstruction, getAssociatedTokenAddressSync, getMint, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { base58 } from 'ethers/lib/utils';
 import { BigNumber, ethers } from 'ethers';
 import { ClaimNFTInputs } from '../../dto/interfaces/claim-nft-inputs';
 import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
+import { getWallets, Wallet } from '@wallet-standard/core'
+import { TransactionMessage } from '@solana/web3.js';
+import { VersionedTransaction } from '@solana/web3.js';
+import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+
 
 /**
  * SolanaProvider implements the IChainProvider interface for Solana blockchain
@@ -42,24 +50,26 @@ import { ITokenDetails } from '../../dto/interfaces/airdrop-token.interface';
 export class SolanaProvider implements IChainProvider {
   /** HTTP client instance for API calls */
   axiosInstance: KyInstance;
-  
+
   /** Network type (MAINNET or TESTNET) */
   network: Network;
-  
+
   /** Connected wallet address */
   address: string;
-  
+
   /** Interface for modal dialogues and user interactions */
   modalInterface: ModalInterface = new defaultModal();
-  
+
   /** Type of wallet to use, defaults to Phantom */
   wallet: ChainWallet = ChainWallet.Phantom;
-  
+
   /** Optional NFT contract address */
   nftContractAddress?: EthAddress;
-  
+
   /** Optional shop contract address */
   shopContractAddress?: EthAddress;
+
+  private connection: Connection;
 
   /**
    * Creates a new SolanaProvider instance
@@ -75,6 +85,7 @@ export class SolanaProvider implements IChainProvider {
           : 'https://apiv3dev.droplinked.com',
     });
     this.address = '';
+    this.connection = this.getConnection();
   }
 
   /**
@@ -100,6 +111,7 @@ export class SolanaProvider implements IChainProvider {
   ): Promise<{ transactionHash: string; cryptoAmount: any }> {
     throw new Error('Method not implemented.');
   }
+
 
   /**
    * Login using Unstoppable Domains
@@ -191,48 +203,6 @@ export class SolanaProvider implements IChainProvider {
   }
 
   /**
-   * Creates a publish request for a product to an affiliate shop
-   * 
-   * @param productId - ID of the product
-   * @param shopAddress - Address of the shop
-   * @returns Promise with affiliate request data
-   * @throws {Error} Method not implemented yet
-   */
-  publishRequest(
-    productId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<AffiliateRequestData> {
-    throw new Error('Method not implemented.');
-  }
-
-  /**
-   * Approves an affiliate request
-   * 
-   * @param requestId - ID of the request to approve
-   * @param shopAddress - Address of the shop
-   * @returns Promise with transaction hash
-   * @throws {Error} Method not implemented yet
-   */
-  approveRequest(requestId: Uint256, shopAddress: EthAddress): Promise<string> {
-    throw new Error('Method not implemented.');
-  }
-
-  /**
-   * Disapproves an affiliate request
-   * 
-   * @param requestId - ID of the request to disapprove
-   * @param shopAddress - Address of the shop
-   * @returns Promise with transaction hash
-   * @throws {Error} Method not implemented yet
-   */
-  disapproveRequest(
-    requestId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<string> {
-    throw new Error('Method not implemented.');
-  }
-  
-  /**
    * Helper function to create a delay (sleep) for a specified time
    * @param ms - Time in milliseconds to delay execution
    * @returns Promise that resolves after the specified delay
@@ -258,11 +228,14 @@ export class SolanaProvider implements IChainProvider {
    * @returns {Connection} Solana connection instance
    */
   private getConnection(): Connection {
-    return new Connection(
+    if (this.connection)
+      return this.connection;
+    this.connection = new Connection(
       this.network === Network.MAINNET
         ? 'https://multi-greatest-voice.solana-mainnet.quiknode.pro/908c9dd72998ac69ec2205d5cdb2eccd654dfd0b'
-        : clusterApiUrl('devnet')
+        : clusterApiUrl('devnet'), 'confirmed'
     );
+    return this.connection;
   }
 
   /**
@@ -275,7 +248,7 @@ export class SolanaProvider implements IChainProvider {
     transactionSignature: string
   ): Promise<void> {
     const latestBlockHash = await connection.getLatestBlockhash();
-    
+
     try {
       await connection.confirmTransaction({
         blockhash: latestBlockHash.blockhash,
@@ -298,9 +271,77 @@ export class SolanaProvider implements IChainProvider {
         console.warn('Error checking transaction status:', error);
       }
     }
-    
+
     // Additional delay to ensure transaction is fully processed
     await this.delay(1000);
+  }
+
+  async getMintProgramAndDecimals(conn: Connection, mint: PublicKey) {
+    const ai = await conn.getAccountInfo(mint, 'confirmed')
+    if (!ai) throw new Error('Mint account not found on chain')
+    const programId = ai.owner?.toBase58() === TOKEN_2022_PROGRAM_ID.toBase58()
+      ? TOKEN_2022_PROGRAM_ID
+      : TOKEN_PROGRAM_ID
+    const mintInfo = await getMint(conn, mint, undefined, programId)
+    return { programId, decimals: mintInfo.decimals }
+  }
+
+  detectChainId(url: string) {
+    const u = url.toLowerCase()
+    if (u.includes('devnet')) return 'solana:devnet'
+    if (u.includes('testnet')) return 'solana:testnet'
+    return 'solana:mainnet'
+  }
+
+  async connectWalletOrThrow() {
+    const selectedWallet = this.wallet;
+    const nameMapping = {
+      [ChainWallet.Metamask]: "MetaMask",
+      [ChainWallet.Phantom]: "Phantom",
+    };
+    if (selectedWallet !== ChainWallet.Metamask && selectedWallet !== ChainWallet.Phantom) {
+      throw new WalletNotFoundException();
+    }
+    const name = nameMapping[selectedWallet];
+
+    const discovered = getWallets().get()
+    const wallets = (discovered || []).filter(
+      w => w?.features?.['standard:connect'] &&
+        (w.features['solana:signAndSendTransaction'] || w.features['solana:signTransaction']) &&
+        w.name === name
+    )
+    if (!wallets.length) {
+      throw new Error('No compatible Solana wallet found (install a Wallet-Standard Solana wallet, e.g. MetaMask Solana Snap).')
+    }
+
+    // You can add your own chooser UI; here we pick the first for brevity
+    const wallet = wallets[0]
+    const { accounts } = await (wallet.features['standard:connect'] as any).connect()
+    if (!accounts?.length) throw new Error('No account returned by the wallet.')
+
+    const account = accounts[0]
+    // account.publicKey can be Uint8Array or similar; normalize into PublicKey
+    const pkBytes = account.publicKey || account.address || account.addressBytes
+    const publicKey = new PublicKey(pkBytes)
+
+    return { wallet, account, publicKey }
+  }
+
+
+  rescaleUnits(
+    amount: bigint,
+    fromDecimals: number,
+    toDecimals: number
+  ): bigint {
+    if (fromDecimals === toDecimals) return amount
+    const diff = (Math.abs(fromDecimals - toDecimals))
+    if (fromDecimals > toDecimals) {
+      // e.g. from 18 -> 6 : divide
+      return amount / (BigInt(10 ** diff))
+    } else {
+      // e.g. from 6 -> 18 : multiply
+      return amount * (BigInt(10 ** diff))
+    }
   }
 
   /**
@@ -315,149 +356,175 @@ export class SolanaProvider implements IChainProvider {
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
     try {
-      // Fetch cart data from backend
+
+      // 1) Fetch cart/meta from your backend (unchanged)
       const { paymentData, orderID } = await getCartData(
         data.cartID,
         data.paymentToken,
         data.paymentType,
         this.address,
         this.axiosInstance
-      );
-      const { tbdReceivers, tbdValues, totalPrice, tokenAddress } = paymentData;
+      )
+      const { tbdReceivers, tbdValues, totalPrice, tokenAddress } = paymentData
 
-      // Verify Phantom wallet is available
-      this.checkPhantomWallet();
+      // 2) Build Solana connection
+      const connection = this.getConnection()
+      const chainId = this.detectChainId((connection as any)._rpcEndpoint ?? '') // or track your rpcUrl elsewhere
 
-      // Connect to Phantom and establish Solana connection
-      const provider = (window as any).solana;
-      await provider.connect();
-      const senderPublicKey = provider.publicKey;
-      const connection = this.getConnection();
-      
-      // Initialize token instance
-      const mintPublicKey = new PublicKey(tokenAddress as string);
-      const mintToken = new Token(
-        connection,
+      // 3) Connect via Wallet Standard (MetaMask Solana Snap or any compatible wallet)
+      const { wallet, account, publicKey: senderPublicKey } = await this.connectWalletOrThrow()
+
+      // 4) Token mint & program/decimals
+      const mintPublicKey = new PublicKey(tokenAddress as string)
+      const { programId, decimals } = await this.getMintProgramAndDecimals(connection, mintPublicKey)
+      // 5) Prepare recipients/ATAs & create-ATA instructions (idempotent)
+      const recipientPKs = tbdReceivers.map((r: string) => new PublicKey(r))
+      const fromATA = getAssociatedTokenAddressSync(
         mintPublicKey,
-        TOKEN_PROGRAM_ID,
-        provider
-      );
+        senderPublicKey,
+      /* allowOwnerOffCurve */ false,
+        programId
+      )
 
-      const decimals = (await mintToken.getMintInfo()).decimals;
+      const toATAs = recipientPKs.map(pk =>
+        getAssociatedTokenAddressSync(
+          mintPublicKey,
+          pk,
+        /* allowOwnerOffCurve */ false,
+          programId
+        )
+      )
 
-      // Convert receiver addresses to PublicKeys
-      const recipientPublicKeys = tbdReceivers.map(
-        (recipient) => new PublicKey(recipient)
-      );
+      const instructions = []
 
-      // Get associated token accounts for all recipients
-      const associatedDestinationTokenAddrs = await Promise.all(
-        recipientPublicKeys.map(async (recipientPublicKey) => 
-          Token.getAssociatedTokenAddress(
-            mintToken.associatedProgramId,
-            mintToken.programId,
+      // Ensure sender ATA exists (idempotent)
+      instructions.push(
+        createAssociatedTokenAccountIdempotentInstruction(
+          senderPublicKey, // payer
+          fromATA,
+          senderPublicKey,
+          mintPublicKey,
+          programId
+        )
+      )
+
+      // Ensure each recipient ATA exists (idempotent, payer = sender)
+      for (let i = 0; i < recipientPKs.length; i++) {
+        instructions.push(
+          createAssociatedTokenAccountIdempotentInstruction(
+            senderPublicKey, // payer
+            toATAs[i],
+            recipientPKs[i],
             mintPublicKey,
-            recipientPublicKey
+            programId
           )
         )
-      );
+      }
 
-      // Get sender's associated token account
-      const associatedFromTokenAddr = await Token.getAssociatedTokenAddress(
-        mintToken.associatedProgramId,
-        mintToken.programId,
-        mintPublicKey,
-        senderPublicKey
-      );
-
-      // Check if accounts exist and prepare transaction instructions
-      const fromTokenAccount = await connection.getAccountInfo(
-        associatedFromTokenAddr
-      );
-
-      const receiverAccounts = await Promise.all(
-        associatedDestinationTokenAddrs.map(
-          async (addr) => connection.getAccountInfo(addr)
+      // 6) Add transferChecked instructions
+      // Your tbdValues look like 18-decimal “wei-like” strings. We’ll treat them as 10^18,
+      // then rescale to the mint’s decimals.
+      for (let i = 0; i < toATAs.length; i++) {
+        const raw18 = (ethers.BigNumber.from(tbdValues[i])).toBigInt();
+        instructions.push(
+          createTransferCheckedInstruction(
+            fromATA,
+            mintPublicKey,
+            toATAs[i],
+            senderPublicKey,
+            raw18,
+            decimals,
+            [],
+            programId
+          )
         )
-      );
+      }
 
-      const instructions: TransactionInstruction[] = [];
+      // 7) Build v0 transaction; fallback to legacy if wallet rejects v0
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized')
 
-      // Create recipient accounts if they don't exist
-      for (let i = 0; i < receiverAccounts.length; i++) {
-        if (receiverAccounts[i] === null) {
-          instructions.push(
-            Token.createAssociatedTokenAccountInstruction(
-              mintToken.associatedProgramId,
-              mintToken.programId,
-              mintPublicKey,
-              associatedDestinationTokenAddrs[i],
-              recipientPublicKeys[i],
-              senderPublicKey
-            )
-          );
+      const msgV0 = new TransactionMessage({
+        payerKey: senderPublicKey,
+        recentBlockhash: blockhash,
+        instructions
+      }).compileToV0Message()
+      const v0tx = new VersionedTransaction(msgV0)
+      const v0Bytes = v0tx.serialize()
+
+      let signature: string
+
+      try {
+        if (wallet.features['solana:signAndSendTransaction']) {
+
+          const s = await (wallet.features['solana:signAndSendTransaction'] as any).signAndSendTransaction({
+            transaction: v0Bytes,
+            chain: chainId,
+            account
+          })
+          signature = bs58.encode(s[0].signature);
+        } else {
+          const { signedTransaction } =
+            await (wallet.features['solana:signTransaction'] as any).signTransaction({
+              transaction: v0Bytes,
+              chain: chainId,
+              account
+            })
+          const raw = typeof signedTransaction?.serialize === 'function'
+            ? signedTransaction.serialize()
+            : signedTransaction
+          signature = await connection.sendRawTransaction(raw, { skipPreflight: false })
+        }
+      } catch (walletErr: any) {
+        if (walletErr?.message === 'User rejected the request.') {
+          throw new Error('User rejected the transaction.')
+        }
+        // Legacy fallback (some wallets still prefer legacy)
+        const legacyTx = new Transaction({ feePayer: senderPublicKey, recentBlockhash: blockhash })
+        for (const ix of instructions) legacyTx.add(ix)
+
+        if (wallet.features['solana:signAndSendTransaction']) {
+          const legacyBytes = legacyTx.serialize({ requireAllSignatures: false, verifySignatures: false })
+          const s =
+            await (wallet.features['solana:signAndSendTransaction'] as any).signAndSendTransaction({
+              transaction: legacyBytes,
+              chain: chainId,
+              account
+            })
+          signature = bs58.encode(s[0].signature);
+        } else {
+          const { signedTransaction } =
+            await (wallet.features['solana:signTransaction'] as any).signTransaction({
+              transaction: legacyTx.serialize({ requireAllSignatures: false, verifySignatures: false }),
+              chain: chainId,
+              account
+            })
+          const raw = typeof signedTransaction?.serialize === 'function'
+            ? signedTransaction.serialize()
+            : signedTransaction
+          signature = await connection.sendRawTransaction(raw, { skipPreflight: false })
         }
       }
 
-      // Create sender account if it doesn't exist
-      if (fromTokenAccount === null) {
-        instructions.push(
-          Token.createAssociatedTokenAccountInstruction(
-            mintToken.associatedProgramId,
-            mintToken.programId,
-            mintPublicKey,
-            associatedFromTokenAddr,
-            senderPublicKey,
-            senderPublicKey
-          )
-        );
-      }
-
-      // Add transfer instructions for each recipient
-      for (let i = 0; i < associatedDestinationTokenAddrs.length; i++) {
-        const transferAmount = ethers.BigNumber.from(tbdValues[i])
-          .div(ethers.BigNumber.from(10).pow(18-decimals))
-          .toNumber();
-          
-        instructions.push(
-          Token.createTransferInstruction(
-            TOKEN_PROGRAM_ID,
-            associatedFromTokenAddr,
-            associatedDestinationTokenAddrs[i],
-            senderPublicKey,
-            [],
-            transferAmount
-          )
-        );
-      }
-
-      // Build and sign transaction
-      const transaction = new Transaction().add(...instructions);
-      transaction.feePayer = senderPublicKey;
-      transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-      
-      const signedTransaction = await provider.signTransaction(transaction);
-      
-      // Send transaction and wait for confirmation
-      const transactionSignature = await connection.sendRawTransaction(
-        signedTransaction.serialize(),
-        { skipPreflight: true }
-      );
-      
-      await this.waitForTransactionConfirmation(connection, transactionSignature);
+      await connection
+        .confirmTransaction({ signature, blockhash, lastValidBlockHeight }, 'confirmed');
 
       return {
-        transactionHash: transactionSignature,
+        transactionHash: signature,
         cryptoAmount: totalPrice,
-        orderID: orderID,
-      };
-    } catch (error) {
-      console.error('Payment error:', error);
-      if (error instanceof WalletNotFoundException) {
-        throw error;
+        orderID,
       }
-      throw new Error(`Payment failed: ${error instanceof Error ? error.message : String(error)}`);
+    } catch (error) {
+      console.error('Payment error:', error)
+      throw new Error(`Payment failed: ${error instanceof Error ? error.message : String(error)}`)
     }
+  }
+
+  toBaseUnits(amount: number | string, decimals: number): bigint {
+    const s = String(amount).trim()
+    if (!/^\d+(\.\d+)?$/.test(s)) throw new Error('Invalid amount')
+    const [whole, frac = ''] = s.split('.')
+    const fracPadded = (frac + '0'.repeat(decimals)).slice(0, decimals)
+    return BigInt(whole + fracPadded)
   }
 
   /**
@@ -472,117 +539,128 @@ export class SolanaProvider implements IChainProvider {
    */
   async paymentWithToken(
     receiver: string,
-    amount: number,
-    tokenAddress: string
+    amount: number,        // human units (e.g., 1.23)
+    tokenAddress: string   // mint address
   ): Promise<string> {
     try {
-      // Verify Phantom wallet is available
-      this.checkPhantomWallet();
+      // 1) Solana connection + chain id
+      const connection = this.getConnection()
+      const chainId = this.detectChainId((connection as any)._rpcEndpoint ?? '')
 
-      // Connect to Phantom and establish Solana connection
-      const provider = (window as any).solana;
-      await provider.connect();
-      const senderPublicKey = provider.publicKey;
-      const connection = this.getConnection();
-      
-      // Initialize token details
-      const mintPublicKey = new PublicKey(tokenAddress);
-      const recipientPublicKey = new PublicKey(receiver);
-      const mintToken = new Token(
-        connection,
-        mintPublicKey,
-        TOKEN_PROGRAM_ID,
-        provider
-      );
+      // 2) Wallet Standard connect (MetaMask Solana Snap or any compatible wallet)
+      const { wallet, account, publicKey: senderPublicKey } = await this.connectWalletOrThrow()
 
-      const decimals = (await mintToken.getMintInfo()).decimals;
+      // 3) Mint info (program & decimals)
+      const mintPublicKey = new PublicKey(tokenAddress)
+      const { programId, decimals } = await this.getMintProgramAndDecimals(connection, mintPublicKey)
 
-      // Get associated token accounts
-      const associatedDestinationTokenAddr = await Token.getAssociatedTokenAddress(
-        mintToken.associatedProgramId,
-        mintToken.programId,
-        mintPublicKey,
-        recipientPublicKey
-      );
-      
-      const associatedFromTokenAddr = await Token.getAssociatedTokenAddress(
-        mintToken.associatedProgramId,
-        mintToken.programId,
-        mintPublicKey,
-        senderPublicKey
-      );
+      // 4) Derive ATAs and ensure they exist (idempotent)
+      const recipientPublicKey = new PublicKey(receiver)
+      const fromATA = getAssociatedTokenAddressSync(
+        mintPublicKey, senderPublicKey, /*allowOwnerOffCurve*/ false, programId
+      )
+      const toATA = getAssociatedTokenAddressSync(
+        mintPublicKey, recipientPublicKey, /*allowOwnerOffCurve*/ false, programId
+      )
 
-      // Check if accounts exist
-      const fromTokenAccount = await connection.getAccountInfo(associatedFromTokenAddr);
-      const receiverAccount = await connection.getAccountInfo(associatedDestinationTokenAddr);
-      
-      const instructions: TransactionInstruction[] = [];
+      const instructions = []
 
-      // Create recipient account if it doesn't exist
-      if (receiverAccount === null) {
-        instructions.push(
-          Token.createAssociatedTokenAccountInstruction(
-            mintToken.associatedProgramId,
-            mintToken.programId,
-            mintPublicKey,
-            associatedDestinationTokenAddr,
-            recipientPublicKey,
-            senderPublicKey
-          )
-        );
-      }
-
-      // Create sender account if it doesn't exist
-      if (fromTokenAccount === null) {
-        instructions.push(
-          Token.createAssociatedTokenAccountInstruction(
-            mintToken.associatedProgramId,
-            mintToken.programId,
-            mintPublicKey,
-            associatedFromTokenAddr,
-            senderPublicKey,
-            senderPublicKey
-          )
-        );
-      }
-
-      // Calculate transfer amount (with proper decimal handling)
-      const transferAmount = Math.floor(amount * 1e9);
-      
-      // Add transfer instruction
+      // Make sure both ATAs exist (payer = sender). Idempotent => safe if they already exist.
       instructions.push(
-        Token.createTransferInstruction(
-          TOKEN_PROGRAM_ID,
-          associatedFromTokenAddr,
-          associatedDestinationTokenAddr,
-          senderPublicKey,
-          [],
-          transferAmount
+        createAssociatedTokenAccountIdempotentInstruction(
+          senderPublicKey, fromATA, senderPublicKey, mintPublicKey, programId
+        ),
+        createAssociatedTokenAccountIdempotentInstruction(
+          senderPublicKey, toATA, recipientPublicKey, mintPublicKey, programId
         )
-      );
+      )
 
-      // Build and sign transaction
-      const transaction = new Transaction().add(...instructions);
-      transaction.feePayer = senderPublicKey;
-      transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-      
-      const signedTransaction = await provider.signTransaction(transaction);
-      
-      // Send transaction and wait for confirmation
-      const transactionSignature = await connection.sendRawTransaction(
-        signedTransaction.serialize(),
-        { skipPreflight: true }
-      );
-      
-      await this.waitForTransactionConfirmation(connection, transactionSignature);
+      // 5) Transfer (checked) using correct decimals
+      const amountBaseUnits = this.toBaseUnits(amount, decimals)
+      instructions.push(
+        createTransferCheckedInstruction(
+          fromATA,
+          mintPublicKey,
+          toATA,
+          senderPublicKey,
+          amountBaseUnits,
+          decimals,
+          [],
+          programId
+        )
+      )
 
-      return transactionSignature;
-    } catch (error) {
-      console.error('Token payment error:', error);
-      if (error instanceof WalletNotFoundException) {
-        throw error;
+      // 6) Build v0 tx; fallback to legacy if wallet rejects v0
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized')
+
+      const msgV0 = new TransactionMessage({
+        payerKey: senderPublicKey,
+        recentBlockhash: blockhash,
+        instructions
+      }).compileToV0Message()
+      const v0tx = new VersionedTransaction(msgV0)
+      const v0Bytes = v0tx.serialize()
+
+      let signature: string
+      try {
+        if (wallet.features['solana:signAndSendTransaction']) {
+          const { signature: sig } =
+            await (wallet.features['solana:signAndSendTransaction'] as any).signAndSendTransaction({
+              transaction: v0Bytes,
+              chain: chainId,
+              account
+            })
+          signature = sig
+        } else {
+          const { signedTransaction } =
+            await (wallet.features['solana:signTransaction'] as any).signTransaction({
+              transaction: v0Bytes,
+              chain: chainId,
+              account
+            })
+          const raw = typeof signedTransaction?.serialize === 'function'
+            ? signedTransaction.serialize()
+            : signedTransaction
+          signature = await connection.sendRawTransaction(raw, { skipPreflight: false })
+        }
+      } catch (walletErr: any) {
+        if (walletErr?.message === 'User rejected the request.') {
+          throw new Error('User rejected the transaction.')
+        }
+        // Legacy fallback
+        const legacyTx = new Transaction({ feePayer: senderPublicKey, recentBlockhash: blockhash })
+        for (const ix of instructions) legacyTx.add(ix)
+
+        if (wallet.features['solana:signAndSendTransaction']) {
+          const legacyBytes = legacyTx.serialize({ requireAllSignatures: false, verifySignatures: false })
+          const { signature: sig } =
+            await (wallet.features['solana:signAndSendTransaction'] as any).signAndSendTransaction({
+              transaction: legacyBytes,
+              chain: chainId,
+              account
+            })
+          signature = sig
+        } else {
+          const { signedTransaction } =
+            await (wallet.features['solana:signTransaction'] as any).signTransaction({
+              transaction: legacyTx.serialize({ requireAllSignatures: false, verifySignatures: false }),
+              chain: chainId,
+              account
+            })
+          const raw = typeof signedTransaction?.serialize === 'function'
+            ? signedTransaction.serialize()
+            : signedTransaction
+          signature = await connection.sendRawTransaction(raw, { skipPreflight: false })
+        }
       }
-      throw new Error(`Token transfer failed: ${error instanceof Error ? error.message : String(error)}`);
+
+      await connection
+        .confirmTransaction({ signature, blockhash, lastValidBlockHeight }, 'confirmed')
+
+      return signature
+    } catch (error) {
+      console.error('Token payment error:', error)
+      throw new Error(`Token transfer failed: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 

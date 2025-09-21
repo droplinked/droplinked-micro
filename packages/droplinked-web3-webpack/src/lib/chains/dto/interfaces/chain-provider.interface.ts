@@ -1,10 +1,8 @@
 import { ChainWallet } from '../chains';
 import {
-  AffiliateRequestData,
   DeployShopResponse,
   EthAddress,
   RecordResponse,
-  Uint256,
 } from '../constants/chain-structs';
 import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
@@ -14,7 +12,6 @@ import { IPaymentInputs } from './payment-interface';
 import { KyInstance } from 'ky';
 import { ClaimNFTInputs } from './claim-nft-inputs';
 import { IChainPayment } from './chain-payment.interface';
-import { ITokenDetails } from './airdrop-token.interface';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IChainProvider {
@@ -26,15 +23,6 @@ export interface IChainProvider {
     productData: IProductDetails,
     skuData: ISKUDetails[]
   ): Promise<RecordResponse>;
-  publishRequest(
-    productId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<AffiliateRequestData>;
-  approveRequest(requestId: Uint256, shopAddress: EthAddress): Promise<string>;
-  disapproveRequest(
-    requestId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<string>;
   payment(
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }>;

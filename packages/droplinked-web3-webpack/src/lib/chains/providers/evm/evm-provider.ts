@@ -1,19 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethers } from 'ethers';
 import {
-  AffiliateRequestData,
   DeployShopResponse,
   EthAddress,
   RecordResponse,
   toEthAddress,
-  Uint256,
 } from '../../dto/constants/chain-structs';
 import { Chain, ChainWallet, getGasPrice, Network } from '../../dto/chains';
 import {
   ModalInterface,
   defaultModal,
 } from '../../dto/interfaces/modal-interface.interface';
-import { EVMApproveRequest, EVMDisapproveRequest } from './evm-affiliate';
 import { deployEVMShop } from './evm-deploy-shop';
 import {
   evmLogin,
@@ -24,9 +21,7 @@ import {
   changeChain,
   addChain,
 } from './evm-login';
-import { EVMPublishRequest } from './evm-publish';
 import { recordProduct } from './evm-record';
-import { getERC20TokenTransferABI } from './evm-constants';
 import { ZERO_ADDRESS } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
 import {
@@ -241,7 +236,7 @@ export class EVMProvider implements IChainProvider {
     }
     if (this.chain === Chain.SKALE) {
       const distributionRequest = await ((
-        await this.axiosInstance.post(`shop/sFuelDistribution`, {
+        await this.axiosInstance.post(`web3/sFuelDistribution`, {
           json: {
             wallet: this.address,
             isTestnet: this.network === Network.TESTNET,
@@ -324,53 +319,6 @@ export class EVMProvider implements IChainProvider {
     });
   }
 
-  async publishRequest(
-    productId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<AffiliateRequestData> {
-    await this.handleWallet(this.address);
-    await this.handleChain();
-    return await EVMPublishRequest({
-      provider: this.getWalletProvider(),
-      chain: this.chain,
-      address: this.address,
-      productId,
-      shopAddress,
-      modalInterface: this.modalInterface,
-    });
-  }
-  async approveRequest(
-    requestId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<string> {
-    this.checkDeployment();
-    await this.handleWallet(this.address);
-    await this.handleChain();
-    return await EVMApproveRequest(
-      this.getWalletProvider(),
-      this.chain,
-      this.address,
-      requestId,
-      shopAddress,
-      this.modalInterface
-    );
-  }
-  async disapproveRequest(
-    requestId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<string> {
-    this.checkDeployment();
-    await this.handleWallet(this.address);
-    await this.handleChain();
-    return await EVMDisapproveRequest(
-      this.getWalletProvider(),
-      this.chain,
-      this.address,
-      requestId,
-      shopAddress,
-      this.modalInterface
-    );
-  }
   async payment(
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
