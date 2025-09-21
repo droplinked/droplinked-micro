@@ -35,6 +35,7 @@ export class UnstoppableProvider implements IChainProvider {
   clientID: string;
   redirectUri: string;
 
+
   constructor(network: Network) {
     this.network = network;
     this.axiosInstance = ky.create({
@@ -47,6 +48,7 @@ export class UnstoppableProvider implements IChainProvider {
     this.clientID = '';
     this.redirectUri = '';
   }
+
   executeAirdrop(airdropId: string): Promise<{ transactionHashes: string[] }> {
     throw new Error('Method not implemented.');
   }

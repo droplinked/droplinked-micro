@@ -29,8 +29,6 @@ export type Web3ChainConfig =
     preferredWallet: ChainWallet;
     modalInterface?: ModalInterface;
     userAddress: string;
-    nftContractAddress: string;
-    shopContractAddress: string;
   }
   | {
     method: Web3Actions.PAYMENT;
@@ -44,7 +42,6 @@ export type Web3ChainConfig =
     chain: Chain;
     userAddress: string;
     preferredWallet: ChainWallet;
-    shopContractAddress: string;
     modalInterface?: ModalInterface;
   }
   | {

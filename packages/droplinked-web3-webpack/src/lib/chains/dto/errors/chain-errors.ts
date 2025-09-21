@@ -11,9 +11,19 @@ export class ChainError extends Error {
 }
 
 /**
+ * Base class for all shop related errors.
+ */
+export class ShopError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = new.target.name; // Sets the error name to the class name
+  }
+}
+
+/**
  * Base class for all wallet-related errors.
  */
-export class WalletError extends ChainError {}
+export class WalletError extends ChainError { }
 
 /**
  * Error thrown when a request already exists.
@@ -100,6 +110,7 @@ export class RequestNotConfirmed extends ChainError {
     this.publisher = publisher;
   }
 }
+
 
 /**
  * Error thrown when the account has changed unexpectedly.

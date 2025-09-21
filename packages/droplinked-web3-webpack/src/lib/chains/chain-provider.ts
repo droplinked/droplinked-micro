@@ -19,10 +19,11 @@ import { ethers } from 'ethers';
 import ky, { KyInstance } from 'ky';
 import { SolanaProvider } from './providers/solana/solana-provider';
 import { UnstoppableProvider } from './providers/unstoppable/unstoppable-provider';
+import { getShopInfo } from './dto/helpers/get-shop-info';
 export class DropWeb3 {
   private axiosInstance: KyInstance;
   private network: Network;
-  constructor(workingNetwork: Network) {
+  constructor(workingNetwork: Network, accessToken: string) {
     this.axiosInstance = ky.create({
       prefixUrl:
         workingNetwork === Network.TESTNET
@@ -30,6 +31,9 @@ export class DropWeb3 {
           : workingNetwork === Network.MAINNET
             ? 'https://apiv3.droplinked.com'
             : 'http://127.0.0.1',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      }
     });
     this.network = workingNetwork;
   }
@@ -118,18 +122,15 @@ export class DropWeb3 {
     },
   };
 
-  web3Instance(config: Web3ChainConfig): IChainProvider {
+  async web3Instance(config: Web3ChainConfig): Promise<IChainProvider> {
     const network = this.network;
     const { modalInterface, preferredWallet } = config;
     let userAddress = '';
-    let nftContractAddress = '';
-    let shopContractAddress = '';
     let chain: Chain = Chain.ETH;
+
 
     if (config.method === Web3Actions.RECORD) {
       userAddress = config.userAddress;
-      nftContractAddress = config.nftContractAddress;
-      shopContractAddress = config.shopContractAddress;
       chain = config.chain;
     } else if (config.method === Web3Actions.DEPLOY) {
       userAddress = config.userAddress;
@@ -139,7 +140,6 @@ export class DropWeb3 {
       chain = config.chain;
     } else if (config.method === Web3Actions.CLAIM) {
       userAddress = config.userAddress;
-      shopContractAddress = config.shopContractAddress;
       chain = config.chain;
     } else if (config.method === Web3Actions.LOGIN) {
       if (preferredWallet === ChainWallet.Phantom) {
@@ -163,13 +163,18 @@ export class DropWeb3 {
       );
     }
 
+    const { nftContractAddress, shopContractAddress } = await getShopInfo(chain, this.axiosInstance);
+
+    console.log("Started with: ", {
+      nftContractAddress, shopContractAddress
+    })
     return (this.chainMapping[chain][network] as IChainProvider)
       ?.setAddress(toEthAddress(userAddress) || toEthAddress(''))
       .setModal(modalInterface || new defaultModal())
       .setWallet(preferredWallet)
       .setAxiosInstance(this.axiosInstance)
       .setNFTContractAddress(nftContractAddress || '')
-      .setShopContractAddress(shopContractAddress || '');
+      .setShopContractAddress(shopContractAddress || '')
   }
 
   async getWalletInfo() {

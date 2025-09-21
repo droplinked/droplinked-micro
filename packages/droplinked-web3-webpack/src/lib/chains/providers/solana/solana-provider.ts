@@ -675,6 +675,7 @@ export class SolanaProvider implements IChainProvider {
     return this;
   }
 
+
   /**
    * Sets the wallet type to use
    * 
