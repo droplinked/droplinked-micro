@@ -122,6 +122,15 @@ export class AccountChangedException extends ChainError {
 }
 
 /**
+ * Error thrown when the account has changed unexpectedly.
+ */
+export class Web3CallbackFailed extends ShopError {
+  constructor(field: string) {
+    super(`Web3 callback failed: ${field}`);
+  }
+}
+
+/**
  * Error thrown when a chain is not implemented.
  */
 export class ChainNotImplementedException extends ChainError {

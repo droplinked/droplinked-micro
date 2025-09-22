@@ -113,6 +113,15 @@ export async function transformProductData(productId: string, axiosInstance: KyI
     };
 }
 
+export async function web3Callback() {
+    return null;
+}
+
+export async function startRecord(productId: string) {
+    // TODO:
+    return productId;
+}
+
 export async function sendRecordAllToBackend(chain: Chain, body: {
     deploy_hash: string,
     commision: string,

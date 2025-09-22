@@ -74,6 +74,7 @@ type RecordResponse = {
   transactionHash: string;
   productId?: Uint256;
   amountRecorded?: Uint256;
+  transactionId: string;
 };
 
 type AffiliateRequestData =

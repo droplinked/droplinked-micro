@@ -24,7 +24,7 @@ import {
 import { recordProduct } from './evm-record';
 import { ZERO_ADDRESS } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
-import { WalletNotFoundException } from '../../dto/errors/chain-errors';
+import { WalletNotFoundException, Web3CallbackFailed } from '../../dto/errors/chain-errors';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
@@ -39,7 +39,7 @@ import { claimNFT } from './evm-claim-nfts';
 import { airdrop } from './evm-airdrop';
 import { TokenStandard } from '../../dto/interfaces/airdrop-token.interface';
 import { erc20ABI } from '../../dto/constants/chain-abis';
-import { transformProductData } from '../../dto/helpers/get-shop-info';
+import { startRecord, transformProductData, web3Callback } from '../../dto/helpers/get-shop-info';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -289,14 +289,20 @@ export class EVMProvider implements IChainProvider {
   ): Promise<RecordResponse> {
     const { productData, skuData } = await transformProductData(productId, this.axiosInstance);
     this.checkDeployment();
+    const txId = await startRecord(productId);
     await this.handleWallet(this.address);
     await this.handleChain();
-    return await recordProduct(
+    const result = await recordProduct(
       this.getChainConfig(),
       this.getContext(),
       productData,
       skuData
     );
+    const callbackResults = await web3Callback();
+    if (!callbackResults) {
+      throw new Web3CallbackFailed(`txHash: ${result.transactionHash}`);
+    }
+    return { ...result, transactionId: txId };
   }
 
   async executeAirdrop(

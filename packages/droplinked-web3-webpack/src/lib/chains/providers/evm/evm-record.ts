@@ -2,7 +2,6 @@
 import { ethers } from 'ethers';
 import {
   NFTType,
-  RecordResponse,
 } from '../../dto/constants/chain-structs';
 import { Unauthorized } from '../../dto/errors/chain-errors';
 import { getGasPrice } from '../../dto/constants/chain-constants';
@@ -102,7 +101,7 @@ export async function recordProduct(
   context: IWeb3Context,
   product: IProductDetails,
   skus: ISKUDetails[]
-): Promise<RecordResponse> {
+): Promise<{ transactionHash: string }> {
   const { modalInterface, nftContract, shopContractAddress } = context;
 
   if (!nftContract || !shopContractAddress) {
