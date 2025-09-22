@@ -98,8 +98,7 @@ export class UnstoppableProvider implements IChainProvider {
     throw new Error('Method not implemented.');
   }
   recordProduct(
-    productData: IProductDetails,
-    skuData: ISKUDetails[]
+    productId: string
   ): Promise<RecordResponse> {
     throw new Error('Method not implemented.');
   }

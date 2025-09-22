@@ -24,10 +24,6 @@ import {
 import { recordProduct } from './evm-record';
 import { ZERO_ADDRESS } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
-import {
-  IProductDetails,
-  ISKUDetails,
-} from '../../dto/interfaces/record-web3-product.interface';
 import { WalletNotFoundException } from '../../dto/errors/chain-errors';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
@@ -43,6 +39,7 @@ import { claimNFT } from './evm-claim-nfts';
 import { airdrop } from './evm-airdrop';
 import { TokenStandard } from '../../dto/interfaces/airdrop-token.interface';
 import { erc20ABI } from '../../dto/constants/chain-abis';
+import { transformProductData } from '../../dto/helpers/get-shop-info';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -288,9 +285,9 @@ export class EVMProvider implements IChainProvider {
   }
 
   async recordProduct(
-    productData: IProductDetails,
-    skuData: ISKUDetails[]
+    productId: string
   ): Promise<RecordResponse> {
+    const { productData, skuData } = await transformProductData(productId, this.axiosInstance);
     this.checkDeployment();
     await this.handleWallet(this.address);
     await this.handleChain();

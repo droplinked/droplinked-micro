@@ -196,8 +196,7 @@ export class SolanaProvider implements IChainProvider {
    * @throws {Error} Method not implemented yet
    */
   recordProduct(
-    productData: IProductDetails,
-    skuData: ISKUDetails[]
+    productId: string
   ): Promise<RecordResponse> {
     throw new Error('Method not implemented.');
   }

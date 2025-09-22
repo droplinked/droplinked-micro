@@ -4,7 +4,6 @@ import {
   EthAddress,
   RecordResponse,
 } from '../constants/chain-structs';
-import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
 import { IDeployShop } from './deploy-shop.interface';
 import { ILoginResult } from './login-result.interface';
@@ -20,8 +19,7 @@ export interface IChainProvider {
   unstoppableLogin(clientID: string, redirectUri: string): Promise<any>;
   deployShop(shopDetails: IDeployShop): Promise<DeployShopResponse>;
   recordProduct(
-    productData: IProductDetails,
-    skuData: ISKUDetails[]
+    productId: string
   ): Promise<RecordResponse>;
   payment(
     data: IPaymentInputs

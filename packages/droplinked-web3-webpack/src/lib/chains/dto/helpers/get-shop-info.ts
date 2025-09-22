@@ -1,5 +1,7 @@
 import { KyInstance } from "ky";
 import { Chain } from "../chains";
+import { IProductDetails, ISKUDetails } from "../interfaces/record-web3-product.interface";
+import { ProductType } from "../constants/chain-structs";
 
 interface IgetLink {
     blockchain: string;
@@ -78,6 +80,36 @@ export async function getShopInfo(
     return {
         nftContractAddress: result[0].deployedShopAddress,
         shopContractAddress: result[0].deployedNFTAddress,
+    };
+}
+
+export async function getProductData(productId: string, axiosInstance: KyInstance) {
+    return (
+        (await (
+            await axiosInstance.get(
+                `product/${productId}`,
+            )
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ).json()) as any
+    ).data.data
+}
+
+export async function transformProductData(productId: string, axiosInstance: KyInstance): Promise<{
+    productData: IProductDetails,
+    skuData: ISKUDetails[]
+}> {
+    await getProductData(productId, axiosInstance);
+    // TODO:
+    return {
+        productData: {
+            acceptsManageWallet: true,
+            commission: 0,
+            description: "",
+            productTitle: "",
+            royalty: 0,
+            type: ProductType.DIGITAL
+        },
+        skuData: []
     };
 }
 
