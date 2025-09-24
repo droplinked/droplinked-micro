@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import {
   NFTType,
 } from '../../dto/constants/chain-structs';
-import { Unauthorized } from '../../dto/errors/chain-errors';
+import { FieldNotFound, Unauthorized } from '../../dto/errors/chain-errors';
 import { getGasPrice } from '../../dto/constants/chain-constants';
 import { getShopABI } from '../../dto/constants/chain-abis';
 import { checkWallet, uploadMetadata } from './evm.helpers';
@@ -46,10 +46,8 @@ async function prepareRecordData(
   const { nftContract, modalInterface } = context;
 
   if (!nftContract) {
-    throw new Unauthorized(
-      `Missing required fields: nftContract`,
-      chainConfig.address,
-      chainConfig.address
+    throw new FieldNotFound(
+      'nftContract'
     );
   }
 
@@ -105,10 +103,8 @@ export async function recordProduct(
   const { modalInterface, nftContract, shopContractAddress } = context;
 
   if (!nftContract || !shopContractAddress) {
-    throw new Unauthorized(
-      `Missing required fields: nftContract or shopContractAddress`,
-      chainConfig.address,
-      chainConfig.address
+    throw new FieldNotFound(
+      `nftContract||shopContractAddress`,
     );
   }
 
