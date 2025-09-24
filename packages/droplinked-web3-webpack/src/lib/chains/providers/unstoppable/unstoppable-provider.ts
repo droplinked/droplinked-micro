@@ -34,6 +34,8 @@ export class UnstoppableProvider implements IChainProvider {
   shopContractAddress?: EthAddress;
   clientID: string;
   redirectUri: string;
+  shopId?: string;
+
 
 
   constructor(network: Network) {
@@ -102,6 +104,12 @@ export class UnstoppableProvider implements IChainProvider {
   ): Promise<RecordResponse> {
     throw new Error('Method not implemented.');
   }
+
+  setShopId(shopId: string): IChainProvider {
+    this.shopId = shopId;
+    return this;
+  }
+
   publishRequest(
     productId: Uint256,
     shopAddress: EthAddress

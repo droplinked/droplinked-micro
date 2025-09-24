@@ -57,6 +57,9 @@ export class SolanaProvider implements IChainProvider {
   /** Connected wallet address */
   address: string;
 
+  /** ShopId */
+  shopId?: string;
+
   /** Interface for modal dialogues and user interactions */
   modalInterface: ModalInterface = new defaultModal();
 
@@ -199,6 +202,11 @@ export class SolanaProvider implements IChainProvider {
     productId: string
   ): Promise<RecordResponse> {
     throw new Error('Method not implemented.');
+  }
+
+  setShopId(shopId: string): IChainProvider {
+    this.shopId = shopId;
+    return this;
   }
 
   /**

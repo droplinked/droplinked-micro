@@ -1,4 +1,4 @@
-import { KyInstance } from "ky";
+import ky, { KyInstance } from "ky";
 import { Chain } from "../chains";
 import { IProductDetails, ISKUDetails } from "../interfaces/record-web3-product.interface";
 import { ProductType } from "../constants/chain-structs";
@@ -61,12 +61,13 @@ export const hashkeyModel = {
 
 export async function getShopInfo(
     chain: Chain,
+    shopId: string,
     axiosInstance: KyInstance
 ): Promise<{ nftContractAddress: string; shopContractAddress: string }> {
     const result = ((
         (await (
             await axiosInstance.get(
-                `shops/v2?fields=deployedContracts`,
+                `shops/v2/public/${shopId}`,
             )
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ).json()) as any
@@ -99,7 +100,7 @@ export async function transformProductData(productId: string, axiosInstance: KyI
     skuData: ISKUDetails[]
 }> {
     await getProductData(productId, axiosInstance);
-    // TODO:
+    // TODO: Do the transformation here
     return {
         productData: {
             acceptsManageWallet: true,
@@ -114,12 +115,47 @@ export async function transformProductData(productId: string, axiosInstance: KyI
 }
 
 export async function web3Callback() {
-    return null;
+    const headers = {
+        'X-API-KEY': 'ho8homr9e8p4fwii7tjiz41xs4hlbl2h4i',
+    };
+    const axiosInstance: KyInstance = ky.create({
+        headers
+    });
+
+    return (
+        (await (
+            await axiosInstance.get(
+                '',
+                {
+
+                    headers
+                }
+            )
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ).json()) as any
+    ).data.data
 }
 
-export async function startRecord(productId: string) {
-    // TODO:
-    return productId;
+export async function startRecord(productId: string, skuIds: string[], axiosInstance: KyInstance) {
+    return (
+        (await (
+            await axiosInstance.post(
+                `web3/record/transactions`,
+                {
+                    json: {
+                        "uri": "string",
+                        "network": "Ethereum",
+                        "data": {
+                            "productId": productId,
+                            "skuIds": skuIds
+                        },
+                        "metadata": {}
+                    }
+                }
+            )
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ).json()) as any
+    ).data.data
 }
 
 export async function sendRecordAllToBackend(chain: Chain, body: {

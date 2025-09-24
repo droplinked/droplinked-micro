@@ -38,6 +38,7 @@ export interface IChainProvider {
   setWallet(wallet: ChainWallet): IChainProvider;
   setModal(modal: ModalInterface): IChainProvider;
   setNFTContractAddress(address: string): IChainProvider;
+  setShopId(shopId: string): IChainProvider;
   setShopContractAddress(address: string): IChainProvider;
   getPaymentData(cartID: string, paymentType: string, token: string): any;
   executeAirdrop(airdropId: string): Promise<{ transactionHashes: string[] }>;

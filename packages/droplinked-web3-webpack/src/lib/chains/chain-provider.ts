@@ -23,7 +23,8 @@ import { getShopInfo } from './dto/helpers/get-shop-info';
 export class DropWeb3 {
   private axiosInstance: KyInstance;
   private network: Network;
-  constructor(workingNetwork: Network, accessToken: string) {
+  private shopId: string;
+  constructor(workingNetwork: Network, shopId: string) {
     this.axiosInstance = ky.create({
       prefixUrl:
         workingNetwork === Network.TESTNET
@@ -31,10 +32,8 @@ export class DropWeb3 {
           : workingNetwork === Network.MAINNET
             ? 'https://apiv3.droplinked.com'
             : 'http://127.0.0.1',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      }
     });
+    this.shopId = shopId;
     this.network = workingNetwork;
   }
   private chainMapping = {
@@ -163,7 +162,7 @@ export class DropWeb3 {
       );
     }
 
-    const { nftContractAddress, shopContractAddress } = await getShopInfo(chain, this.axiosInstance);
+    const { nftContractAddress, shopContractAddress } = await getShopInfo(chain, this.shopId, this.axiosInstance);
 
     console.log("Started with: ", {
       nftContractAddress, shopContractAddress
@@ -173,6 +172,7 @@ export class DropWeb3 {
       .setModal(modalInterface || new defaultModal())
       .setWallet(preferredWallet)
       .setAxiosInstance(this.axiosInstance)
+      .setShopId(this.shopId)
       .setNFTContractAddress(nftContractAddress || '')
       .setShopContractAddress(shopContractAddress || '')
   }

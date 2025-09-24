@@ -52,6 +52,8 @@ export class EVMProvider implements IChainProvider {
   shopContractAddress?: EthAddress;
   gasPredictable: boolean;
 
+  shopId?: string;
+
   constructor(_chain: Chain, _network: Network, gasPredictable: boolean) {
     this.chain = _chain;
     this.network = _network;
@@ -289,7 +291,7 @@ export class EVMProvider implements IChainProvider {
   ): Promise<RecordResponse> {
     const { productData, skuData } = await transformProductData(productId, this.axiosInstance);
     this.checkDeployment();
-    const txId = await startRecord(productId);
+    const txId = await startRecord(productId, skuData.map(s => s.skuID), this.axiosInstance);
     await this.handleWallet(this.address);
     await this.handleChain();
     const result = await recordProduct(
@@ -303,6 +305,11 @@ export class EVMProvider implements IChainProvider {
       throw new Web3CallbackFailed(`txHash: ${result.transactionHash}`);
     }
     return { ...result, transactionId: txId };
+  }
+
+  setShopId(shopId: string): IChainProvider {
+    this.shopId = shopId;
+    return this;
   }
 
   async executeAirdrop(
