@@ -1,19 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethers } from 'ethers';
 import {
-  AffiliateRequestData,
   DeployShopResponse,
   EthAddress,
   RecordResponse,
   toEthAddress,
-  Uint256,
 } from '../../dto/constants/chain-structs';
 import { Chain, ChainWallet, getGasPrice, Network } from '../../dto/chains';
 import {
   ModalInterface,
   defaultModal,
 } from '../../dto/interfaces/modal-interface.interface';
-import { EVMApproveRequest, EVMDisapproveRequest } from './evm-affiliate';
 import { deployEVMShop } from './evm-deploy-shop';
 import {
   evmLogin,
@@ -24,16 +21,10 @@ import {
   changeChain,
   addChain,
 } from './evm-login';
-import { EVMPublishRequest } from './evm-publish';
 import { recordProduct } from './evm-record';
-import { getERC20TokenTransferABI } from './evm-constants';
 import { ZERO_ADDRESS } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
-import {
-  IProductDetails,
-  ISKUDetails,
-} from '../../dto/interfaces/record-web3-product.interface';
-import { WalletNotFoundException } from '../../dto/errors/chain-errors';
+import { WalletNotFoundException, Web3CallbackFailed } from '../../dto/errors/chain-errors';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
@@ -48,6 +39,7 @@ import { claimNFT } from './evm-claim-nfts';
 import { airdrop } from './evm-airdrop';
 import { TokenStandard } from '../../dto/interfaces/airdrop-token.interface';
 import { erc20ABI } from '../../dto/constants/chain-abis';
+import { startRecord, transformProductData, web3Callback } from '../../dto/helpers/get-shop-info';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -59,6 +51,8 @@ export class EVMProvider implements IChainProvider {
   nftContractAddress?: EthAddress;
   shopContractAddress?: EthAddress;
   gasPredictable: boolean;
+
+  shopId?: string;
 
   constructor(_chain: Chain, _network: Network, gasPredictable: boolean) {
     this.chain = _chain;
@@ -241,7 +235,7 @@ export class EVMProvider implements IChainProvider {
     }
     if (this.chain === Chain.SKALE) {
       const distributionRequest = await ((
-        await this.axiosInstance.post(`shop/sFuelDistribution`, {
+        await this.axiosInstance.post(`web3/sFuelDistribution`, {
           json: {
             wallet: this.address,
             isTestnet: this.network === Network.TESTNET,
@@ -293,18 +287,29 @@ export class EVMProvider implements IChainProvider {
   }
 
   async recordProduct(
-    productData: IProductDetails,
-    skuData: ISKUDetails[]
+    productId: string
   ): Promise<RecordResponse> {
+    const { productData, skuData } = await transformProductData(productId, this.axiosInstance);
     this.checkDeployment();
+    const txId = await startRecord(productId, skuData.map(s => s.skuID), this.axiosInstance);
     await this.handleWallet(this.address);
     await this.handleChain();
-    return await recordProduct(
+    const result = await recordProduct(
       this.getChainConfig(),
       this.getContext(),
       productData,
       skuData
     );
+    const callbackResults = await web3Callback();
+    if (!callbackResults) {
+      throw new Web3CallbackFailed(`txHash: ${result.transactionHash}`);
+    }
+    return { ...result, transactionId: txId };
+  }
+
+  setShopId(shopId: string): IChainProvider {
+    this.shopId = shopId;
+    return this;
   }
 
   async executeAirdrop(
@@ -324,53 +329,6 @@ export class EVMProvider implements IChainProvider {
     });
   }
 
-  async publishRequest(
-    productId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<AffiliateRequestData> {
-    await this.handleWallet(this.address);
-    await this.handleChain();
-    return await EVMPublishRequest({
-      provider: this.getWalletProvider(),
-      chain: this.chain,
-      address: this.address,
-      productId,
-      shopAddress,
-      modalInterface: this.modalInterface,
-    });
-  }
-  async approveRequest(
-    requestId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<string> {
-    this.checkDeployment();
-    await this.handleWallet(this.address);
-    await this.handleChain();
-    return await EVMApproveRequest(
-      this.getWalletProvider(),
-      this.chain,
-      this.address,
-      requestId,
-      shopAddress,
-      this.modalInterface
-    );
-  }
-  async disapproveRequest(
-    requestId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<string> {
-    this.checkDeployment();
-    await this.handleWallet(this.address);
-    await this.handleChain();
-    return await EVMDisapproveRequest(
-      this.getWalletProvider(),
-      this.chain,
-      this.address,
-      requestId,
-      shopAddress,
-      this.modalInterface
-    );
-  }
   async payment(
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {

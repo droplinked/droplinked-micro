@@ -1,4 +1,4 @@
-import { EthAddress, Uint256 } from '../constants/chain-structs';
+import { EthAddress } from '../constants/chain-structs';
 
 /**
  * Base class for all chain-related errors.
@@ -11,23 +11,20 @@ export class ChainError extends Error {
 }
 
 /**
- * Base class for all wallet-related errors.
+ * Base class for all shop related errors.
  */
-export class WalletError extends ChainError {}
-
-/**
- * Error thrown when a request already exists.
- */
-export class AlreadyRequested extends ChainError {
-  public readonly requestId: Uint256;
-  public readonly publisher: EthAddress;
-
-  constructor(productId: Uint256, requester: EthAddress) {
-    super(`Request for ${productId} from ${requester} already exists`);
-    this.requestId = productId;
-    this.publisher = requester;
+export class ShopError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = new.target.name; // Sets the error name to the class name
   }
 }
+
+/**
+ * Base class for all wallet-related errors.
+ */
+export class WalletError extends ChainError { }
+
 
 /**
  * Error thrown when unauthorized access is attempted.
@@ -46,58 +43,14 @@ export class Unauthorized extends ChainError {
 }
 
 /**
- * Error thrown when a request does not exist.
+ * Error thrown when unauthorized access is attempted.
  */
-export class RequestDoesntExist extends ChainError {
-  public readonly requestId: Uint256;
-  public readonly shopAddress: EthAddress;
+export class FieldNotFound extends ChainError {
+  public readonly field: string;
 
-  constructor(requestId: Uint256, shopAddress: EthAddress) {
-    super(`Request ${requestId} does not exist for shop ${shopAddress}`);
-    this.requestId = requestId;
-    this.shopAddress = shopAddress;
-  }
-}
-
-/**
- * Error thrown when a request is already confirmed.
- */
-export class RequestAlreadyConfirmed extends ChainError {
-  public readonly requestId: Uint256;
-  public readonly shopAddress: EthAddress;
-
-  constructor(requestId: Uint256, shopAddress: EthAddress) {
-    super(`Request ${requestId} already confirmed for shop ${shopAddress}`);
-    this.requestId = requestId;
-    this.shopAddress = shopAddress;
-  }
-}
-
-/**
- * Error thrown when a request does not exist.
- */
-export class RequestDoesNotExist extends ChainError {
-  public readonly requestId: Uint256;
-  public readonly shopAddress: EthAddress;
-
-  constructor(requestId: Uint256, shopAddress: EthAddress) {
-    super(`Request ${requestId} does not exist for shop ${shopAddress}`);
-    this.requestId = requestId;
-    this.shopAddress = shopAddress;
-  }
-}
-
-/**
- * Error thrown when a request is not confirmed.
- */
-export class RequestNotConfirmed extends ChainError {
-  public readonly requestId: Uint256;
-  public readonly publisher: EthAddress;
-
-  constructor(requestId: Uint256, publisher: EthAddress) {
-    super(`Request ${requestId} not confirmed by publisher ${publisher}`);
-    this.requestId = requestId;
-    this.publisher = publisher;
+  constructor(field: string) {
+    super(`Field not found: ${field}`);
+    this.field = field;
   }
 }
 
@@ -107,6 +60,15 @@ export class RequestNotConfirmed extends ChainError {
 export class AccountChangedException extends ChainError {
   constructor(field: string) {
     super(`Account changed: ${field}`);
+  }
+}
+
+/**
+ * Error thrown when the account has changed unexpectedly.
+ */
+export class Web3CallbackFailed extends ShopError {
+  constructor(field: string) {
+    super(`Web3 callback failed: ${field}`);
   }
 }
 

@@ -1,0 +1,9 @@
+// Generated from SVG to React Component
+import React, { SVGProps } from "react";
+
+export const FacebookMd = ({ color = "black", ...props }: SVGProps<SVGSVGElement>) => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <path d="M14.1667 1.6665H11.6667C10.5616 1.6665 9.50175 2.10549 8.72042 2.8869C7.93898 3.6683 7.5 4.7281 7.5 5.83317V8.33317H5V11.6665H7.5V18.3332H10.8333V11.6665H13.3333L14.1667 8.33317H10.8333V5.83317C10.8333 5.61215 10.9212 5.4002 11.0774 5.24391C11.2337 5.08764 11.4457 4.99984 11.6667 4.99984H14.1667V1.6665Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+
+);

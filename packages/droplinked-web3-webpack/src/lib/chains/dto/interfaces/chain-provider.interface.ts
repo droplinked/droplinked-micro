@@ -1,12 +1,9 @@
 import { ChainWallet } from '../chains';
 import {
-  AffiliateRequestData,
   DeployShopResponse,
   EthAddress,
   RecordResponse,
-  Uint256,
 } from '../constants/chain-structs';
-import { IProductDetails, ISKUDetails } from './record-web3-product.interface';
 import { ModalInterface } from './modal-interface.interface';
 import { IDeployShop } from './deploy-shop.interface';
 import { ILoginResult } from './login-result.interface';
@@ -14,7 +11,6 @@ import { IPaymentInputs } from './payment-interface';
 import { KyInstance } from 'ky';
 import { ClaimNFTInputs } from './claim-nft-inputs';
 import { IChainPayment } from './chain-payment.interface';
-import { ITokenDetails } from './airdrop-token.interface';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IChainProvider {
@@ -23,18 +19,8 @@ export interface IChainProvider {
   unstoppableLogin(clientID: string, redirectUri: string): Promise<any>;
   deployShop(shopDetails: IDeployShop): Promise<DeployShopResponse>;
   recordProduct(
-    productData: IProductDetails,
-    skuData: ISKUDetails[]
+    productId: string
   ): Promise<RecordResponse>;
-  publishRequest(
-    productId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<AffiliateRequestData>;
-  approveRequest(requestId: Uint256, shopAddress: EthAddress): Promise<string>;
-  disapproveRequest(
-    requestId: Uint256,
-    shopAddress: EthAddress
-  ): Promise<string>;
   payment(
     data: IPaymentInputs
   ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }>;
@@ -52,6 +38,7 @@ export interface IChainProvider {
   setWallet(wallet: ChainWallet): IChainProvider;
   setModal(modal: ModalInterface): IChainProvider;
   setNFTContractAddress(address: string): IChainProvider;
+  setShopId(shopId: string): IChainProvider;
   setShopContractAddress(address: string): IChainProvider;
   getPaymentData(cartID: string, paymentType: string, token: string): any;
   executeAirdrop(airdropId: string): Promise<{ transactionHashes: string[] }>;

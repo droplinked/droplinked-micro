@@ -393,7 +393,7 @@ export async function evmLogin(
     // Handle SKALE-specific fuel distribution
     // if (chain === Chain.SKALE) {
     const distributionRequest = await (
-      await axiosInstance.post('shop/sFuelDistribution', {
+      await axiosInstance.post('web3/sFuelDistribution', {
         json: {
           wallet: address,
           isTestnet: network === Network.TESTNET,

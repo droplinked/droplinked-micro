@@ -13,9 +13,10 @@ export async function uploadMetadata(
     metadata = JSON.stringify(metadata);
   }
   const res = await ((
-    await axiosInstance.patch(`sku/metadata/${skuID}`, {
+    await axiosInstance.patch(`uploader/cdn-upload-json`, {
       json: {
-        metadata: metadata,
+        data: metadata,
+        key: `record-metadata/${skuID}.json`
       },
     })
   ).json() as any);

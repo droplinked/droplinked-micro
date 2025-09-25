@@ -34,6 +34,9 @@ export class UnstoppableProvider implements IChainProvider {
   shopContractAddress?: EthAddress;
   clientID: string;
   redirectUri: string;
+  shopId?: string;
+
+
 
   constructor(network: Network) {
     this.network = network;
@@ -47,6 +50,7 @@ export class UnstoppableProvider implements IChainProvider {
     this.clientID = '';
     this.redirectUri = '';
   }
+
   executeAirdrop(airdropId: string): Promise<{ transactionHashes: string[] }> {
     throw new Error('Method not implemented.');
   }
@@ -96,11 +100,16 @@ export class UnstoppableProvider implements IChainProvider {
     throw new Error('Method not implemented.');
   }
   recordProduct(
-    productData: IProductDetails,
-    skuData: ISKUDetails[]
+    productId: string
   ): Promise<RecordResponse> {
     throw new Error('Method not implemented.');
   }
+
+  setShopId(shopId: string): IChainProvider {
+    this.shopId = shopId;
+    return this;
+  }
+
   publishRequest(
     productId: Uint256,
     shopAddress: EthAddress

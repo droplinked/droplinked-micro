@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: "Manrope";
+    src: local("Manrope-VariableFont_wght"), url("./assets/fonts/Manrope-VariableFont_wght.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: local("Montserrat-VariableFont_wght"), url("./assets/fonts/Montserrat-VariableFont_wght.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Avenir";
+    src: url("./assets/fonts/Metropolis-Regular.otf") format("opentype");
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("./assets/fonts/Inter-Medium.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Helvetica";
+    src: url("./assets/fonts/helvetica-neue.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Allerta";
+    src: url("./assets/fonts/Allerta-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Nunito Sans";
+    src: url("./assets/fonts/NunitoSans-VariableFont.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Fredoka One";
+    src: url("./assets/fonts/Fredoka-VariableFont.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Source Serif Pro";
+    src: url("./assets/fonts/SourceSerif4.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsThin.otf") format("opentype");
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsExtraLight.otf") format("opentype");
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsLight.otf") format("opentype");
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsRegular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsMedium.otf") format("opentype");
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsDemiBold.otf") format("opentype");
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsBold.otf") format("opentype");
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsExtraBold.otf") format("opentype");
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TT";
+    src: url("./assets/fonts/TypeType-TTCommonsBlack.otf") format("opentype");
+    font-weight: 900;
+    font-style: normal;
+}
+
+* , *::before , *::after{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Light theme placeholder color */
+input.light-placeholder::placeholder {
+    color: #B1B1B1;
+}
+
+input.light-placeholder::-webkit-input-placeholder {
+    color: #B1B1B1; 
+}
+
+input.light-placeholder::-moz-placeholder {
+    color: #B1B1B1; 
+}
+
+input.light-placeholder:-ms-input-placeholder {
+    color: #B1B1B1;
+}
+
+input.light-placeholder::-ms-input-placeholder {
+    color: #B1B1B1; 
+}
+
+/* Dark theme placeholder color */
+input.dark-placeholder::placeholder {
+    color: #7B7B7B; 
+}
+
+input.dark-placeholder::-webkit-input-placeholder {
+    color: #7B7B7B;
+}
+
+input.dark-placeholder::-moz-placeholder {
+    color: #7B7B7B;
+}
+
+input.dark-placeholder:-ms-input-placeholder {
+    color: #7B7B7B;
+}
+
+input.dark-placeholder::-ms-input-placeholder {
+    color: #7B7B7B;
+}
+
+.blogs-link:hover{
+    text-decoration: underline;
+}
