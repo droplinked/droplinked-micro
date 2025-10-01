@@ -136,7 +136,7 @@ export async function web3Callback() {
     ).data.data
 }
 
-export async function startRecord(productId: string, skuIds: string[], axiosInstance: KyInstance) {
+export async function startRecord(productId: string, skuIds: string[], shopId: string, axiosInstance: KyInstance) {
     return (
         (await (
             await axiosInstance.post(
@@ -149,7 +149,8 @@ export async function startRecord(productId: string, skuIds: string[], axiosInst
                             "productId": productId,
                             "skuIds": skuIds
                         },
-                        "metadata": {}
+                        "metadata": {},
+                        "shopId": shopId
                     }
                 }
             )

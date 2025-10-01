@@ -24,7 +24,7 @@ import {
 import { recordProduct } from './evm-record';
 import { ZERO_ADDRESS } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
-import { WalletNotFoundException, Web3CallbackFailed } from '../../dto/errors/chain-errors';
+import { FieldNotFound, WalletNotFoundException, Web3CallbackFailed } from '../../dto/errors/chain-errors';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
@@ -291,7 +291,9 @@ export class EVMProvider implements IChainProvider {
   ): Promise<RecordResponse> {
     const { productData, skuData } = await transformProductData(productId, this.axiosInstance);
     this.checkDeployment();
-    const txId = await startRecord(productId, skuData.map(s => s.skuID), this.axiosInstance);
+    if (!this.shopId)
+      throw new FieldNotFound('shopId');
+    const txId = await startRecord(productId, skuData.map(s => s.skuID), this.shopId, this.axiosInstance);
     await this.handleWallet(this.address);
     await this.handleChain();
     const result = await recordProduct(
