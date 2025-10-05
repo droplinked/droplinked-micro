@@ -24,7 +24,7 @@ import {
 import { recordProduct } from './evm-record';
 import { ZERO_ADDRESS } from '../../dto/constants/chain-constants';
 import { DroplinkedChainConfig } from '../../dto/configs/chain.config';
-import { WalletNotFoundException, Web3CallbackFailed } from '../../dto/errors/chain-errors';
+import { FieldNotFound, WalletNotFoundException, Web3CallbackFailed } from '../../dto/errors/chain-errors';
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
@@ -39,7 +39,7 @@ import { claimNFT } from './evm-claim-nfts';
 import { airdrop } from './evm-airdrop';
 import { TokenStandard } from '../../dto/interfaces/airdrop-token.interface';
 import { erc20ABI } from '../../dto/constants/chain-abis';
-import { startRecord, transformProductData, web3Callback } from '../../dto/helpers/get-shop-info';
+import { startPayment, startRecord, transformProductData, web3Callback } from '../../dto/helpers/get-shop-info';
 
 export class EVMProvider implements IChainProvider {
   chain: Chain = Chain.BINANCE;
@@ -70,6 +70,16 @@ export class EVMProvider implements IChainProvider {
   unstoppableLogin(clientID: string, redirectUri: string): Promise<any> {
     throw new Error('Method not implemented.');
   }
+
+  getBaseUrl() {
+    if (this.network === Network.MAINNET)
+      return 'https://apiv3.droplinked.com';
+    else if (this.network === Network.TESTNET)
+      return 'https://apiv3dev.droplinked.com';
+
+    return 'http://127.0.0.1:3000';
+  }
+
   setAxiosInstance(axiosInstance: KyInstance) {
     this.axiosInstance = axiosInstance;
     return this;
@@ -291,7 +301,9 @@ export class EVMProvider implements IChainProvider {
   ): Promise<RecordResponse> {
     const { productData, skuData } = await transformProductData(productId, this.axiosInstance);
     this.checkDeployment();
-    const txId = await startRecord(productId, skuData.map(s => s.skuID), this.axiosInstance);
+    if (!this.shopId)
+      throw new FieldNotFound('shopId');
+    const txId = await startRecord(productId, skuData.map(s => s.skuID), this.shopId, this.axiosInstance);
     await this.handleWallet(this.address);
     await this.handleChain();
     const result = await recordProduct(
@@ -300,7 +312,7 @@ export class EVMProvider implements IChainProvider {
       productData,
       skuData
     );
-    const callbackResults = await web3Callback();
+    const callbackResults = await web3Callback(result.transactionHash, this.chain, Network[this.network], ``);
     if (!callbackResults) {
       throw new Web3CallbackFailed(`txHash: ${result.transactionHash}`);
     }
@@ -331,12 +343,15 @@ export class EVMProvider implements IChainProvider {
 
   async payment(
     data: IPaymentInputs
-  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
+  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string; transactionId: string; }> {
     await this.handleWallet(this.address);
     await this.handleChain();
-    const { cartID, paymentToken, paymentType } = data;
+
+    const { orderID, paymentToken, paymentType } = data;
+    if (!this.shopId) throw new FieldNotFound('shopId');
+    const txId = await startPayment(orderID, paymentToken, paymentType, this.address, this.shopId, this.axiosInstance);
     const paymentDetails = await getCartData(
-      cartID,
+      orderID,
       paymentToken,
       paymentType,
       this.address,
@@ -350,12 +365,19 @@ export class EVMProvider implements IChainProvider {
       this.getContext(),
       paymentData
     );
-    return { ...result, orderID: paymentDetails.orderID };
+
+    // TODO: set the callback url
+    const callbackResults = await web3Callback(result.transactionHash, this.chain, Network[this.network], `${this.getBaseUrl()}/web3/payment/callback`);
+    if (!callbackResults) {
+      throw new Web3CallbackFailed(`txHash: ${result.transactionHash}`);
+    }
+
+    return { ...result, orderID: paymentDetails.orderID, transactionId: txId };
   }
 
-  async getPaymentData(cartID: string, paymentType: string, token: string) {
+  async getPaymentData(orderID: string, paymentType: string, token: string) {
     return await getCartData(
-      cartID,
+      orderID,
       token,
       paymentType,
       this.address,

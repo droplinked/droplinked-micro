@@ -24,7 +24,7 @@ export async function uploadMetadata(
 }
 
 export async function getCartData(
-  cartID: string,
+  orderID: string,
   tokenType: string,
   paymentType: string,
   walletAddress: string,
@@ -33,12 +33,12 @@ export async function getCartData(
   const result = (
     (await (
       await axiosInstance.get(
-        `checkout/order/crypto-payment-data/${cartID}/${tokenType}/${paymentType}/${walletAddress}`
+        `web3/payment/distribution/${orderID}/${tokenType}/${paymentType}/${walletAddress}`
       )
     ).json()) as any
   ).data;
   return {
-    paymentData: result.paymentData as IChainPayment,
+    paymentData: result.data as IChainPayment,
     orderID: result.orderID,
   };
 }

@@ -343,6 +343,7 @@ const skalePayment = async function (
     );
     return { transactionHash: tx.hash, cryptoAmount: data.totalPrice };
   } catch (error: unknown) {
+
     handleError(error);
   }
 };
