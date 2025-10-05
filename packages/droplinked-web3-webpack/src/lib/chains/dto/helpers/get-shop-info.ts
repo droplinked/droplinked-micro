@@ -114,7 +114,7 @@ export async function transformProductData(productId: string, axiosInstance: KyI
     };
 }
 
-export async function web3Callback() {
+export async function web3Callback(transactionHash: string, chain: string, network: string, callbackUrl: string) {
     const headers = {
         'X-API-KEY': 'ho8homr9e8p4fwii7tjiz41xs4hlbl2h4i',
     };
@@ -124,10 +124,15 @@ export async function web3Callback() {
 
     return (
         (await (
-            await axiosInstance.get(
-                '',
+            await axiosInstance.post(
+                'transactions',
                 {
-
+                    json: {
+                        transaction_id: transactionHash,
+                        callback_url: callbackUrl,
+                        chain: chain,
+                        network: network
+                    },
                     headers
                 }
             )
@@ -143,14 +148,34 @@ export async function startRecord(productId: string, skuIds: string[], shopId: s
                 `web3/record/transactions`,
                 {
                     json: {
-                        "uri": "string",
+                        "uris": [],
                         "network": "Ethereum",
                         "data": {
                             "productId": productId,
                             "skuIds": skuIds
                         },
                         "metadata": {},
-                        "shopId": shopId
+                        "shopId": shopId,
+                        "txType": "RECORD",
+                    }
+                }
+            )
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ).json()) as any
+    ).data.data
+}
+
+export async function startPayment(orderId: string, tokenType: string, paymentType: string, walletAddress: string, shopId: string, axiosInstance: KyInstance) {
+    return (
+        (await (
+            await axiosInstance.post(
+                `web3/payment/transactions`,
+                {
+                    json: {
+                        "network": paymentType,
+                        "token": tokenType,
+                        "shopId": shopId,
+                        "orderId": orderId,
                     }
                 }
             )

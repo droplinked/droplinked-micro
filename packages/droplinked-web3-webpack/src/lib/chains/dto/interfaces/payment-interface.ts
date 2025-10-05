@@ -1,7 +1,7 @@
 import { Chain, PaymentTokens } from '../chains';
 
 export interface IPaymentInputs {
-  cartID: string;
+  orderID: string;
   paymentToken: PaymentTokens;
   paymentType: Chain;
 }
