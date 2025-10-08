@@ -1,6 +1,6 @@
 {
-  "name": "droplinked-payment-intent",
-  "version": "1.2.3",
+  "name": "droplinked-payment-provider",
+  "version": "1.0.0",
   "main": "./index.js",
   "types": "./index.d.ts",
   "exports": {

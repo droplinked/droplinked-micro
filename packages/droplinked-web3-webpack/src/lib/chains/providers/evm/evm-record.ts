@@ -99,7 +99,7 @@ export async function recordProduct(
   context: IWeb3Context,
   product: IProductDetails,
   skus: ISKUDetails[]
-): Promise<{ transactionHash: string }> {
+): Promise<{ transactionHash: string; metadataUrls: string[] }> {
   const { modalInterface, nftContract, shopContractAddress } = context;
 
   if (!nftContract || !shopContractAddress) {
@@ -155,7 +155,7 @@ export async function recordProduct(
     }
     await tx.wait();
     modalInterface.success('Transaction successful');
-    return { transactionHash: tx.hash };
+    return { transactionHash: tx.hash, metadataUrls: products.map(p => p.uri) };
   } catch (e: any) {
     if (e.code && e.code.toString() === 'ACTION_REJECTED') {
       context.modalInterface.error('Transaction Rejected');

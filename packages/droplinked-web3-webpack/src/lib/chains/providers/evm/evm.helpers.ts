@@ -23,6 +23,22 @@ export async function uploadMetadata(
   return res.data;
 }
 
+
+export async function updateUris(
+  txId: string,
+  uris: string[],
+  axiosInstance: KyInstance
+) {
+  const res = await ((
+    await axiosInstance.put(`web3/record/transactions/${txId}/uris`, {
+      json: {
+        uris
+      },
+    })
+  ).json() as any);
+  return res.data;
+}
+
 export async function getCartData(
   orderID: string,
   tokenType: string,

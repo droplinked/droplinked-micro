@@ -28,7 +28,7 @@ import { FieldNotFound, WalletNotFoundException, Web3CallbackFailed } from '../.
 import { IWeb3Context } from '../../dto/interfaces/web3-context.interface';
 import { IChainProvider } from '../../dto/interfaces/chain-provider.interface';
 import { IDeployShop } from '../../dto/interfaces/deploy-shop.interface';
-import { getAirdropData, getCartData } from './evm.helpers';
+import { getAirdropData, getCartData, updateUris } from './evm.helpers';
 import { IChainPayment } from '../../dto/interfaces/chain-payment.interface';
 import { droplinked_payment } from './evm-payments';
 import { ILoginResult } from '../../dto/interfaces/login-result.interface';
@@ -303,7 +303,7 @@ export class EVMProvider implements IChainProvider {
     this.checkDeployment();
     if (!this.shopId)
       throw new FieldNotFound('shopId');
-    const txId = await startRecord(productId, skuData.map(s => s.skuID), this.shopId, this.axiosInstance);
+    const txId = await startRecord(productId, skuData.map(s => s.skuID), this.shopId, this.chain, [], this.axiosInstance);
     await this.handleWallet(this.address);
     await this.handleChain();
     const result = await recordProduct(
@@ -312,7 +312,9 @@ export class EVMProvider implements IChainProvider {
       productData,
       skuData
     );
-    const callbackResults = await web3Callback(result.transactionHash, this.chain, Network[this.network], ``);
+    await updateUris(txId, result.metadataUrls, this.axiosInstance);
+    const callbackUrl = `${this.getBaseUrl()}/web3/product/callback/${txId}`;
+    const callbackResults = await web3Callback(result.transactionHash, this.chain, Network[this.network], callbackUrl);
     if (!callbackResults) {
       throw new Web3CallbackFailed(`txHash: ${result.transactionHash}`);
     }

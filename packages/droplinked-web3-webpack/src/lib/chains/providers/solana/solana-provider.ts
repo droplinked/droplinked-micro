@@ -366,7 +366,7 @@ export class SolanaProvider implements IChainProvider {
 
       // 1) Fetch cart/meta from your backend (unchanged)
       const { paymentData, orderID } = await getCartData(
-        data.cartID,
+        data.orderID,
         data.paymentToken,
         data.paymentType,
         this.address,

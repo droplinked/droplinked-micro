@@ -88,7 +88,7 @@ export async function getProductData(productId: string, axiosInstance: KyInstanc
     return (
         (await (
             await axiosInstance.get(
-                `product/${productId}`,
+                `product/public/${productId}`,
             )
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ).json()) as any
@@ -99,16 +99,16 @@ export async function transformProductData(productId: string, axiosInstance: KyI
     productData: IProductDetails,
     skuData: ISKUDetails[]
 }> {
-    await getProductData(productId, axiosInstance);
+    const productData = await getProductData(productId, axiosInstance);
     // TODO: Do the transformation here
     return {
         productData: {
             acceptsManageWallet: true,
             commission: 0,
-            description: "",
-            productTitle: "",
+            description: productData.description,
+            productTitle: productData.title,
             royalty: 0,
-            type: ProductType.DIGITAL
+            type: ProductType[productData.product_type as keyof typeof ProductType] || ProductType.DIGITAL,
         },
         skuData: []
     };
@@ -141,15 +141,15 @@ export async function web3Callback(transactionHash: string, chain: string, netwo
     ).data.data
 }
 
-export async function startRecord(productId: string, skuIds: string[], shopId: string, axiosInstance: KyInstance) {
+export async function startRecord(productId: string, skuIds: string[], shopId: string, chain: Chain, uris: string[], axiosInstance: KyInstance) {
     return (
         (await (
             await axiosInstance.post(
                 `web3/record/transactions`,
                 {
                     json: {
-                        "uris": [],
-                        "network": "Ethereum",
+                        "uris": uris,
+                        "network": chain,
                         "data": {
                             "productId": productId,
                             "skuIds": skuIds
@@ -162,7 +162,7 @@ export async function startRecord(productId: string, skuIds: string[], shopId: s
             )
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ).json()) as any
-    ).data.data
+    ).data.data.id
 }
 
 export async function startPayment(orderId: string, tokenType: string, paymentType: string, walletAddress: string, shopId: string, axiosInstance: KyInstance) {
