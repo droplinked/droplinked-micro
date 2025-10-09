@@ -361,7 +361,7 @@ export class SolanaProvider implements IChainProvider {
    */
   async payment(
     data: IPaymentInputs
-  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
+  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string; transactionId: string }> {
     try {
 
       // 1) Fetch cart/meta from your backend (unchanged)
@@ -519,6 +519,7 @@ export class SolanaProvider implements IChainProvider {
         transactionHash: signature,
         cryptoAmount: totalPrice,
         orderID,
+        transactionId: '',
       }
     } catch (error) {
       console.error('Payment error:', error)

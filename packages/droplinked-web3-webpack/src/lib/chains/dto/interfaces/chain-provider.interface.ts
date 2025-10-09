@@ -23,7 +23,7 @@ export interface IChainProvider {
   ): Promise<RecordResponse>;
   payment(
     data: IPaymentInputs
-  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }>;
+  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string; transactionId: string }>;
   customPayment(data: IChainPayment): Promise<{
     transactionHash: string;
     cryptoAmount: any;

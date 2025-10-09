@@ -127,7 +127,7 @@ export class UnstoppableProvider implements IChainProvider {
   }
   async payment(
     data: IPaymentInputs
-  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string }> {
+  ): Promise<{ transactionHash: string; cryptoAmount: any; orderID: string; transactionId: string }> {
     throw new Error('Method not implemented.');
   }
   async paymentWithToken(
