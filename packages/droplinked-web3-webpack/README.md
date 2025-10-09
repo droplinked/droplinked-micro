@@ -1,101 +1,224 @@
-# Web3 Package use cases via examples
+# Droplinked Web3 Kit — Developer Guide 🚀
 
-## How to use Login Via Wallet
+---
 
-### Normal Login
+## Table of Contents
+
+1. Overview  
+2. Core Concepts  
+3. Authentication (Login via Wallet)  
+   - Metamask | Phantom Wallet (Standard Login)  
+   - Unstoppable Domains Login  
+4. Recording Products on-chain  
+   - Record Procedure  
+   - Custom Errors  
+5. Payments  
+   - Payment Procedure  
+   - Supported Chains & Tokens  
+6. Example Flows (End-to-End)  
+7. Notes & Assumptions  
+8. Open Questions (please confirm)
+
+---
+
+## 1) Overview
+
+**Droplinked Web3 Kit** exposes a single entry class `DropWeb3` configured with an environment `Network` (e.g., `TESTNET`, `MAINNET`) and a `shopId` (as shown in the examples). From that instance, you create a **provider** through `web3Instance(...)` that is specialized by `Web3Actions` such as `LOGIN`, `RECORD`, or `PAYMENT`. Subsequent methods (e.g., `walletLogin`, `unstoppableLogin`, `recordProduct`, `payment`) execute the corresponding flow.
+
+---
+
+## 2) Core Concepts
+
+- **DropWeb3:** Root object created per environment + shopId.  
+- **Web3Actions:** Selects the high-level intent: `LOGIN`, `RECORD`, `PAYMENT`.  
+- **Chain & ChainWallet:** Choose the blockchain (e.g., `POLYGON`, `BINANCE`) and wallet (e.g., `Metamask`, `UnstoppableDomains`, `Phantom`) for the action.  
+- **Provider:** Returned by `web3Instance(...)`, it exposes the concrete method(s) for the chosen action (e.g., `walletLogin`, `unstoppableLogin`, `recordProduct`, `payment`).
+
+---
+
+## 3) Authentication (Login via Wallet) 🔐
+
+### 3.1 Metamask (Standard Login)
+
+**Purpose:** Obtain user address and signature by prompting the user’s wallet.  
+**Flow:**  
+
+1) Instantiate `DropWeb3` with `Network` and token.  
+2) Create a `LOGIN` provider with your preferred wallet (`Metamask` | `Phantom`).  
+3) Call `walletLogin()`.
+
+**ChainWallets**
+
+```
+Metamask | CoinBase | CasperWallet (Deprecated) | Phantom | BaseSmartWallet | UnstoppableDomains
+```
+
+**Chains**
 
 ```js
-// Create web3 object
-const web3 = new DropWeb3(Network.TESTNET, accessToken);
+export enum Chain {
+  CASPER = 'CASPER',
+  POLYGON = 'POLYGON',
+  BINANCE = 'BINANCE',
+  STACKS = 'STACKS',
+  XRPLSIDECHAIN = 'XRPLSIDECHAIN',
+  NEAR = 'NEAR',
+  SKALE = 'SKALE',
+  BASE = 'BASE',
+  LINEA = 'LINEA',
+  ETH = 'ETH',
+  SOLANA = 'SOLANA',
+  REDBELLY = 'REDBELLY',
+  UNSTOPPABLE = 'UNSTOPPABLE',
+  BITLAYER = 'BITLAYER',
+}
+```
 
-// create the chain provider
+**Example:**
+
+```ts
+// Create web3 object
+const web3 = new DropWeb3(Network.TESTNET, shopId);
+
+// Create the chain provider for login
 const chainProvider = await web3.web3Instance({
-    method: Web3Actions.LOGIN,
-    preferredWallet: ChainWallet.Metamask,
+  method: Web3Actions.LOGIN,
+  preferredWallet: ChainWallet.Metamask,
 });
 
-// Login via wallet
+// Prompt wallet & get login result
 const loginData = await chainProvider.walletLogin();
 
-// Log the results
 console.log({
-    address: loginData.address,
-    date: loginData.date,
-    none: loginData.nonce,
-    signature: loginData.signature,
+  address: loginData.address,
+  date: loginData.date,
+  nonce: loginData.nonce,
+  signature: loginData.signature,
 });
 ```
 
-### Unstoppable Login
+**Expected fields:** `address`, `date`, `nonce`, `signature`.
 
-```js
-const web3 = new DropWeb3(Network.TESTNET, accessToken);
+### 3.2 Unstoppable Domains Login
+
+**Purpose:** Authenticate with Unstoppable Domains using a UD key and redirect origin.  
+**Flow:**  
+
+1) Instantiate `DropWeb3`.  
+2) Create a `LOGIN` provider with `ChainWallet.UnstoppableDomains`.  
+3) Call `unstoppableLogin(udKey, origin)`.
+
+**Example:**
+
+```ts
+const web3 = new DropWeb3(Network.TESTNET, shopId);
 
 const chainProvider = await web3.web3Instance({
-    method: Web3Actions.LOGIN,
-    preferredWallet: ChainWallet.UnstoppableDomains,
+  method: Web3Actions.LOGIN,
+  preferredWallet: ChainWallet.UnstoppableDomains,
 });
 
 const loginData = await chainProvider.unstoppableLogin(
-    'de81c772-62be-45ed-8d0b-103abfec2ab8', // <-- UDKey
-    window.location.origin
+  'de81c772-62be-45ed-8d0b-103abfec2ab8', // UD Key
+  window.location.origin
 );
 
 console.log({ loginData });
 ```
 
-## Record Procedure
+---
 
-```typescript
-const blockchain = "POLYGON"; // The blockchain where the product will be recorded
-const productId = "your-product-id"; // The ID of the product to be recorded
-const accountAddress = "user-wallet-address"; // The user's wallet address, can be empty string to prompt connection
-const shopId = "your-shop-id"; // The ID of the shop where the product will be recorded
+## 4) Recording Products on-chain 🧾
 
-const  web3 = new  DropWeb3(
- appDevelopment ? Network.TESTNET : Network.MAINNET,
- shopId
+### 4.1 Record Procedure
+
+**Purpose:** Record a product to a specific blockchain for a given shop.  
+**Inputs (from your example):**
+
+- `blockchain` (string name matching `Chain[...]`)
+- `productId`
+- `accountAddress` (can be `''` to trigger wallet connect)
+- `shopId`
+- `Network` selection (TESTNET/MAINNET)
+- `preferredWallet` (e.g., `Metamask`)
+
+**Flow:**  
+
+1) Instantiate `DropWeb3` with environment and `shopId`.  
+2) Create a `RECORD` provider for the desired chain.  
+3) Call `recordProduct(productId)` and handle the response.
+
+**Example:**
+
+```ts
+const blockchain = "POLYGON";
+const productId = "your-product-id";
+const accountAddress = "user-wallet-address"; // empty string -> prompts wallet connect
+const shopId = "your-shop-id";
+
+const web3 = new DropWeb3(
+  appDevelopment ? Network.TESTNET : Network.MAINNET,
+  shopId
 );
 
-const  provider = await web3.web3Instance({
- method: Web3Actions.RECORD,
- chain: Chain[blockchain],
- preferredWallet: ChainWallet.Metamask,
- userAddress: accountAddress, // If the userAddress field is empty, it will prompt the user to connect their wallet first
+const provider = await web3.web3Instance({
+  method: Web3Actions.RECORD,
+  chain: Chain[blockchain],
+  preferredWallet: ChainWallet.Metamask,
+  userAddress: accountAddress, // if '', user is prompted to connect
 });
 
-let  record: RecordResponse;
-record = await  provider.recordProduct(productId);
-
-return  record;
+let record: RecordResponse = await provider.recordProduct(productId);
+return record;
 ```
 
-### Custom errors
+### 4.2 Custom Errors (import & check as needed)
 
-- `ChainNotImplementedException`: when trying to record on a chain which is not implemented yet.
-- `Unauthorized`: The user is not the owner of the shop contract to record products on it.
-- `FieldNotFound`: the `nftContractAddress` or `shopContractAddress` fields are not set for the recording shop.
-- `Web3CallbackFailed`: The callback to web3 services after recording failed.
-- `MetadataUploadFailedException`: The upload of metadata of SKUs failed.
-- `WalletNotFoundException`: The preferred wallet does not exist (must redirect user to wallet installation page).
-- `AccountAccessDeniedException`: The user did not grant access to their wallet when connecting.
-- `NoAccountsFoundException`: The user did not grant access to any of their accounts when connecting.
-- `SignatureRequestDeniedException`: The user denied a signature request.
-- `ChainSwitchException`: Can not switch to the correct chain in the user's wallet.
-- `UserDeniedException`: User denied a sign transaction request.
+- `ChainNotImplementedException`  
+- `Unauthorized`  
+- `FieldNotFound` (missing `nftContractAddress`/`shopContractAddress`)  
+- `Web3CallbackFailed`  
+- `MetadataUploadFailedException`  
+- `WalletNotFoundException`  
+- `AccountAccessDeniedException`  
+- `NoAccountsFoundException`  
+- `SignatureRequestDeniedException`  
+- `ChainSwitchException`  
+- `UserDeniedException`  
 
-You can import these errors and check if any of them happens during a record process.
+> Use these to provide user-friendly messages and remediation (e.g., ask to install wallet, approve access, switch network).
 
-## Payment Procedure
+---
 
-```js
+## 5) Payments 💳
+
+### 5.1 Payment Procedure
+
+**Purpose:** Execute a crypto payment for an order using a specified token and chain.  
+**Inputs (from your example):**
+
+- `shopId`
+- `orderId`
+- `paymentToken` (enum)
+- `paymentType` (enum `Chain`)
+- `userAddress` (optional: empty string will prompt wallet connect)
+
+**Flow:**  
+
+1) Instantiate `DropWeb3` with environment and `shopId`.  
+2) Create a `PAYMENT` provider for the target chain.  
+3) Call `payment({ orderID, paymentToken, paymentType })`.
+
+**Example:**
+
+```ts
 import {
-Chain,
-ChainWallet,
-DropWeb3,
-Network,
-PaymentTokens,
-Web3Actions,
+  Chain,
+  ChainWallet,
+  DropWeb3,
+  Network,
+  PaymentTokens,
+  Web3Actions,
 } from 'droplinked-web3-kit';
 
 const shopId = '66d47d965744cb21dac659ab';
@@ -103,71 +226,59 @@ const orderId = '5a4fc3e56134cb23cba014dc';
 const paymentMethod = 'USDC';
 const paymentType = 'BINANCE';
 
-// Create Web3 Object
 const web3 = new DropWeb3(Network.TESTNET, shopId);
 
-// Get a provider instance
 const instance = await web3.web3Instance({
-    method: Web3Actions.PAYMENT,
-    chain: Chain[paymentType],
-    preferredWallet: ChainWallet.Metamask,
-    userAddress: '0xYourWalletAddressHere', // <-- This can be fetched by using the login method, also you can pass empty string and the package will ask the user to connect their wallet
+  method: Web3Actions.PAYMENT,
+  chain: Chain[paymentType],
+  preferredWallet: ChainWallet.Metamask,
+  userAddress: '0xYourWalletAddressHere', // or '' to prompt connect
 });
 
-// Call the payment method
 const result = await instance.payment({
-    orderID: orderId,
-    paymentToken: PaymentTokens[paymentMethod],
-    paymentType: Chain[paymentType],
+  orderID: orderId,
+  paymentToken: PaymentTokens[paymentMethod],
+  paymentType: Chain[paymentType],
 });
 
-// Log the results
 console.log({
-    orderID: result.orderID,
-    cryptoAmount: result.cryptoAmount,
-    transactionHash: result.transactionHash,
-    transactionId: result.transactionId,
+  orderID: result.orderID,
+  cryptoAmount: result.cryptoAmount,
+  transactionHash: result.transactionHash,
+  transactionId: result.transactionId,
 });
 ```
 
-List of Chains and Payment Tokens supported can be found here:
+**Returned fields:** typical payment metadata like `cryptoAmount`, `transactionHash`, `transactionId` (names based on your example).
 
-Payment Tokens:
+### 5.2 Supported Enums
 
-```js
-export declare enum PaymentTokens {
-    ETH = "ETH",
-    RBNT = "RBNT",
-    SOL = "SOL",
-    USDC = "USDC",
-    USDT = "USDT",
-    MEW = "MEW",
-    BNB = "BNB",
-    MATIC = "MATIC",
-    CSPR = "CSPR",
-    PARAM = "PARAM",
-    BDC = "BDC",
-    BTC = "BTC"
-}
+**Payment Tokens**
+
+```
+ETH | RBNT | SOL | USDC | USDT | MEW | BNB | MATIC | CSPR | PARAM | BDC | BTC
 ```
 
-Chains:
+**Chains**
 
-```js
-export declare enum Chain {
-    CASPER = "CASPER",
-    POLYGON = "POLYGON",
-    BINANCE = "BINANCE",
-    STACKS = "STACKS",
-    XRPLSIDECHAIN = "XRPLSIDECHAIN",
-    NEAR = "NEAR",
-    SKALE = "SKALE",
-    BASE = "BASE",
-    LINEA = "LINEA",
-    ETH = "ETH",
-    SOLANA = "SOLANA",
-    REDBELLY = "REDBELLY",
-    UNSTOPPABLE = "UNSTOPPABLE",
-    BITLAYER = "BITLAYER"
-}
 ```
+CASPER | POLYGON | BINANCE | STACKS | XRPLSIDECHAIN | NEAR | SKALE | BASE | LINEA | ETH | SOLANA | REDBELLY | UNSTOPPABLE | BITLAYER
+```
+
+Use `PaymentTokens[<TOKEN>]` and `Chain[<CHAIN>]` for type-safe invocation.
+
+---
+
+## 6) Example Flows (End-to-End) 🧭
+
+### 6.1 Login → Record
+
+1) `LOGIN` via Metamask (`walletLogin`) to obtain `address`.  
+2) `RECORD` with `userAddress` set to the login address.  
+3) `recordProduct(productId)` and store the `RecordResponse` in your system.
+
+### 6.2 Login → Pay
+
+1) `LOGIN` to obtain `address`.  
+2) `PAYMENT` with `userAddress` or let it prompt the wallet.  
+3) `payment({ orderID, paymentToken, paymentType })`, then persist `transactionHash`/`transactionId`.
