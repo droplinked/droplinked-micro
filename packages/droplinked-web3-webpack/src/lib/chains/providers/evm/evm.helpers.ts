@@ -23,8 +23,24 @@ export async function uploadMetadata(
   return res.data;
 }
 
+
+export async function updateUris(
+  txId: string,
+  uris: string[],
+  axiosInstance: KyInstance
+) {
+  const res = await ((
+    await axiosInstance.put(`web3/record/transactions/${txId}/uris`, {
+      json: {
+        uris
+      },
+    })
+  ).json() as any);
+  return res.data;
+}
+
 export async function getCartData(
-  cartID: string,
+  orderID: string,
   tokenType: string,
   paymentType: string,
   walletAddress: string,
@@ -33,12 +49,12 @@ export async function getCartData(
   const result = (
     (await (
       await axiosInstance.get(
-        `checkout/order/crypto-payment-data/${cartID}/${tokenType}/${paymentType}/${walletAddress}`
+        `web3/payment/distribution/${orderID}/${tokenType}/${paymentType}/${walletAddress}`
       )
     ).json()) as any
   ).data;
   return {
-    paymentData: result.paymentData as IChainPayment,
+    paymentData: result.data as IChainPayment,
     orderID: result.orderID,
   };
 }

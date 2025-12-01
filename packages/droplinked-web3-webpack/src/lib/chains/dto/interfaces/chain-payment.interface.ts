@@ -7,11 +7,5 @@ export interface IChainPayment {
   tbdValues: number[] | ethers.BigNumber[];
   tbdReceivers: string[];
   tokenAddress?: string;
-  cartItems: {
-    id: number;
-    amount: number;
-    isAffiliate: boolean;
-    shopAddress: string;
-  }[];
   memo: string;
 }

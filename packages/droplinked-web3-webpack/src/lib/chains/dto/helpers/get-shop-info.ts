@@ -88,7 +88,7 @@ export async function getProductData(productId: string, axiosInstance: KyInstanc
     return (
         (await (
             await axiosInstance.get(
-                `product/${productId}`,
+                `product/public/${productId}`,
             )
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ).json()) as any
@@ -99,22 +99,22 @@ export async function transformProductData(productId: string, axiosInstance: KyI
     productData: IProductDetails,
     skuData: ISKUDetails[]
 }> {
-    await getProductData(productId, axiosInstance);
+    const productData = await getProductData(productId, axiosInstance);
     // TODO: Do the transformation here
     return {
         productData: {
             acceptsManageWallet: true,
             commission: 0,
-            description: "",
-            productTitle: "",
+            description: productData.description,
+            productTitle: productData.title,
             royalty: 0,
-            type: ProductType.DIGITAL
+            type: ProductType[productData.product_type as keyof typeof ProductType] || ProductType.DIGITAL,
         },
         skuData: []
     };
 }
 
-export async function web3Callback() {
+export async function web3Callback(transactionHash: string, chain: string, network: string, callbackUrl: string) {
     const headers = {
         'X-API-KEY': 'ho8homr9e8p4fwii7tjiz41xs4hlbl2h4i',
     };
@@ -124,10 +124,15 @@ export async function web3Callback() {
 
     return (
         (await (
-            await axiosInstance.get(
-                '',
+            await axiosInstance.post(
+                'transactions',
                 {
-
+                    json: {
+                        transaction_id: transactionHash,
+                        callback_url: callbackUrl,
+                        chain: chain,
+                        network: network
+                    },
                     headers
                 }
             )
@@ -136,20 +141,41 @@ export async function web3Callback() {
     ).data.data
 }
 
-export async function startRecord(productId: string, skuIds: string[], axiosInstance: KyInstance) {
+export async function startRecord(productId: string, skuIds: string[], shopId: string, chain: Chain, uris: string[], axiosInstance: KyInstance) {
     return (
         (await (
             await axiosInstance.post(
                 `web3/record/transactions`,
                 {
                     json: {
-                        "uri": "string",
-                        "network": "Ethereum",
+                        "uris": uris,
+                        "network": chain,
                         "data": {
                             "productId": productId,
                             "skuIds": skuIds
                         },
-                        "metadata": {}
+                        "metadata": {},
+                        "shopId": shopId,
+                        "txType": "RECORD",
+                    }
+                }
+            )
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ).json()) as any
+    ).data.data.id
+}
+
+export async function startPayment(orderId: string, tokenType: string, paymentType: string, walletAddress: string, shopId: string, axiosInstance: KyInstance) {
+    return (
+        (await (
+            await axiosInstance.post(
+                `web3/payment/transactions`,
+                {
+                    json: {
+                        "network": paymentType,
+                        "token": tokenType,
+                        "shopId": shopId,
+                        "orderId": orderId,
                     }
                 }
             )
